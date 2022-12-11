@@ -6,6 +6,22 @@ This is an electronics/microcontroller project for adapting a DiamondTel Model 9
 
 This project includes both a custom electronics circuit and custom microcontroller software.
 
+- [DiamondTel Model 92 Bluetooth Adapter](#diamondtel-model-92-bluetooth-adapter)
+  * [Under Construction](#under-construction)
+  * [About This Project](#about-this-project)
+    + [TL;DR](#tl-dr)
+    + [The DiamondTel Model 92 Portable Cellular Telephone](#the-diamondtel-model-92-portable-cellular-telephone)
+    + [Motivation / Goals](#motivation---goals)
+    + [Project Forum Thread](#project-forum-thread)
+    + [Discussion](#discussion)
+  * [Basic Design](#basic-design)
+    + [High Level Design Summary](#high-level-design-summary)
+    + [Design Pros/Cons](#design-pros-cons)
+  * [Compatibility](#compatibility)
+    + [Adapted Vintage Mobile Phone](#adapted-vintage-mobile-phone)
+    + [Paired Modern Cell Phone](#paired-modern-cell-phone)
+
+
 ## Under Construction
 
 This repository is a work-in-progress. Check back often for more details and documentation.
@@ -93,16 +109,16 @@ Cons:
 - Requires a lot of custom software to replicate original DiamondTel Model 92 functionality as faithfully as possible.
 - This is not a general design that will work with a wide range of vintage mobile phones.
 
-# Compatibility
+## Compatibility
 
-## Adapted Vintage Mobile Phone
+### Adapted Vintage Mobile Phone
 
 Because this design relies on a direct wired interface with the handset and transceiver (using proprietary connections and digital communications), it has very limited compatibility. As of now, this project is only known to work with the following vintage mobile phones:
 
 - DiamondTel Model 92
 - Mitsubishi Model 1500
 
-## Paired Modern Cell Phone
+### Paired Modern Cell Phone
 
 Any modern cell phone that supports Bluetooth Hands-Free Profile (HFP) _should_ (in theory) be able to pair with the custom device and work properly. I have a very limited selection of phones to test with, so I can't make any guarantees.
 
