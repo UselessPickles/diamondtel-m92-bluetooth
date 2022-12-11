@@ -1,6 +1,12 @@
 # PIC18F27Q43 Microcontroller Software Project
 
-This directory is a complete [MPLAB X](https://www.microchip.com/en-us/tools-resources/develop/mplab-x-ide) project containing all source code and configuration for the PIC18F27Q43 software.
+This directory is a complete [MPLAB X](https://www.microchip.com/en-us/tools-resources/develop/mplab-x-ide) project containing all source code and configuration for the PIC18F27Q43 microcontroller software.
+
+## Sloppy Prototype Under Construction
+
+Much of the code is not up to my personal standards, so don't judge me too harshly. This project is still in the transition phase from a quick, sloppy, and incrementally updated proof-of-concept to a more deliberately designed and implemented solution.
+
+In particular, the bulk of the phone functionality in `app.c` is a big confusing mess that needs to be split out separate more manageable files, and the sound engine in `sound.c` is in need of a redesign. Many of the other files still require cleanup and documentation.
 
 ## MPLAB Code Configurator
 
