@@ -7,19 +7,19 @@ This is an electronics/microcontroller project for adapting a DiamondTel Model 9
 This project includes both a custom electronics circuit and custom microcontroller software.
 
 - [DiamondTel Model 92 Bluetooth Adapter](#diamondtel-model-92-bluetooth-adapter)
-  * [Under Construction](#under-construction)
-  * [About This Project](#about-this-project)
-    + [TL;DR (with demo video)](#tl-dr--with-demo-video-)
-    + [The DiamondTel Model 92 Portable Cellular Telephone](#the-diamondtel-model-92-portable-cellular-telephone)
-    + [Motivation / Goals](#motivation---goals)
-    + [Project Forum Thread](#project-forum-thread)
-    + [Discussion](#discussion)
-  * [Basic Design](#basic-design)
-    + [High Level Design Summary](#high-level-design-summary)
-    + [Design Pros/Cons](#design-pros-cons)
-  * [Compatibility](#compatibility)
-    + [Adapted Vintage Mobile Phone](#adapted-vintage-mobile-phone)
-    + [Paired Modern Cell Phone](#paired-modern-cell-phone)
+  - [Under Construction](#under-construction)
+  - [About This Project](#about-this-project)
+    - [TL;DR (with demo video)](#tldr-with-demo-video)
+    - [The DiamondTel Model 92 Portable Cellular Telephone](#the-diamondtel-model-92-portable-cellular-telephone)
+    - [Motivation / Goals](#motivation--goals)
+    - [Project Forum Thread](#project-forum-thread)
+    - [Discussion](#discussion)
+  - [Basic Design](#basic-design)
+    - [High Level Design Summary](#high-level-design-summary)
+    - [Design Pros/Cons](#design-proscons)
+  - [Compatibility](#compatibility)
+    - [Adapted Vintage Mobile Phone](#adapted-vintage-mobile-phone)
+    - [Paired Modern Cell Phone](#paired-modern-cell-phone)
 
 
 ## Under Construction
