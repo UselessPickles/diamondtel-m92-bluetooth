@@ -9,7 +9,7 @@ This project includes both a custom electronics circuit and custom microcontroll
 - [DiamondTel Model 92 Bluetooth Adapter](#diamondtel-model-92-bluetooth-adapter)
   * [Under Construction](#under-construction)
   * [About This Project](#about-this-project)
-    + [TL;DR](#tl-dr)
+    + [TL;DR (with demo video)](#tl-dr--with-demo-video-)
     + [The DiamondTel Model 92 Portable Cellular Telephone](#the-diamondtel-model-92-portable-cellular-telephone)
     + [Motivation / Goals](#motivation---goals)
     + [Project Forum Thread](#project-forum-thread)
@@ -28,7 +28,7 @@ This repository is a work-in-progress. Check back often for more details and doc
 
 ## About This Project
 
-### TL;DR
+### TL;DR (with demo video)
 
 I have an old car phone in my early 90's car. It's impossible to activate service for these old phones. I made the old car phone actually work like a real phone.
 
@@ -84,7 +84,7 @@ Do you have something to ask/say about this project? You can reach out to me in 
     - Turn the backlight on/off.
     - Turn speakers/microphone on/off.
     - Detect button presses.
-    - Produce sound effects for button presses, rintones, etc.
+    - Produce sound effects for button presses, ringtones, etc.
 - The custom device communicates with the transceiver to monitor the transciever battery level.    
 - There is no direct pass-through communication between the handset and transceiver.
     - As far as the transceiver knows, it simply powers up and remains in its default idle state at all times (except for when the custom device requests the battery level).
@@ -101,12 +101,12 @@ Pros:
 - Plug-n-play design - no modifications to the original phone.
 - No separate power supply is needed.
 - Can pair with practically any modern cell phone (no separate SIM card needed).
-- The vintage mobile phone has the appearance of being a completely original and functioning phone.
-- Full control of implementing any desired behavior (within limitations of the handset display/button capabilities, and within limitations of Bluetooth HFP), including functionality that was never available/possible on the original phine (e.g., Caller ID).
+- The vintage mobile phone has the appearance of being a completely original and functioning phone (assuming that the custom device is hidden, which is easy when the phone is installed in a vehicle as a car phone).
+- Full control of implementing any desired behavior (within limitations of the handset display/button capabilities, and within limitations of Bluetooth HFP), including functionality that was never available/possible on the original phone (e.g., Caller ID).
 
 Cons:
 
-- Requires a lot of custom software to replicate original DiamondTel Model 92 functionality as faithfully as possible.
+- Requires a lot of custom software to replicate original DiamondTel Model 92 functionality as faithfully as possible (but that's OK with me; I'm a software engineer, and this is fun!).
 - This is not a general design that will work with a wide range of vintage mobile phones.
 
 ## Compatibility
@@ -127,3 +127,4 @@ These are the modern cell phones performed at least some basic testing with:
 - iPhone 8
 - iPhone SE
 - iPhone 14
+
