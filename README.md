@@ -13,16 +13,17 @@ This project includes both a custom electronics circuit and custom microcontroll
 - [DiamondTel Model 92 Bluetooth Adapter](#diamondtel-model-92-bluetooth-adapter)
   - [Under Construction](#under-construction)
   - [About This Project](#about-this-project)
-    - [TL;DR (with demo video)](#tldr-with-demo-video)
+    - [TL;DR (with demo videos)](#tldr-with-demo-videos)
     - [The DiamondTel Model 92 Portable Cellular Telephone](#the-diamondtel-model-92-portable-cellular-telephone)
     - [Motivation / Goals](#motivation--goals)
     - [Project Forum Thread](#project-forum-thread)
     - [Discussion](#discussion)
+    - [Documentation](#documentation)
   - [Basic Design](#basic-design)
     - [High Level Design Summary](#high-level-design-summary)
     - [Design Pros/Cons](#design-proscons)
   - [Compatibility](#compatibility)
-    - [Adapted Vintage Mobile Phone](#adapted-vintage-mobile-phone)
+    - [Vintage Mobile Phone](#vintage-mobile-phone)
     - [Paired Modern Cell Phone](#paired-modern-cell-phone)
 
 
@@ -32,7 +33,7 @@ This repository is a work-in-progress. Check back often for more details and doc
 
 ## About This Project
 
-### TL;DR (with demo video)
+### TL;DR (with demo videos)
 
 I have an old car phone in my early 90's car. It's impossible to activate service for these old phones. I made the old car phone actually work like a real phone.
 
@@ -73,6 +74,10 @@ Subscribe to this thread if you want to be notified of significant updates about
 
 Do you have something to ask/say about this project? You can reach out to me in [this Gitter chat room](https://gitter.im/UselessPickles/diamondtel-m92-bluetooth).
 
+### Documentation
+
+There's too much information to put in one README. Most directories of this project have a README containing relevant documentation for that portion of the project. So explore the directory structure and use the READMEs to get familiar with it.
+
 ## Basic Design
 
 ### High Level Design Summary
@@ -92,8 +97,8 @@ Do you have something to ask/say about this project? You can reach out to me in 
 - The custom device communicates with the transceiver to monitor the transciever battery level.    
 - There is no direct pass-through communication between the handset and transceiver.
     - As far as the transceiver knows, it simply powers up and remains in its default idle state at all times (except for when the custom device requests the battery level).
-- The custom device fully implements all "phone" behavior that is experienced by interacting with the handset. Much of it is a replica of (or inspired by) the DiamondTel Model 92's original behavior.
-- The custom device Bluetooth pairs with a modern cell phone using the Hands-Free Profile (HFP). This Bluetooth connection is used to:
+- The custom device fully implements all behavior that is experienced by interacting with the handset. Much of it is a replica of (or inspired by) the DiamondTel Model 92's original behavior.
+- The custom device pairs with a modern cell phone using the Bluetooth Hands-Free Profile (HFP). This Bluetooth connection is used to:
     - Monitor/display cell service status and signal strength, etc.
     - Handle incoming calls.
     - Send outgoing calls.
@@ -115,7 +120,7 @@ Cons:
 
 ## Compatibility
 
-### Adapted Vintage Mobile Phone
+### Vintage Mobile Phone
 
 Because this design relies on a direct wired interface with the handset and transceiver (using proprietary connections and digital communications), it has very limited compatibility. As of now, this project is only known to work with the following vintage mobile phones:
 
