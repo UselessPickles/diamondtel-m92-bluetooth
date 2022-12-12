@@ -173,7 +173,7 @@ static bool storeInput(void) {
 void PROGRAMMING_Start(PROGRAMMING_ReturnCallback returnCallback) {
   module.returnCallback = returnCallback;
   
-  IO_BT_ON_SetLow();
+  IO_BT_RESET_SetLow();
   
   SOUND_SetDefaultAudioSource(SOUND_AudioSource_MCU);
   HANDSET_SetAllIndicators(false);

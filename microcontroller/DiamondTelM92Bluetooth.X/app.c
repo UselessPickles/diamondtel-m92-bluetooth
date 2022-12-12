@@ -145,7 +145,7 @@ static void reboot(void) {
   
   HANDSET_SetTextBlink(false);
   TIMEOUT_Start(&appStateTimeout, 10);
-  IO_BT_ON_SetLow();
+  IO_BT_RESET_SetLow();
   appState = APP_State_REBOOT;
 }
 
@@ -1314,7 +1314,7 @@ static uint8_t getCreditCardMemoryIndexFromButton(HANDSET_Button button) {
 }
 
 void APP_Initialize(void) {
-  IO_BT_ON_SetLow();
+  IO_BT_RESET_SetLow();
   
   appState = APP_State_INIT_START;
   lastAppState = -1;
@@ -1433,7 +1433,7 @@ void APP_Task(void) {
       if (!TIMEOUT_IsPending(&appStateTimeout)) {
         TIMEOUT_Start(&appStateTimeout, 25);
         HANDSET_SetLcdViewAngle(STORAGE_GetLcdViewAngle());
-        IO_BT_ON_SetHigh();
+        IO_BT_RESET_SetHigh();
         
         appState = APP_State_INIT_ALL_DISPLAY_ON;
         break;
