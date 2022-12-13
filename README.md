@@ -84,21 +84,16 @@ There's too much information to put in one README. Most directories of this proj
 
 ![Basic Component Diagram](readme/basic_component_diagram.png)
 
-- A custom device connects inline between the DiamondTel Model 92 handset and transceiver.
-- The transceiver provides its power supply and power on/off functionality.
-    - Power supply, ground, and handset power button connection is passed through the custom device.
-    - The transceiver's power supply may be a battery or an external power supply (AC/DC adapter, cigarette lighter adapter, or a connection to vehicle wiring).
-- The custom device takes over full control of the handset to:
-    - Update the display.
-    - Turn the backlight on/off.
-    - Turn speakers/microphone on/off.
-    - Detect button presses.
-    - Produce sound effects for button presses, ringtones, etc.
-- The custom device communicates with the transceiver to monitor the transciever battery level.    
+- A custom Bluetooth adapter connects inline between the DiamondTel Model 92 handset and transceiver.
+- The transceiver provides its power supply and power on/off functionality to the Bluetooth adapter.
+    - Power supply, ground, and handset power button connection is passed through the Bluetooth adapter between the handset and transceiver.
+    - When the transceiver powers on, the Bluetooth adapter also powers on via the same power supply that powers the handset.
+- The Bluetooth adapter takes full control of the handset.
+- The Bluetooth adapter fully implements all behavior that is experienced by interacting with the handset. Much of it is a replica of (or inspired by) the DiamondTel Model 92's original behavior.
+- The Bluetooth adapter communicates with the transceiver to monitor the transceiver battery level.    
 - There is no direct pass-through communication between the handset and transceiver.
-    - As far as the transceiver knows, it simply powers up and remains in its default idle state at all times (except for when the custom device requests the battery level).
-- The custom device fully implements all behavior that is experienced by interacting with the handset. Much of it is a replica of (or inspired by) the DiamondTel Model 92's original behavior.
-- The custom device pairs with a modern cell phone using the Bluetooth Hands-Free Profile (HFP). This Bluetooth connection is used to:
+    - As far as the transceiver knows, it simply powers up and remains in its default idle state at all times (except for when the Bluetooth adapter requests the battery level).
+- The Bluetooth adapter pairs with a modern cell phone using the Bluetooth Hands-Free Profile (HFP). This Bluetooth connection is used to:
     - Monitor/display cell service status and signal strength, etc.
     - Handle incoming calls.
     - Send outgoing calls.
@@ -110,7 +105,7 @@ Pros:
 - Plug-n-play design - no modifications to the original phone.
 - No separate power supply is needed.
 - Can pair with practically any modern cell phone (no separate SIM card needed).
-- The vintage mobile phone has the appearance of being a completely original and functioning phone (assuming that the custom device is hidden, which is easy when the phone is installed in a vehicle as a car phone).
+- The vintage mobile phone has the appearance of being a completely original and functioning phone (assuming that the Bluetooth adapter is hidden, which is easy when the phone is installed in a vehicle as a car phone).
 - Full control of implementing any desired behavior (within limitations of the handset display/button capabilities, and within limitations of Bluetooth HFP), including functionality that was never available/possible on the original phone (e.g., Caller ID).
 
 Cons:
@@ -129,7 +124,7 @@ Because this design relies on a direct wired interface with the handset and tran
 
 ### Paired Modern Cell Phone
 
-Any modern cell phone that supports Bluetooth Hands-Free Profile (HFP) _should_ (in theory) be able to pair with the custom device and work properly. I have a very limited selection of phones to test with, so I can't make any guarantees.
+Any modern cell phone that supports Bluetooth Hands-Free Profile (HFP) _should_ (in theory) be able to pair with the Bluetooth adapter and work properly. I have a very limited selection of phones to test with, so I can't make any guarantees.
 
 These are the modern cell phones performed at least some basic testing with:
 
