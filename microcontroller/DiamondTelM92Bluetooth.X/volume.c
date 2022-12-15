@@ -34,7 +34,8 @@ static const uint16_t wiperPositionLookup[] = {
   // The entry for index 0 (VOLUME_Level_OFF) is never used because audio 
   // input is completely disconnected for that volume level. 
   0,
-  0, 8, 20, 48, 72, 96, 160
+  // 0, 8, 20, 48, 72, 96, 160
+  0, 12, 28, 64, 104, 160, 256
 };
 
 
