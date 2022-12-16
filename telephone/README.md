@@ -35,7 +35,9 @@ This directory and README contains information about the DiamondTel Model 92 Cel
     - [Set Signal Strength](#set-signal-strength)
     - [Audio On/Off](#audio-onoff)
     - [Request Hook Status](#request-hook-status)
-  - [Mysterious UART Command and Event Response](#mysterious-uart-command-and-event-response)  
+    - [Mysterious UART Command and Event Response](#mysterious-uart-command-and-event-response)
+  - [Handset Sound Frequencies](#handset-sound-frequencies)
+  
 ## About the Phone
 
 The DiamondTel Model 92 Portable Cellar Telephone is a hybrid transportable/mobile (mobile, as in, "car phone") manufactured by Mitsubishi in the early 1990's. 
@@ -166,6 +168,8 @@ NOTE: The operating voltage of the UART seems to fluctuate with the transceiver 
 ## Handset UART Events
 
 All UART events from the handset are simple 1-byte messages.
+
+Also see the `DiamondTel Model 92 Handset UART Events and Commands` spreadsheet in this directory for a complete ordered list of events.
 
 ### Basic Button Presses
 
@@ -299,6 +303,8 @@ NOTE: There is also a UART command to [request the hook status](#request-hook-st
 ## Handset UART Commands
 
 All UART commands are simple 1-byte messages, except for the 2-byte message sequence used for [Positioned Printing](#positioned-printing).
+
+Also see the `DiamondTel Model 92 Handset UART Events and Commands` spreadsheet in this directory for a complete ordered list of commands.
 
 ### Delete Text
 
@@ -499,7 +505,7 @@ The current hook status of the handset can be requested at any time, and the han
 |---------------------|---------|----------------|
 | Request Hook Status | 0xDF    | [Hook Status](#hook-status) |
 
-## Mysterious UART Command and Event Response
+### Mysterious UART Command and Event Response
 
 There is a command that causes the handset to respond immediately with a mysterious event. The meaning of this command and event is unknown.
 
@@ -508,3 +514,26 @@ There is a command that causes the handset to respond immediately with a mysteri
 | Mystery | 0xEA    | 0x8C           |
 
 I have tested with multiple handsets, and all respond with the same value.
+
+## Handset Sound Frequencies
+
+In addition to [standard DTMF tones](https://en.wikipedia.org/wiki/Dual-tone_multi-frequency_signaling), the various beeps and tones produced by the original phone are made up of two frquencies:
+
+| Tone Type | Frequency |
+|-----------|-----------|
+| Low       | 768 Hz    |
+| High      | 1152 Hz   |
+
+NOTE: The Low tone is close enough to one of the standard DTMF frequencies (770 Hz) that it is probably safe to assume that it was intended to be the same.
+
+There are several different kinds of sounds the phone makes with these 2 tones:
+
+| Sound Type      | Low | High | Notes |
+|-----------------|-----|------|-------|
+| Tone            | X   | X    | When adjusting "Tone" volume |
+| Power On        | X   | X    | |
+| Button Beep     | X   |      | Except for DTMF tones in certain situations |
+| Power Off       |     | X    | |
+| Alert (Ringing) | X   | X    | Alternates between high and low, repeating at 20 Hz |
+| Low Battery     |     | X    | |
+| Call Failed     | X   | X    | Alternates between high and low, repeating at 1 Hz |
