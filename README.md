@@ -25,7 +25,7 @@ This project includes both a custom electronics circuit and custom microcontroll
   - [Compatibility](#compatibility)
     - [Vintage Mobile Phone](#vintage-mobile-phone)
     - [Paired Modern Cell Phone](#paired-modern-cell-phone)
-
+  - [About the Author](#about-the-author)
 
 ## Under Construction
 
@@ -133,3 +133,8 @@ These are the modern cell phones performed at least some basic testing with:
 - Apple iPhone 14
 - Google Pixel 3 XL
 
+## About the Author
+
+I'm a software engineer with primary professional expertise in front-end web app development, but I've also played around with some basic electronics and microcontoller programming for fun. This is by far my most ambitious electronics/microcontroller project. 
+
+The electronics side of things is my weakness, and I've relied on quite a bit of assistance from people that know electronics better than me to get this far. If you know electronics, and think I did something stupid or unnecessary in my circuit design, then you're probably right! Please file an issue against this project if you have recommendations!
