@@ -67,7 +67,7 @@ See the datasheet in the `datasheets` directory.
 
 ### Differential Amplifier (INA105)
 
-A pair of precision differential amplifiers is used to produce the [differential](https://en.wikipedia.org/wiki/Differential_signalling) audio output to the Handset. One amplifier is configured as an inverting unity gain amplifier, and the other is configured as an non-inverting unity gain buffer.
+A pair of precision amplifiers is used to produce the [differential](https://en.wikipedia.org/wiki/Differential_signalling) audio output to the Handset. One amplifier is configured as an inverting unity gain amplifier, and the other is configured as an non-inverting unity gain buffer.
 
 NOTE: This component requires a +5V and -5V power supply.
 
