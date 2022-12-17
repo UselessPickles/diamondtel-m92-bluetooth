@@ -28,6 +28,8 @@ This is a simplified component diagram of the bluetooth adapter circuit. Many de
 
 This is a summary of all the major components of the bluetooth adapter circuit.
 
+Datasheets for most components can be found in `datasheets` directory.
+
 NOTE: Not all of these components are represented in the [Basic Circuit Design](#basic-circuit-design) diagram.
 
 ### Microcontroller (PIC18F27Q43)
@@ -49,8 +51,6 @@ This component is a set of 3 analog SPDT switches in one component. This is used
 - Choose between sending incoming voice audio or Microcontroller-generated sounds to the Handset.
 - Disable the microphone connection between the Handset and the Bluetooth Module.
 
-See the datasheet in the `datasheets` directory.
-
 ### Op Amp Buffer (NJU7031)
 
 This Op Amp is used to buffer the raw DAC sound output from the Microcontroller before passing it through any further circuitry.
@@ -63,21 +63,15 @@ A 2-stage RC network is used to smooth out the 10KHz sample rate DAC audio outpu
 
 This digital potentiometer allows the Microcontroller to control the volume of audio output the the Handset.
 
-See the datasheet in the `datasheets` directory.
-
 ### Differential Amplifier (INA105)
 
 A pair of precision amplifiers is used to produce the [differential](https://en.wikipedia.org/wiki/Differential_signalling) audio output to the Handset. One amplifier is configured as an inverting unity gain amplifier, and the other is configured as an non-inverting unity gain buffer.
 
 NOTE: This component requires a +5V and -5V power supply.
 
-See the datasheet in the `datasheets` directory.
-
 ### 5V Voltage Regulator (L7805CV)
 
 This voltage regulator produces a +5V power supply for the circuit. The ~12V power supply from the Transceiver is used as input.
-
-See the datasheet in the `datasheets` directory.
 
 ### Negative Voltage Converter (TL7660)
 
