@@ -131,7 +131,7 @@ The handset turns on when about +12V is supplied to pin 7. The exact violtage va
 
 ### PWR Button (Pin 8)
 
-Pin 8 is connected to the PWR (power) button on the handset. The button is a normally-open momentary button that connects to ground with a small resistance (~40 Ohms) when pressed. The transever seems to use a pull-up resister to about +12V while the phone is OFF. Voltage on this pin is just over 2V while the phone is ON (unknown why/how).
+Pin 8 is connected to the PWR (power) button on the handset. The button is a normally-open momentary button that connects to ground with a small resistance (~40 Ohms) when pressed. The transceiver seems to use a pull-up resister to about +12V while the phone is OFF. Voltage on this pin is just over 2V while the phone is ON (unknown why/how).
 
 ### Analog Audio Input (Pins 1 and 2)
 
