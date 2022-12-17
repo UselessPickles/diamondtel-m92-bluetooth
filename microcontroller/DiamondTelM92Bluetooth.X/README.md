@@ -21,9 +21,8 @@ This directory is a complete [MPLAB X](https://www.microchip.com/en-us/tools-res
     - [UART3 - STDIO Logging/Debugging](#uart3---stdio-loggingdebugging)
     - [UART4 - Transceiver Communication](#uart4---transceiver-communication)
     - [RC4 (IO_BT_RESET) - Bluetooth Module Reset](#rc4-io_bt_reset---bluetooth-module-reset)
-    - [RC7 (IO_BT_MFB) - Bluetooth Module Wakeup](#rc7-io_bt_mfb---bluetooth-module-wakeup)
+    - [RC7 (IO_BT_MFB) - Bluetooth Module UART Rx Indicator](#rc7-io_bt_mfb---bluetooth-module-uart-rx-indicator)
     - [RA0 (IO_PWR) - Handset Power Button](#ra0-io_pwr---handset-power-button)
-
 ## General 
 
 ### Sloppy Prototype Under Construction
@@ -111,9 +110,9 @@ This UART is used to communicate with the DiamondTel Model 92 telephone transcei
 
 This digital output pin is used to turn the BM62 Bluetooth module on/off via the BM62 `#reset` pin.
 
-### RC7 (IO_BT_MFB) - Bluetooth Module Wakeup
+### RC7 (IO_BT_MFB) - Bluetooth Module UART Rx Indicator
 
-This digital output pin is used to wake up the BM62 Bluetooth module for UART communication via the BM62's `MFB` pin.
+This digital output pin is used to toggle the BM62's `MFB` pin to to indicate that it should be prepared to receive UART commands.
 
 ### RA0 (IO_PWR) - Handset Power Button
 
