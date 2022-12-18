@@ -1288,8 +1288,6 @@
         <property key="memories.programmemory" value="true"/>
         <property key="memories.programmemory.ranges" value="0-1ffff"/>
         <property key="poweroptions.powerenable" value="false"/>
-        <property key="programmerToGoFilePath"
-                  value="D:/DevProjects/github/diamondtel-m92-bluetooth/microcontroller/DiamondTelM92Bluetooth.X/debug/default/DiamondTelM92Bluetooth_ptg"/>
         <property key="programmerToGoImageName" value="DiamondTelM92Bluetooth_ptg"/>
         <property key="programoptions.donoteraseauxmem" value="false"/>
         <property key="programoptions.eraseb4program" value="true"/>
