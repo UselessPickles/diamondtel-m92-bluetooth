@@ -59,13 +59,13 @@ Because this timer is dedicated to this one purpose, and is started at the begin
 
 This timer is setup to trigger every 10ms and is always running. It is used for general purpose low-precision timing of timeouts/intervals throughout the project.
 
-Because this timer is always running, and timing of timeouts/intervals is done in terms of timer interupt counts, be aware that actual amount of between starting a timeout/interval can be short by up to 10ms (e.g., the first "count" can happen nearly immediately if the timer event was already about to trigger).
+Because this timer is always running, and timing of timeouts/intervals is done in terms of timer interupt counts, be aware that actual amount of between starting a timeout/interval and when it ends/triggers can be short by up to 10ms (e.g., the first "count" can happen nearly immediately if the timer event was already about to trigger).
 
 ### TMR4 - General Purpose 1ms Timer
 
 This timer is setup to trigger every 1ms and is always running. It is used for general purpose higher-precision timing of timeouts/intervals throughout the project.
 
-Because this timer is always running, and timing of timeouts/intervals is done in terms of timer interupt counts, be aware that actual amount of between starting a timeout/interval can be short by up to 1ms (e.g., the first "count" can happen nearly immediately if the timer event was already about to trigger).
+Because this timer is always running, and timing of timeouts/intervals is done in terms of timer interupt counts, be aware that actual amount of between starting a timeout/interval and when it ends/triggers can be short by up to 1ms (e.g., the first "count" can happen nearly immediately if the timer event was already about to trigger).
 
 ### TMR6 - Sound Sample Output Timer
 
@@ -75,7 +75,7 @@ This timer's interrupt is the only high-priority interrupt, to guarantee consist
 
 ### FVR - Fixed Voltage Reference
 
-The FVR is setup to provide a 2.048V reference to [DAC1](#dac1---sound-sample-output-value). This conveniently limits the output analog sound to a level that produces the maximum desired audio volume level, and keeps the signal well within the full-swing range of the Op Amp that buffers the signal.
+The FVR is setup to provide a 2.048V reference to [DAC1](#dac1---sound-sample-output-value). This conveniently limits the analog sound output to a level that produces the maximum desired audio volume level, and keeps the signal well within the full-swing range of the Op Amp that buffers the signal.
 
 ### DAC1 - Sound Sample Output Value
 
@@ -87,11 +87,11 @@ This is used to communicate with a digital potentiometer via SPI for sound volum
 
 ### RB0 (IO_VOICE_IN) - Incoming Voice Audio Switching
 
-This digital output pin is used to control a digital switch that chooses whether to use incoming voice audio from the Bluetooth Module, or generated sounds from the MCU, as the source of sound to be provided to the phone handset.
+This digital output pin is used to control an analog switch that chooses whether to use incoming voice audio from the Bluetooth Module, or generated sounds from the MCU, as the source of sound to be provided to the phone handset.
 
 ### RB1 (IO_MIC_OUT_DISABLE) - Outgoing Microphone Audio Disable
 
-This digital output pin is used to control a digital switch that disconnects the handset microphone output from the Bluetooth module. This is used to quickly mute the microphone when generating a sound (e.g., a button press beep) so that the generated sound does not feed back into the microphone.
+This digital output pin is used to control an analog switch that disconnects the handset microphone output from the Bluetooth module. This is used to quickly mute the microphone when generating a sound (e.g., a button press beep) so that the generated sound does not feed back into the microphone.
 
 ### UART1 - Handset Communication
 
@@ -99,8 +99,7 @@ This UART is used to communicate with the DiamondTel Model 92 telephone handset 
 
 ### UART2 - Bluetooth Module Communication
 
-This UART is used to communicate with the BM62 Bluetooth Module (see `bt_command
-.c` and `bt_command_decode.c`). It runs at 115,200 baud.
+This UART is used to communicate with the BM62 Bluetooth Module (see `bt_command.c` and `bt_command_decode.c`). It runs at 115,200 baud.
 
 ### UART3 - STDIO Logging/Debugging
 
