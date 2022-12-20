@@ -2,17 +2,27 @@
 
 This directory contains configuration files for the Microchip BM62 Bluetooth Module for use in this project.
 
-- `src`: The individual source configurations that are combined into the final binary.
-- `dist`: The combined configuration as a binary, ready to be installed onto the BM62.
+## Contents
 
-## Software/Firmware 
+- `firmware`: BM62 firmware version 2.1.3 hex files.
+- `src`: The individual sources for the full EEPROM software and configuration.
+    - The two `.txt` files are the source config files that can be edited with the `UI Tool` and the `DSP Tool`.
+    - The `IS206X_012_DUALMODESPK2.1_E1.0.4.1_1214.bin` is the "default BIN" file that was originally combined together with the `UI` and `DSP` config source files using the `MPET` tool to produce the output found in the `dist` directory.
+- `dist`: The full "compiled" EEPROM software and configuration, ready to be installed onto the BM62.
+    - The `.bin` file in this directory is for use as the "default BIN" in the `MPET` tool when building a new full EEPROM file with updates to the `UI` and/or `DSP` config source files.
 
-This configuration is for firmware version v2.1.3.
+## Firmware/Software Install
+
+This software and configuration is for firmware version v2.1.3.
 
 Download the `BM64 DSPK v2.1.3` software/tools from [Microchip's product page for the BM62](https://www.microchip.com/en-us/product/BM62).
 
-Follow [these instructions for updating your BM62 to v2.1.3](https://github.com/tomaskovacik/IS2020/wiki/Upgrading-firmware-on-BM62)
-before attempting to install the configuration.
+Follow [these instructions](https://github.com/tomaskovacik/IS2020/wiki/Upgrading-firmware-on-BM62) to install the firmware and full EEPROM configuration, but with the following adjustments:
+1. For the first step (using `isbtflash.exe`), you may use the firmware files found in this project for convenience.
+1. For the second step (using `isupdate.exe`), select the `dist/DiamondTelM92Bluetooth.txt` file from this project, instead of the `MCHP_DSPKv2.1.3_BM62_StandAlone.txt` file.
+1. Skip the third step (using `EEPROM_Tool.exe`), because the `dist/DiamondTelM92Bluetooth.txt` full EEPROM file already includes the UI and DSP config.
+
+NOTE: If you have already previously installed the firmware (step 1), but need to install a new version of the full EEPROM config, you can skip step 1.
 
 ## Tools
 
