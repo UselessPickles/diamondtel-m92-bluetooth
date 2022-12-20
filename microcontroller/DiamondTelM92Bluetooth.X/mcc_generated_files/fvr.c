@@ -1,24 +1,24 @@
 /**
-  DAC1 Generated Driver File
+  FVR Generated Driver File
 
   @Company
     Microchip Technology Inc.
 
   @File Name
-    dac1.c
+    fvr.c
 
   @Summary
-    This is the generated driver implementation file for the DAC1 driver using PIC10 / PIC12 / PIC16 / PIC18 MCUs
+    This is the generated driver implementation file for the FVR driver using PIC10 / PIC12 / PIC16 / PIC18 MCUs
 
   @Description
-    This source file provides APIs for DAC1.
+    This source file provides APIs for FVR.
     Generation Information :
         Product Revision  :  PIC10 / PIC12 / PIC16 / PIC18 MCUs - 1.81.8
         Device            :  PIC18F27Q43
-        Driver Version    :  2.10
+        Driver Version    :  2.01
     The generated drivers are tested against the following:
         Compiler          :  XC8 2.36 and above
-        MPLAB 	          :  MPLAB X 6.00
+        MPLAB             :  MPLAB X 6.00
 */
 
 /*
@@ -49,29 +49,23 @@
 */
 
 #include <xc.h>
-#include "dac1.h"
+#include "fvr.h"
 
 /**
-  Section: DAC1 APIs
+  Section: FVR APIs
 */
 
-void DAC1_Initialize(void)
+void FVR_Initialize(void)
 {
-    // OE DACOUT1 Enabled and DACOUT2 Disabled; DAC1EN enabled; NSS VSS; PSS FVR; 
-    DAC1CON = 0xA8;
-    // DAC1R 0; 
-    DAC1DATL = 0x00;
+    // CDAFVR 2x; FVREN enabled; TSRNG Lo_range; ADFVR off; TSEN disabled; 
+    FVRCON = 0x88;
 }
 
-void DAC1_SetOutput(uint8_t inputData)
+bool FVR_IsOutputReady(void)
 {
-    DAC1DATL  = inputData;
-}
-
-uint8_t DAC1_GetOutput(void)
-{
-    return DAC1DATL;
+    return (FVRCONbits.FVRRDY);
 }
 /**
  End of File
 */
+
