@@ -12,6 +12,7 @@ This directory is a complete [MPLAB X](https://www.microchip.com/en-us/tools-res
     - [TMR2 - General Purpose 10ms Timer](#tmr2---general-purpose-10ms-timer)
     - [TMR4 - General Purpose 1ms Timer](#tmr4---general-purpose-1ms-timer)
     - [TMR6 - Sound Sample Output Timer](#tmr6---sound-sample-output-timer)
+    - [FVR - Fixed Voltage Reference](#fvr---fixed-voltage-reference)
     - [DAC1 - Sound Sample Output Value](#dac1---sound-sample-output-value)
     - [SPI1, RC0 (SPI1_CS_DPOT) - Volume Control Communication](#spi1-rc0-spi1_cs_dpot---volume-control-communication)
     - [RB0 (IO_VOICE_IN) - Incoming Voice Audio Switching](#rb0-io_voice_in---incoming-voice-audio-switching)
@@ -23,6 +24,7 @@ This directory is a complete [MPLAB X](https://www.microchip.com/en-us/tools-res
     - [RC4 (IO_BT_RESET) - Bluetooth Module Reset](#rc4-io_bt_reset---bluetooth-module-reset)
     - [RC7 (IO_BT_MFB) - Bluetooth Module UART Rx Indicator](#rc7-io_bt_mfb---bluetooth-module-uart-rx-indicator)
     - [RA0 (IO_PWR) - Handset Power Button](#ra0-io_pwr---handset-power-button)
+    
 ## General 
 
 ### Sloppy Prototype Under Construction
@@ -67,13 +69,17 @@ Because this timer is always running, and timing of timeouts/intervals is done i
 
 ### TMR6 - Sound Sample Output Timer
 
-This timer is used exclusively for generating sound output (see `tone.c`). It is setup to trigger every 100us, for a sample rate of 10kHz. It is used together with `DAC1` to output the sound samples.
+This timer is used exclusively for generating sound output (see `tone.c`). It is setup to trigger every 100us, for a sample rate of 10kHz. It is used together with [DAC1](#dac1---sound-sample-output-value) to output the sound samples.
 
 This timer's interrupt is the only high-priority interrupt, to guarantee consistency of the sound output sample rate. 
 
+### FVR - Fixed Voltage Reference
+
+The FVR is setup to provide a 2.048V reference to [DAC1](#dac1---sound-sample-output-value). This conveniently limits the output analog sound to a level that produces the maximum desired audio volume level, and keeps the signal well within the full-swing range of the Op Amp that buffers the signal.
+
 ### DAC1 - Sound Sample Output Value
 
-This is used together with `TMR6` to output sound samples (see `tone.c`).
+This is used together with [TMR6](#tmr6---sound-sample-output-timer) and [FVR](#fvr---fixed-voltage-reference) to output sound samples (see `tone.c`).
 
 ### SPI1, RC0 (SPI1_CS_DPOT) - Volume Control Communication
 
