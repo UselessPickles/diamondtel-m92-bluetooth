@@ -1,7 +1,6 @@
 #include "atcmd.h"
 #include "bt_command_send.h"
 #include "bt_command_decode.h"
-#include "app.h"
 #include "string.h"
 #include <stdio.h>
 #include <stdint.h>
@@ -15,32 +14,35 @@ typedef struct ATCMD_CmdInfo {
 } ATCMD_CmdInfo;
 
 #define COMMAND_INFO_BUFFER_SIZE (32)
-
-static struct {
-  ATCMD_CmdInfo buffer[COMMAND_INFO_BUFFER_SIZE];
-  uint8_t head;
-  uint8_t tail;
-  uint8_t remaining;
-  ATCMD_CmdInfo const* pendingCmd;
-} cmdInfoBuffer = { .remaining = COMMAND_INFO_BUFFER_SIZE };
-
 #define COMMAND_BUFFER_SIZE (512)
 
 static struct {
-  char buffer[COMMAND_BUFFER_SIZE];
-  uint16_t head;
-  uint16_t remaining;
-} cmdBuffer = { .remaining = COMMAND_BUFFER_SIZE };
+  ATCMD_UnsolicitedResultHandler unsolicitedResultHandler;
+  
+  struct {
+    ATCMD_CmdInfo buffer[COMMAND_INFO_BUFFER_SIZE];
+    uint8_t head;
+    uint8_t tail;
+    uint8_t remaining;
+    ATCMD_CmdInfo const* pendingCmd;
+  } cmdInfoBuffer;
+
+  struct {
+    char buffer[COMMAND_BUFFER_SIZE];
+    uint16_t head;
+    uint16_t remaining;
+  } cmdBuffer;
+} module;
 
 #define MAX_AT_CMD_LENGTH (128)
 
 static void sendNextCommand(void) {
-  if (cmdInfoBuffer.pendingCmd || (cmdInfoBuffer.remaining == COMMAND_INFO_BUFFER_SIZE)) {
+  if (module.cmdInfoBuffer.pendingCmd || (module.cmdInfoBuffer.remaining == COMMAND_INFO_BUFFER_SIZE)) {
     return;
   }
   
-  ATCMD_CmdInfo const* cmdInfo = &cmdInfoBuffer.buffer[cmdInfoBuffer.tail];
-  cmdInfoBuffer.pendingCmd = cmdInfo;
+  ATCMD_CmdInfo const* cmdInfo = &module.cmdInfoBuffer.buffer[module.cmdInfoBuffer.tail];
+  module.cmdInfoBuffer.pendingCmd = cmdInfo;
   
   uint16_t pos = cmdInfo->cmdBufferPos;
   uint8_t len = cmdInfo->cmdLen;
@@ -55,7 +57,7 @@ static void sendNextCommand(void) {
 
   char* nextChar = (char*)command + 5;
   while (len) {
-    *nextChar++ = cmdBuffer.buffer[pos];
+    *nextChar++ = module.cmdBuffer.buffer[pos];
     
     if (++pos == COMMAND_BUFFER_SIZE) {
       pos = 0;
@@ -71,6 +73,16 @@ static void sendNextCommand(void) {
   BT_SendBytesAsCompleteCommand(command, len + 6);    
 }
 
+void ATCMD_Initialize(ATCMD_UnsolicitedResultHandler unsolicitedResultHandler) {
+  module.unsolicitedResultHandler = unsolicitedResultHandler;
+
+  module.cmdBuffer.head = 0;
+  module.cmdBuffer.remaining = COMMAND_BUFFER_SIZE;
+
+  module.cmdInfoBuffer.head = module.cmdInfoBuffer.tail = 0;
+  module.cmdInfoBuffer.remaining = COMMAND_BUFFER_SIZE;
+}
+
 void ATCMD_Task(void) {
   sendNextCommand();
 }
@@ -78,7 +90,7 @@ void ATCMD_Task(void) {
 bool ATCMD_Send(char const *cmd, ATCMD_ResponseCallback responseCallback) {
   printf("[ATCMD] Queuing: %s\r\n", cmd);
   
-  if (cmdInfoBuffer.remaining == 0) {
+  if (module.cmdInfoBuffer.remaining == 0) {
     printf("[ATCMD] Command Info buffer overflow!\r\n");
     return false;
   }
@@ -90,13 +102,13 @@ bool ATCMD_Send(char const *cmd, ATCMD_ResponseCallback responseCallback) {
     return false;
   }
   
-  if (cmdBuffer.remaining < len) {
+  if (module.cmdBuffer.remaining < len) {
     printf("[ATCMD] Command buffer overflow!\r\n");
     return false;
   }
   
-  ATCMD_CmdInfo* cmdInfo = &cmdInfoBuffer.buffer[cmdInfoBuffer.head];
-  cmdInfo->cmdBufferPos = cmdBuffer.head;
+  ATCMD_CmdInfo* cmdInfo = &module.cmdInfoBuffer.buffer[module.cmdInfoBuffer.head];
+  cmdInfo->cmdBufferPos = module.cmdBuffer.head;
   cmdInfo->cmdLen = (uint8_t)len;
   cmdInfo->responseCallback = responseCallback;
 
@@ -105,22 +117,22 @@ bool ATCMD_Send(char const *cmd, ATCMD_ResponseCallback responseCallback) {
   cmdInfo->resultPrefix[prefixLen] = ':';
   cmdInfo->resultPrefix[prefixLen + 1] = 0;
   
-  --cmdInfoBuffer.remaining;
-  if (++cmdInfoBuffer.head == COMMAND_INFO_BUFFER_SIZE) {
-    cmdInfoBuffer.head = 0;
+  --module.cmdInfoBuffer.remaining;
+  if (++module.cmdInfoBuffer.head == COMMAND_INFO_BUFFER_SIZE) {
+    module.cmdInfoBuffer.head = 0;
   }
   
-  cmdBuffer.remaining -= len;
-  uint16_t pos = cmdBuffer.head;
+  module.cmdBuffer.remaining -= len;
+  uint16_t pos = module.cmdBuffer.head;
   while (len) {
-    cmdBuffer.buffer[pos] = *cmd++;
+    module.cmdBuffer.buffer[pos] = *cmd++;
     
     if (++pos == COMMAND_BUFFER_SIZE) {
       pos = 0;
     }
     --len;
   }
-  cmdBuffer.head = pos;
+  module.cmdBuffer.head = pos;
   
   return true;
 }
@@ -132,7 +144,7 @@ bool ATCMD_SendDTMFButtonPress(char button, ATCMD_ResponseCallback responseCallb
 }
 
 void ATCMD_BT_ResultHandler(char const* result, uint8_t length) {
-  ATCMD_CmdInfo const* pendingCmd = cmdInfoBuffer.pendingCmd;
+  ATCMD_CmdInfo const* pendingCmd = module.cmdInfoBuffer.pendingCmd;
   
   char resultBuffer[255];
 
@@ -146,7 +158,7 @@ void ATCMD_BT_ResultHandler(char const* result, uint8_t length) {
       pendingCmd->responseCallback(ATCMD_Response_RESULT, resultBuffer);
     }
   } else {
-    APP_ATCMD_UnsolicitedResultHandler(resultBuffer);
+    module.unsolicitedResultHandler(resultBuffer);
   }
 }
 
@@ -160,7 +172,7 @@ static char const* const responseLabels[] = {
 void ATCMD_BT_ResponseHandler(ATCMD_Response response) {
   printf("[ATCMD] Response: %s\r\n", responseLabels[response]);
   
-  ATCMD_CmdInfo const* pendingCmd = cmdInfoBuffer.pendingCmd;
+  ATCMD_CmdInfo const* pendingCmd = module.cmdInfoBuffer.pendingCmd;
 
   if (!pendingCmd) {
     printf("[ATCMD] Ignoring response; no pending command!\r\n");
@@ -174,12 +186,12 @@ void ATCMD_BT_ResponseHandler(ATCMD_Response response) {
     responseCallback(response, NULL);
   }
   
-  cmdBuffer.remaining += pendingCmd->cmdLen;
+  module.cmdBuffer.remaining += pendingCmd->cmdLen;
   
-  if (++cmdInfoBuffer.tail == COMMAND_INFO_BUFFER_SIZE) {
-    cmdInfoBuffer.tail = 0;
+  if (++module.cmdInfoBuffer.tail == COMMAND_INFO_BUFFER_SIZE) {
+    module.cmdInfoBuffer.tail = 0;
   }
   
-  ++cmdInfoBuffer.remaining;
-  cmdInfoBuffer.pendingCmd = NULL;
+  ++module.cmdInfoBuffer.remaining;
+  module.cmdInfoBuffer.pendingCmd = NULL;
 }

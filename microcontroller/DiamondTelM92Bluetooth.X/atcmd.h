@@ -23,7 +23,11 @@ typedef enum ATCMD_Response {
   ATCMD_Response_RESULT
 } ATCMD_Response;
 
-typedef void (*ATCMD_ResponseCallback)(ATCMD_Response, char const*);
+typedef void (*ATCMD_ResponseCallback)(ATCMD_Response response, char const* result);
+
+typedef void (*ATCMD_UnsolicitedResultHandler)(char const* result);
+
+void ATCMD_Initialize(ATCMD_UnsolicitedResultHandler unsolicitedResultCallback);
 
 void ATCMD_Task(void);
 

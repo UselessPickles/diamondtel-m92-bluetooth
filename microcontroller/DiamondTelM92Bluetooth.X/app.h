@@ -26,8 +26,6 @@ void APP_Timer10MS_event(void);
 
 void APP_BT_EventHandler(uint8_t event, uint16_t para, uint8_t* para_full);
 
-void APP_ATCMD_UnsolicitedResultHandler(char const* result);
-
 #ifdef	__cplusplus
 }
 #endif

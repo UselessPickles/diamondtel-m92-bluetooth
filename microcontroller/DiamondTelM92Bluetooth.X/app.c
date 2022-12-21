@@ -1315,6 +1315,7 @@ static uint8_t getCreditCardMemoryIndexFromButton(HANDSET_Button button) {
 
 void handle_HANDSET_Event(HANDSET_Event const* event);
 void handle_TRANSCEIVER_Event(TRANSCEIVER_EventType event);
+void handle_ATCMD_UnsolicitedResult(char const* result);
 
 void APP_Initialize(void) {
   IO_BT_RESET_SetLow();
@@ -1331,6 +1332,7 @@ void APP_Initialize(void) {
   CALL_TIMER_Initialize();
   BT_CommandDecodeInit();
   BT_CommandSendInit();
+  ATCMD_Initialize(handle_ATCMD_UnsolicitedResult);
   MARQUEE_Initialize();
   CLR_CODES_Initialize();
   INTERVAL_Init(&lowBatteryBeepInterval, LOW_BATTERY_BEEP_INTERVAL);
@@ -3220,6 +3222,6 @@ void APP_BT_EventHandler(uint8_t event, uint16_t para, uint8_t* para_full) {
   }
 }
 
-void APP_ATCMD_UnsolicitedResultHandler(char const* result) {
+void handle_ATCMD_UnsolicitedResult(char const* result) {
   printf("[UNSCOLICITED AT RESULT] %s\r\n", result);
 }
