@@ -523,6 +523,8 @@ typedef struct HANDSET_Event {
   bool isOnHook;
 } HANDSET_Event;
 
+typedef void (*HANDSET_EventHandler)(HANDSET_Event const* event);
+
 /**
  * Identifiers for referencing the status indicators on the handset display.
  */
@@ -569,8 +571,10 @@ typedef enum HANDSET_Symbol {
 
 /**
  * Initialize the HANDSET module.
+ * 
+ * @param eventHandler - Event handler function pointer.
  */
-void HANDSET_Initialize(void);
+void HANDSET_Initialize(HANDSET_EventHandler eventHandler);
 
 /**
  * Main task loop behavior for the HANDSET module.

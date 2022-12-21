@@ -1313,6 +1313,8 @@ static uint8_t getCreditCardMemoryIndexFromButton(HANDSET_Button button) {
   return button - '1';
 }
 
+void handle_HANDSET_Event(HANDSET_Event const* event);
+
 void APP_Initialize(void) {
   IO_BT_RESET_SetLow();
   
@@ -1322,7 +1324,7 @@ void APP_Initialize(void) {
 
   EEPROM_Initialize();
   TONE_Initialize();
-  HANDSET_Initialize();
+  HANDSET_Initialize(handle_HANDSET_Event);
   TRANSCEIVER_Initialize();
   INDICATOR_Initialize();
   CALL_TIMER_Initialize();
@@ -1676,7 +1678,7 @@ void APP_Timer10MS_event(void) {
   }
 }
 
-void APP_HANDSET_EventHandler(HANDSET_Event const* event) {
+void handle_HANDSET_Event(HANDSET_Event const* event) {
   bool wasDisplayingNonNumberInput = false;
   bool isButtonDown = event->type == HANDSET_EventType_BUTTON_DOWN;
   bool isButtonUp = event->type == HANDSET_EventType_BUTTON_UP;

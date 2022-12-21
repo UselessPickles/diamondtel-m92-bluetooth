@@ -1,5 +1,4 @@
 #include "handset.h"
-#include "app.h"
 #include "mcc_generated_files/uart1.h"
 #include "mcc_generated_files/uart3.h"
 #include "mcc_generated_files/tmr2.h"
@@ -43,6 +42,10 @@ static const HANDSET_UartCmd indicatorCmdLookup[INDICATOR_COUNT] = {
  * Module state.
  */
 static struct {
+  /**
+   * Event handler function pointer.
+   */
+  HANDSET_EventHandler eventHandler;
   /**
    * The character that is currently printed at position 0.
    * 
@@ -290,7 +293,7 @@ static void dispatchEvent(HANDSET_Event* event) {
   event->isFcn = handset.isFcnButtonDown;
   event->isOnHook = handset.isOnHook;
   
-  APP_HANDSET_EventHandler(event);
+  handset.eventHandler(event);
   //printEvent(event);
 }
 
@@ -322,7 +325,8 @@ static bool isValidCharPos(uint8_t pos) {
   return pos < HANDSET_TEXT_DISPLAY_LENGTH;
 }
 
-void HANDSET_Initialize(void) {
+void HANDSET_Initialize(HANDSET_EventHandler eventHandler) {
+  handset.eventHandler = eventHandler;
   handset.charAtPos0 = BLANK_PRINTABLE_CHAR;
   handset.isPwrButtonDown = true;
   handset.isOnHook = true;
