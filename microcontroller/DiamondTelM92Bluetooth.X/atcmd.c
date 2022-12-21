@@ -80,7 +80,7 @@ void ATCMD_Initialize(ATCMD_UnsolicitedResultHandler unsolicitedResultHandler) {
   module.cmdBuffer.remaining = COMMAND_BUFFER_SIZE;
 
   module.cmdInfoBuffer.head = module.cmdInfoBuffer.tail = 0;
-  module.cmdInfoBuffer.remaining = COMMAND_BUFFER_SIZE;
+  module.cmdInfoBuffer.remaining = COMMAND_INFO_BUFFER_SIZE;
 }
 
 void ATCMD_Task(void) {
