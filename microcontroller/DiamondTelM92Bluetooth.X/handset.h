@@ -523,6 +523,9 @@ typedef struct HANDSET_Event {
   bool isOnHook;
 } HANDSET_Event;
 
+/**
+ * HANDSET event handler function pointer.
+ */
 typedef void (*HANDSET_EventHandler)(HANDSET_Event const* event);
 
 /**
