@@ -1203,7 +1203,7 @@ static void handleCallStatusChange(int newCallStatus) {
 
     case BT_CALL_OUTGOING:
       wakeUpHandset(true);
-      BT_updateHFPGain(0x0F);
+      BT_SetHFPGain(0x0F);
       SOUND_SetDefaultAudioSource(SOUND_AudioSource_BT);
       HANDSET_SetTextBlink(false);
       
@@ -3185,7 +3185,7 @@ void APP_BT_EventHandler(uint8_t event, uint16_t para, uint8_t* para_full) {
     case BT_EVENT_HFP_VOLUME_CHANGED:
       printf("[PHONE] Volume changed: %d\r\n", para);
       if (BT_CallStatus >= BT_CALL_OUTGOING) {
-        BT_updateHFPGain(0x0F);
+        BT_SetHFPGain(0x0F);
       }
       break;
 

@@ -137,10 +137,5 @@ void BT_CommandDecode( void );
 
 void BT_CommandDecodeInit(void);
 void BT_CommandDecodeMain(void);
-void BT_CommandDecode1MS_event( void );
-
-#ifdef DATABASE2_TEST       //test only
-bool ParsePayloadAsCommand(uint8_t* command, uint8_t length);
-#endif
 
 #endif

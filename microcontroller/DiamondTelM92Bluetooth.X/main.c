@@ -63,7 +63,6 @@ static void Timer10MS() {
 static void Timer1MS() {
   SOUND_Timer1MS_event();
   BT_CommandSend1MS_event();
-  BT_CommandDecode1MS_event();
   HANDSET_Timer1MS_event();
 }
 

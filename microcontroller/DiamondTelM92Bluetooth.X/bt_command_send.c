@@ -240,20 +240,6 @@ static uint8_t calculateChecksum2(uint8_t checksum, uint8_t* startByte, uint16_t
 }
 
 /*------------------------------------------------------------*/
-#if 0
-uint8_t BT_IsAllowedToSendCommand( void )       //no longer need
-{
-    uint16_t i, size = sizeof(CommandAckStatus);
-    uint8_t* p = &CommandAckStatus.MMI_ACTION_status;
-    for(i=0; i<size; i++)
-    {
-        if(*p == COMMAND_IS_SENT)
-            return false;
-        p++;
-    }
-    return true;
-}
-#endif
 uint8_t BT_IsCommandSendTaskIdle( void )
 {
     if(BT_CMD_SendState == BT_CMD_SEND_STATE_IDLE)
@@ -262,11 +248,6 @@ uint8_t BT_IsCommandSendTaskIdle( void )
         return false;
 }
 /*------------------------------------------------------------*/
-
-void BT_SendAppsCompleteCommand(uint8_t* command, uint8_t command_length)
-{
-    copyCommandToBuffer(command, command_length, CMD_INFO_APPS);
-}
 
 uint8_t BT_CalculateCmdChecksum(uint8_t const* startByte, uint8_t const* endByte)
 {
@@ -348,20 +329,6 @@ bool BT_SetDeviceName(char const* name) {
 	return copySendingCommandToBuffer(command, len + 8); 
 }
 
-void BT_SetPinCode(char digit1, char digit2, char digit3, char digit4) {
-  uint8_t command[9];
-  command[0] = 0xAA;                      //header byte 0
-  command[1] = 0x00;                      //header byte 1
-  command[2] = 5;                      //length
-  command[3] = CHANGE_PIN_CODE;   	//command ID
-  command[4] = digit1;
-  command[5] = digit2;
-  command[6] = digit3;
-  command[7] = digit4;
-  command[8] = BT_CalculateCmdChecksum(&command[2], &command[7]);
-  copySendingCommandToBuffer(command, 9);  
-}
-
 bool BT_MakeCall(char const* number) {
   printf("[CALL] Make Call: %s\r\n", number);
   
@@ -441,17 +408,6 @@ void BT_SendBatteryLevel(uint8_t batteryLevelPercent) {
   copySendingCommandToBuffer(command, 6);  
 }
 
-void BT_SetHFSpeakerGain(uint8_t gain) {
-  uint8_t command[6];
-  command[0] = 0xAA;                      //header byte 0
-  command[1] = 0x00;                      //header byte 1
-  command[2] = 0x02;                      //length
-  command[3] = SET_HF_GAIN_LEVEL;        	//command ID
-  command[4] = gain & 0x0F;                 	//
-  command[5] = BT_CalculateCmdChecksum(&command[2], &command[4]);
-  copySendingCommandToBuffer(command, 6);  
-}
-
 void BT_MMI_ActionCommand(uint8_t MMI_ActionCode, uint8_t link_index)
 {
 	BT_Send_ActionCommand(MMI_ActionCode, link_index, CMD_INFO_MCU);
@@ -469,71 +425,6 @@ void BT_Send_ActionCommand(uint8_t MMI_ActionCode, uint8_t link_index, uint8_t c
   	copyCommandToBuffer(&command[0], 7, cmd_info);
     //CommandAckStatus.MMI_ACTION_status = COMMAND_IS_SENT;
 }
-void BT_Send_EQCmd(uint8_t* eqData,uint8_t size)
-{
-	if(size >= 90)
-	eqData[89] = BT_CalculateCmdChecksum(&eqData[2], &eqData[88]);
-	copySendingCommandToBuffer(eqData, 90);
-}
-
-void BT_Send_EQMode(uint8_t eqMode)
-{
-    uint8_t command[7];
-    command[0] = 0xAA;                      //header byte 0
-    command[1] = 0x00;                      //header byte 1
-    command[2] = 0x03;                      //length
-    command[3] = EQ_MODE_SETTING;        	//command ID
-    command[4] = eqMode;                 	//
-	command[5] = 0;
-    command[6] = BT_CalculateCmdChecksum(&command[2], &command[5]);
-    copySendingCommandToBuffer(&command[0], 7);
-}
-
-void BT_Vendor_SendEqMode(uint8_t eqMode)
-{
-	uint8_t command[10];
-	command[0] = NSPK_EVENT_EQ_MODE;
-	command[1] = 0;
-	command[2] = eqMode;
-	BT_Vendor_SendCommand(command, 3);
-}
-
-void BT_Vendor_SendVol(uint8_t event, uint8_t updn)
-{
-	uint8_t command[10];
-	command[0] = event;
-	command[1] = 0;
-	command[2] = updn;
-	BT_Vendor_SendCommand(command, 3);
-}
-void BT_Vendor_SendVolInfo(uint8_t volMode, uint8_t vol)
-{
-	uint8_t command[10];
-	command[0] = NSPK_EVENT_VOL_MODE;
-	command[1] = volMode;
-	command[2] = vol;
-	BT_Vendor_SendCommand(command, 3);
-}
-
-
-void BT_Vendor_SendCommand(uint8_t* data, uint8_t size)
-{
-
-	uint8_t command[20], i;
-	command[0] = 0xAA;	 		//header byte 0
-	command[1] = 0x00;	 		//header byte 1
-	command[2] = 4 + size;	 	//length
-	command[3] = 0x2A;			//command ID
-	command[4] = 0x03;	   		//broadcast to all slaves
-	command[5] = 0x00;			// vendor data length
-	command[6] = size;			// vendor data length
-	for(i=0; i <size; i++)
-		*((command+7)+i) = *(data+i);
-
-	command[7+size] = BT_CalculateCmdChecksum(&command[2], &command[7+size-1]);
-	copySendingCommandToBuffer(&command[0], 7+size+1);
-
-}
 
 /*------------------------------------------------------------*/
 void BT_SendAckToEvent(uint8_t ack_event)
@@ -549,89 +440,6 @@ void BT_SendAckToEvent(uint8_t ack_event)
 }
 
 /*------------------------------------------------------------*/
-void BT_SendDiscoverableCommand(uint8_t discoverable)
-{
-    uint8_t command[6];
-    command[0] = 0xAA;
-    command[1] = 0x00;
-    command[2] = 0x02;
-    command[3] = DISCOVERABLE;
-    command[4] = discoverable;      //0: disable, 1: enable
-    command[5] = BT_CalculateCmdChecksum(&command[2], &command[4]);
-    copySendingCommandToBuffer(&command[0], 6);
-    //CommandAckStatus.DISCOVERABLE_status = COMMAND_IS_SENT;
-}
-
-/*------------------------------------------------------------*/
-void BT_ReadBTMLinkModeCommand( void )
-{
-    uint8_t command[6];
-    command[0] = 0xAA;
-    command[1] = 0x00;
-    command[2] = 0x02;
-    command[3] = READ_LINK_MODE;
-    command[4] = 0;         //dummy byte
-    command[5] = BT_CalculateCmdChecksum(&command[2], &command[4]);
-    copySendingCommandToBuffer(&command[0], 6);
-   // CommandAckStatus.READ_LINK_MODE_status = COMMAND_IS_SENT;
-}
-
-/*------------------------------------------------------------*/
-void BT_ReadDeviceAddressCommand(void)
-{
-    uint8_t command[6];
-    command[0] = 0xAA;                      //header byte 0
-    command[1] = 0x00;                      //header byte 1
-    command[2] = 0x02;                      //length
-    command[3] = READ_LOCAL_BD_ADDR;         //command ID
-    command[4] = 0x00;                      //dummy byte
-    command[5] = BT_CalculateCmdChecksum(&command[2], &command[4]);
-    copySendingCommandToBuffer(&command[0], 6);
-   // CommandAckStatus.READ_BD_ADDRESS_status = COMMAND_IS_SENT;
-}
-void BT_ReadNSpkStatus(void)
-{
-    uint8_t command[6];
-    command[0] = 0xAA;                      //header byte 0
-    command[1] = 0x00;                      //header byte 1
-    command[2] = 0x02;                      //length
-    command[3] = READ_NSPK_LINK_STATUS;    //command ID
-    command[4] = 0x00;                      //dummy byte
-    command[5] = BT_CalculateCmdChecksum(&command[2], &command[4]);
-    copySendingCommandToBuffer(&command[0], 6);
-
-}
-
-void BT_ReadFeatureListCommand(void)
-{
-    uint8_t command[6];
-    command[0] = 0xAA;                      //header byte 0
-    command[1] = 0x00;                      //header byte 1
-    command[2] = 0x02;                      //length
-    command[3] = READ_FEATURE_LIST;    //command ID
-    command[4] = 0x00;                      //dummy byte
-    command[5] = BT_CalculateCmdChecksum(&command[2], &command[4]);
-    copySendingCommandToBuffer(&command[0], 6);
-  //  CommandAckStatus.READ_Device_Name_status = COMMAND_IS_SENT;
-
-}
-
-
-/*------------------------------------------------------------*/
-void BT_GetPairRecordCommand(void)
-{
-    uint8_t command[6];
-    command[0] = 0xAA;                      //header byte 0
-    command[1] = 0x00;                      //header byte 1
-    command[2] = 0x02;                      //length
-    command[3] = READ_PAIRING_RECORD;         //command ID
-    command[4] = 0x00;                      //dummy byte
-    command[5] = BT_CalculateCmdChecksum(&command[2], &command[4]);
-    copySendingCommandToBuffer(&command[0], 6);
-    //CommandAckStatus.READ_PAIR_RECORD_status = COMMAND_IS_SENT;
-}
-
-/*------------------------------------------------------------*/
 void BT_LinkBackToLastDevice(void)
 {
     printf("[LINKBACK] Start\r\n");
@@ -643,42 +451,6 @@ void BT_LinkBackToLastDevice(void)
     command[4] = 0x01;                      //0x00: last device, 0x01: last HFP device, 0x02: last A2DP device
     command[5] = BT_CalculateCmdChecksum(&command[2], &command[4]);
     copySendingCommandToBuffer(&command[0], 6);
-   // CommandAckStatus.LINK_BACK_status = COMMAND_IS_SENT;
-}
-
-/*------------------------------------------------------------*/
-void BT_LinkBackMultipoint(void)
-{
-    uint8_t command[6];
-    command[0] = 0xAA;                      //header byte 0
-    command[1] = 0x00;                      //header byte 1
-    command[2] = 0x02;                      //length
-    command[3] = PROFILE_LINK_BACK;         //command ID
-    command[4] = 0x06;                      //multipoint devices
-    command[5] = BT_CalculateCmdChecksum(&command[2], &command[4]);
-    copySendingCommandToBuffer(&command[0], 6);
-//    CommandAckStatus.LINK_BACK_status = COMMAND_IS_SENT;
-}
-
-/*------------------------------------------------------------*/
-void BT_LinkBackToDeviceByBTAddress(uint8_t* address)
-{
-    uint8_t command[14];
-    command[0] = 0xAA;                      //header byte 0
-    command[1] = 0x00;                      //header byte 1
-    command[2] = 10;                      //length
-    command[3] = PROFILE_LINK_BACK;         //command ID
-    command[4] = 0x05;              //0x05: link back to device with specified address
-    command[5] = 0x00;
-    command[6] = 0x07;
-    command[7] = *address++;        //byte 0
-    command[8] = *address++;        //byte 1
-    command[9] = *address++;        //byte 2
-    command[10] = *address++;        //byte 3
-    command[11] = *address++;        //byte 4
-    command[12] = *address++;        //byte 5
-    command[13] = BT_CalculateCmdChecksum(&command[2], &command[12]);
-    copySendingCommandToBuffer(&command[0], 14);
    // CommandAckStatus.LINK_BACK_status = COMMAND_IS_SENT;
 }
 
@@ -706,127 +478,9 @@ void BT_DisconnectAllProfile(void)
     command[4] = 0x0f;                      //event to ack
     command[5] = BT_CalculateCmdChecksum(&command[2], &command[4]);
     copySendingCommandToBuffer(&command[0], 6);
-   // CommandAckStatus.DISCONNECT_PROFILE_status = COMMAND_IS_SENT;
 }
 /*------------------------------------------------------------*/
-void BT_DisconnectSPPProfile(void)
-{
-    uint8_t command[6];
-    command[0] = 0xAA;                      //header byte 0
-    command[1] = 0x00;                      //header byte 1
-    command[2] = 0x02;                      //length
-    command[3] = DISCONNECT;                //command ID
-    command[4] = 0x08;                      //event to ack
-    command[5] = BT_CalculateCmdChecksum(&command[2], &command[4]);
-    copySendingCommandToBuffer(&command[0], 6);
-    //CommandAckStatus.DISCONNECT_PROFILE_status = COMMAND_IS_SENT;
-}
-
-/*------------------------------------------------------------*/
-void BT_DisconnectHFPProfile(void)
-{
-    uint8_t command[6];
-    command[0] = 0xAA;                      //header byte 0
-    command[1] = 0x00;                      //header byte 1
-    command[2] = 0x02;                      //length
-    command[3] = DISCONNECT;                //command ID
-    command[4] = 0x02;                      //event to ack
-    command[5] = BT_CalculateCmdChecksum(&command[2], &command[4]);
-    copySendingCommandToBuffer(&command[0], 6);
-    //CommandAckStatus.DISCONNECT_PROFILE_status = COMMAND_IS_SENT;
-}
-
-/*------------------------------------------------------------*/
-void BT_DisconnectA2DPProfile(void)
-{
-    uint8_t command[6];
-    command[0] = 0xAA;                      //header byte 0
-    command[1] = 0x00;                      //header byte 1
-    command[2] = 0x02;                      //length
-    command[3] = DISCONNECT;                //command ID
-    command[4] = 0x04;                      //event to ack
-    command[5] = BT_CalculateCmdChecksum(&command[2], &command[4]);
-    copySendingCommandToBuffer(&command[0], 6);
-    //CommandAckStatus.DISCONNECT_PROFILE_status = COMMAND_IS_SENT;
-}
-
-/*------------------------------------------------------------*/
-void BT_SetOverallGainCommand(uint8_t set_type, uint8_t gain1, uint8_t gain2, uint8_t gain3)
-{
-    uint8_t command[11];
-    command[0] = 0xAA;                      //header byte 0
-    command[1] = 0x00;                      //header byte 1
-    command[3] = SET_OVERALL_GAIN;                //command ID
-    command[4] = 0x00;                      //link index
-    command[5] = 0x00;                      //mask bits
-    command[6] = set_type;                      //type
-    if(set_type == 1 || set_type == 2)
-    {
-        command[2] = 0x04;                    //length
-        command[7] = BT_CalculateCmdChecksum(&command[2], &command[6]);
-        copySendingCommandToBuffer(&command[0], 8);
-    }
-    else if(set_type == 3)
-    {
-        command[2] = 0x07;                    //length
-        command[7] = gain1&0x0f;
-        command[8] = gain2&0x0f;
-        command[9] = gain3&0x0f;
-        command[10] = BT_CalculateCmdChecksum(&command[2], &command[9]);
-        copySendingCommandToBuffer(&command[0], 11);
-    }
-    else
-    {
-        command[2] = 0x07;                    //lengthcommand[2] = 0x07;                    //length
-        command[7] = gain1&0x7f;
-        command[8] = gain2&0x7f;
-        command[9] = gain3&0x7f;
-        command[10] = BT_CalculateCmdChecksum(&command[2], &command[9]);
-        copySendingCommandToBuffer(&command[0], 11);
-    }
-  //  CommandAckStatus.SET_OVERALL_GAIN_status = COMMAND_IS_SENT;
-}
-/*------------------------------------------------------------*/
-void BT_SetOverallGain(uint8_t gain1, uint8_t gain2, uint8_t gain3)
-{
-    uint8_t command[11];
-    command[0] = 0xAA;                      //header byte 0
-    command[1] = 0x00;                      //header byte 1
-    command[2] = 0x07; //lengthcommand[2] = 0x07;                    //length
-    command[3] = SET_OVERALL_GAIN;                //command ID
-    command[4] = BT_linkIndex;                      //link index
-    command[5] = 0x00;                      //mask bits
-    command[6] = 0x05;                      //type
-    command[7] = gain1 & 0x7f;
-    command[8] = gain2 & 0x7f;
-    command[9] = gain3 & 0x7f;
-    command[10] = BT_CalculateCmdChecksum(&command[2], &command[9]);
-    copySendingCommandToBuffer(&command[0], 11);
-  //  CommandAckStatus.SET_OVERALL_GAIN_status = COMMAND_IS_SENT;
-}
-/*------------------------------------------------------------*/
-void BT_updateA2DPGain(uint8_t gain, uint8_t cmdInfo)
-{
-    uint8_t command[11];
-    command[0] = 0xAA;                      //header byte 0
-    command[1] = 0x00;                      //header byte 1
-    command[2] = 0x07; //lengthcommand[2] = 0x07;                    //length
-    command[3] = SET_OVERALL_GAIN;                //command ID
-    command[4] = BT_linkIndex;                      //link index
-    command[5] = 0x01;                      //mask bits
-    command[6] = 0x04;                      //type
-    command[7] = gain & 0x7f;
-    command[8] = 0;
-    command[9] = 0;
-    command[10] = BT_CalculateCmdChecksum(&command[2], &command[9]);
-	copyCommandToBuffer(&command[0], 11, cmdInfo);
-//    copySendingCommandToBuffer(&command[0], 11);
-    
- //   CommandAckStatus.SET_OVERALL_GAIN_status = COMMAND_IS_SENT;
-}
-
-/*------------------------------------------------------------*/
-void BT_updateHFPGain(uint8_t gain)
+void BT_SetHFPGain(uint8_t gain)
 {
     uint8_t command[11];
     command[0] = 0xAA;                      //header byte 0
@@ -840,249 +494,9 @@ void BT_updateHFPGain(uint8_t gain)
     command[8] = gain & 0x0f;
     command[9] = 0;
     command[10] = BT_CalculateCmdChecksum(&command[2], &command[9]);
-	copyCommandToBuffer(&command[0], 11, CMD_INFO_MCU);
-//	copySendingCommandToBuffer(&command[0], 11);
-    
-   // CommandAckStatus.SET_OVERALL_GAIN_status = COMMAND_IS_SENT;
+  	copyCommandToBuffer(&command[0], 11, CMD_INFO_MCU);
 }
 
-/*------------------------------------------------------------*/
-void BT_updateLineInGain(uint8_t gain, uint8_t cmdInfo)
-{
-    uint8_t command[11];
-    command[0] = 0xAA;                      //header byte 0
-    command[1] = 0x00;                      //header byte 1
-    command[2] = 0x07;                    //length
-    command[3] = SET_OVERALL_GAIN;                //command ID
-    command[4] = BT_linkIndex;                      //link index
-    command[5] = 0x04;                      //mask bits
-    command[6] = 0x03;                      //type
-    command[7] = 0;
-    command[8] = 0;
-    command[9] = gain & 0x0f;
-    command[10] = BT_CalculateCmdChecksum(&command[2], &command[9]);
-	copyCommandToBuffer(&command[0], 11, cmdInfo);
-//    copySendingCommandToBuffer(&command[0], 11);
-    //CommandAckStatus.SET_OVERALL_GAIN_status = COMMAND_IS_SENT;
-}
-
-/*------------------------------------------------------------*/
-void BT_SendAppsAck(uint8_t cmd_id, uint8_t status)
-{
-	uint8_t command [10];
-	command[0] = 0xAA;
-	command[1] = 0x00;
-	command[2] = 0x03;
-	command[3] = 0x00;
-	command[4] = cmd_id;
-	command[5] = status;
-	command[6] = BT_CalculateCmdChecksum(&command[2], &command[5]);
-	BT_SendSPPData(command, 7, 0);
-}
-void BT_SendAppsPowerStatus(uint8_t status)
-{
-	uint8_t command [10];
-	command[0] = 0xAA;
-	command[1] = 0x00;
-	command[2] = 0x02;
-	command[3] = 0x01;
-	command[4] = status;
-	command[5] = BT_CalculateCmdChecksum(&command[2], &command[4]);
-	BT_SendSPPData(command, 6, 0);
-}
-void BT_SendAppBTMStatus(uint8_t status)
-{
-	uint8_t command [10];
-	command[0] = 0xAA;
-	command[1] = 0x00;
-	command[2] = 0x02;
-	command[3] = 0x01;
-	command[4] = status;
-	command[5] = BT_CalculateCmdChecksum(&command[2], &command[4]);
-	BT_SendSPPData(command, 6, 0);
-	
-}
-void BT_SendSPPData(uint8_t* addr, uint16_t size, uint8_t link_index)
-{
-    uint8_t command[11];
-    uint8_t checksum = 0;
-    uint16_t cmd_length = size + 7;
-	// Send data if BLE connect
-	// Check if the buffer is full
-	// If buffer is OK, it will add an item on  BT_SendingCmd
-	if(/*BT_isBLEConnected()==0 ||*/ checkCopySendingBuffer(SEND_SPP_DATA, 10+size+1, CMD_INFO_MCU) == false)
-		return;
-	
-    command[0] = 0xAA;                      //header byte 0
-    command[1] = (uint8_t)(cmd_length>>8);                 //header byte 1
-    command[2] = (uint8_t)(cmd_length&0xff);                      //length
-    command[3] = SEND_SPP_DATA;             //command ID
-    command[4] = link_index;                      //link_index, set to 0
-    command[5] = 0x00;          //single packet format
-    //total_length: 2byte
-    command[6] = (uint8_t)(size>>8);
-    command[7]= (uint8_t)(size&0xff);
-    //payload_length: 2byte
-    command[8] = (uint8_t)(size>>8);
-    command[9] = (uint8_t)(size&0xff);
-
-
-    continueCopySendingCommandToBuffer(&command[0], 10);
-    	checksum = calculateChecksum2(checksum, &command[1], 9);
-    continueCopySendingCommandToBuffer(addr, size);
-    	checksum = calculateChecksum2(checksum, addr, size);
-    	checksum = ~checksum + 1;
-    continueCopySendingCommandToBuffer(&checksum, 1);
-	EndRegisterNewCommand(UR_TxBufHead);
-  //  CommandAckStatus.SPP_DATA_status = COMMAND_IS_SENT;
-}
-
-
-/*------------------------------------------------------------*/
-// Send BT SPP data with command header
-void BT_SendSPPAllData(uint8_t* addr, uint16_t size, uint8_t link_index, uint8_t all_data_checksum)
-{
-    uint8_t command[13];
-    uint8_t checksum = 0;
-    uint16_t total_data_size = size + 4;
-    uint16_t cmd_length = total_data_size + 7;
-
-	if(/*BT_isBLEConnected()==0 ||*/ checkCopySendingBuffer(SEND_SPP_DATA, 13+size+1+1, CMD_INFO_MCU) == false)
-		return;
-	
-    command[0] = 0xAA;                      //header byte 0
-    command[1] = (uint8_t)(cmd_length>>8);                 //header byte 1
-    command[2] = (uint8_t)(cmd_length&0xff);                      //length
-    command[3] = SEND_SPP_DATA;             //command ID
-    command[4] = link_index;                      //link_index, set to 0
-    command[5] = 0x00;          //single packet format
-    //total_length: 2byte
-    command[6] = (uint8_t)(total_data_size>>8);
-    command[7]= (uint8_t)(total_data_size&0xff);
-    //payload_length: 2byte
-    command[8] = (uint8_t)(total_data_size>>8);
-    command[9] = (uint8_t)(total_data_size&0xff);
-    command[10] = 0xAA;
-    command[11] = 0x00;
-    command[12] = size;
-    continueCopySendingCommandToBuffer(&command[0], 13);
-    checksum = calculateChecksum2(checksum, &command[1], 12);
-    continueCopySendingCommandToBuffer(addr, size);
-    checksum = calculateChecksum2(checksum, addr, size);
-    continueCopySendingCommandToBuffer(&all_data_checksum, 1);
-    command[0] = all_data_checksum;
-    checksum = calculateChecksum2(checksum, &command[0], 1);
-    checksum = ~checksum + 1;
-    continueCopySendingCommandToBuffer(&checksum, 1);
-	EndRegisterNewCommand(UR_TxBufHead);
-   // CommandAckStatus.SPP_DATA_status = COMMAND_IS_SENT;
-}
-
-void BT_LoopBackSPPData(uint8_t* addr, uint16_t total_command_size)
-{
-    uint8_t command[11];
-    uint8_t checksum = 0;
-    uint16_t cmd_length = total_command_size+1;
-
-	if(/*BT_isBLEConnected()==0 ||*/ checkCopySendingBuffer(SEND_SPP_DATA, 4+total_command_size+1, CMD_INFO_MCU) == false)
-		return;
-
-	
-    command[0] = 0xAA;                                  //header byte 0
-    command[1] = (uint8_t)(cmd_length>>8);                 //header byte 1(length high byte)
-    command[2] = (uint8_t)(cmd_length&0xff);                      //length(length low byte)
-    command[3] = SEND_SPP_DATA;             //command ID
-    continueCopySendingCommandToBuffer(&command[0], 4);
-    checksum = calculateChecksum2(checksum, &command[1], 3);
-    //total_command_size -= 1;
-    continueCopySendingCommandToBuffer(addr, total_command_size);
-    checksum = calculateChecksum2(checksum, addr, total_command_size);
-    checksum = ~checksum + 1;
-    continueCopySendingCommandToBuffer(&checksum, 1);
-	EndRegisterNewCommand(UR_TxBufHead);
-   // CommandAckStatus.SPP_DATA_status = COMMAND_IS_SENT;
-}
-
-/*------------------------------------------------------------*/
-void BT_SetupBTMGPIO( void )
-{
-    uint8_t command[20];
-    command[0] = 0xAA;                      //header byte 0
-    command[1] = 0x00;                      //header byte 1
-    command[2] = 13;                        //length
-    command[3] = GPIO_CTRL;                //command ID
-    command[4] = 0xFF;                      //IO_Ctrl_Mask_P0,
-    command[5] = 0xDF;                      //IO_Ctrl_Mask_P1,
-    command[6] = 0xFF;                      //IO_Ctrl_Mask_P2,
-    command[7] = 0xBF;                      //IO_Ctrl_Mask_P3,
-    command[8] = 0x00;                      //IO_Setting_P0,
-    command[9] = 0x00;                      //IO_Setting_P1,
-    command[10] = 0x00;                     //IO_Setting_P2,
-    command[11] = 0x00;                     //IO_Setting_P3,
-    command[12] = 0x00;                     //Output_Value_P0,
-    command[13] = 0x00;                     //Output_Value_P1,
-    command[14] = 0x00;                     //Output_Value_P2,
-    command[15] = 0x00;                     //Output_Value_P3,
-    command[16] = BT_CalculateCmdChecksum(&command[2], &command[15]);
-    copySendingCommandToBuffer(&command[0], 17);
-  //  CommandAckStatus.SET_GPIO_CTRL_status = COMMAND_IS_SENT;
-}
-
-/*------------------------------------------------------------*/
-void BT_EnterLineInMode(uint8_t disable0_enable1, uint8_t analog0_I2S1)
-{
-    uint8_t command[10];
-    command[0] = 0xAA;                      //header byte 0
-    command[1] = 0x00;                      //header byte 1
-    command[2] = 3;                        //length
-    command[3] = BTM_UTILITY_FUNCTION;                //command ID
-    command[4] = 1;                         //utility_function_type=0x01
-    if(analog0_I2S1)
-    {
-        if(disable0_enable1)
-            command[5] = 3;
-        else
-            command[5] = 2;
-    }
-    else
-    {
-        if(disable0_enable1)
-            command[5] = 1;
-        else
-            command[5] = 0;
-    }
-    command[6] = BT_CalculateCmdChecksum(&command[2], &command[5]);
-    copySendingCommandToBuffer(&command[0], 7);
-    //CommandAckStatus.BTM_UTILITY_REQ_status = COMMAND_IS_SENT;
-}
-
-/*------------------------------------------------------------*/
-void BT_SetRXBufferSize( void )
-{
-    uint8_t command[10];
-    command[0] = 0xAA;                      //header byte 0
-    command[1] = 0x00;                      //header byte 1
-    command[2] = 3;                        //length
-    command[3] = BT_MCU_UART_RX_BUFF_SIZE;                //command ID
-    command[4] = 0;
-    command[5] = 200;
-    command[6] = BT_CalculateCmdChecksum(&command[2], &command[5]);
-    copySendingCommandToBuffer(&command[0], 7);
-    //CommandAckStatus.SET_RX_BUFFER_SIZE_status = COMMAND_IS_SENT;
-}
-void BT_ProfileLinkBack(uint8_t linked_profile, uint8_t link_index)
-{
-    uint8_t command[10];
-    command[0] = 0xAA;                      //header byte 0
-    command[1] = 0x00;                      //header byte 1
-    command[2] = 3;                        //length
-    command[3] = ADDITIONAL_PROFILE_LINK_SETUP;                //command ID
-    command[4] = link_index;
-    command[5] = linked_profile;
-    command[6] = BT_CalculateCmdChecksum(&command[2], &command[5]);
-    copySendingCommandToBuffer(&command[0], 7);
-    //CommandAckStatus.PROFILE_LINK_BACK_status = COMMAND_IS_SENT;
-}
 /*------------------------------------------------------------*/
 void BT_CommandSendInit( void )
 {
@@ -1316,80 +730,5 @@ static bool RemoveFirstCommand(void)//index starting from 0
     else
         UR_TxBufStatus = TXRX_BUF_OK;
     return true;
-}
-
-/*------------------------------------------------------------*/
-uint8_t BT_GetAckStatusSendSPPData( void )
-{
-    return BT_SendingCmd.SendingCmdArray[0].cmdStatus;
-}
-
-uint16_t BT_GetOverRun(uint8_t choice)
-{
-	switch(choice)
-	{
-		case 0:
-		return BT_bufferOverRun;
-		case 1:
-		return BT_commandOverRun;
-	}
-}
-
-void BT_Send_HIDMouseCmd(uint8_t mouseX, uint8_t mouseY)
-{
-    uint8_t command[20];
-    command[0] = 0xAA;      //header byte 0
-    command[1] = 0x00;      //header byte 1
-    command[2] = 0x09;      //length
-
-    command[3] = GATT_CTRL; //command ID
-    command[4] = 0x00;      //Set notification and send the mouse value
-    command[5] = 1;			// Link index
-    command[6] = 0x00;		// HID report characteristic handle    
-    command[7] = 0x85;		// HID report characteristic handle
-
-	command[8] = 0x00;		// HID button definition
-	command[9] = mouseX; 		// HID x movement
-	command[10] = mouseY;		// HID y movement    
-	command[11] = 0x00;		// HID 
-		
-    command[12] = BT_CalculateCmdChecksum(&command[2], &command[11]);
-	copySendingCommandToBuffer(&command[0], 13);
-}
-
-void BT_Update_CharValue(uint8_t* charValHandle, uint8_t charVal)
-{
-    uint8_t command[20];
-    command[0] = 0xAA;      //header byte 0
-    command[1] = 0x00;      //header byte 1
-    command[2] = 0x05;      //length
-
-    command[3] = GATT_CTRL; 		//Gatt command
-    command[4] = 0x02;      		//update characteristic sub-op code
-    command[5] = charValHandle[0];	//Attribute handle lower bytes
-    command[6] = charValHandle[1];	//Attribute handle upper bytes     
-    command[7] = charVal;			//characteristic value
-		
-    command[8] = BT_CalculateCmdChecksum(&command[2], &command[7]);
-	copySendingCommandToBuffer(&command[0], 9);
-}
-
-void BT_Send_GattWriteResp(uint8_t conHandle, uint8_t* charValHandle)
-{
-    uint8_t command[20];
-    command[0] = 0xAA;      //header byte 0
-    command[1] = 0x00;      //header byte 1
-    command[2] = 0x07;      //length
-
-    command[3] = GATT_CTRL; 		//Gatt command
-    command[4] = 0x01;      		//Send write response sub-op code
-    command[5] = conHandle;			//connection hanlde
-    command[6] = 0x12;				//Request opcode = 0x12    
-    command[7] = charValHandle[0];	//Attribute handle lower bytes
-    command[8] = charValHandle[1];	//Attribute handle upper bytes
-	command[9] = gatt_status_code;		// HID button definition
-		
-    command[10] = BT_CalculateCmdChecksum(&command[2], &command[9]);
-	copySendingCommandToBuffer(&command[0], 11);
 }
 

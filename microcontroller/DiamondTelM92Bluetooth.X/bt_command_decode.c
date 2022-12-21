@@ -27,7 +27,6 @@
 #include "atcmd.h"
 
 #define BT_CMD_SIZE_MAX				200
-#define Set_LED_Style(x,y,z)
 
 //command decode state machine
 typedef enum {
@@ -170,12 +169,6 @@ static uint8_t  BT_CmdDecodeCmdLength;
 static uint8_t  BT_CmdDecodeChecksum;			
 static uint8_t  BT_CmdDecodeDataCnt;                    //temporary variable in decoding
 static unsigned short BT_CmdBufferPt;                    //
-
-#ifdef DATABASE2_TEST       //test only
-bool ParsePayloadAsCommand(uint8_t* command, uint8_t length);
-#endif
-void AppsCommandDecode(uint8_t* buffer);
-
 
 /*======================================*/
 /*  function implemention       */
@@ -679,66 +672,8 @@ void BT_CommandDecode( void )
                 APP_BT_EventHandler(PORT3_INPUT_CHANGED, para, &BT_CmdBuffer[1]);
             }
             break;
-#ifdef PIC18_DEBUGGER			
-			case 0xFE:
-				BLE_SaveBatteryLevel(BT_GetOverRun(BT_CmdBuffer[0] ? 1 : 0));
-			break;
-#endif//PIC18_DEBUGGER
         default:
             break;
     }
-}
-void AppsCommandDecode(uint8_t* buffer)
-{
-	uint16_t payload_length;
-	payload_length = (uint16_t)BT_CmdBuffer[8];
-	payload_length <<= 8;
-	payload_length |= (uint16_t)BT_CmdBuffer[9];
-
-	switch(buffer[0])
-	{
-		case APPS_GET_STATUS:
-			switch(buffer[1])
-			{
-				case APPS_GET_AUXIN_STATUS:
-					BT_SendAppsAck(MOBILE_APP_MCU_PROTOCOL, STS_OK);
-					//AudioSelectAppsStatus();
-				break;
-				case APPS_GET_POWER_STATUS:
-					BT_SendAppsAck(MOBILE_APP_MCU_PROTOCOL, STS_OK);
-					//BT_SendAppsPowerStatus(BTAPP_GetStatus() == BT_STATUS_OFF ? 0 : 2);
-					BT_SendAppsPowerStatus(2);
-				break;
-				default:
-					BT_SendAppsAck(MOBILE_APP_MCU_PROTOCOL, ERROR_COMMAND_UNKNOW);
-				break;
-
-			}
-		break;
-		case APPS_SET_STATUS:
-			switch(buffer[1])
-			{
-				case APPS_SET_AUDIO_SRC:
-					BT_SendAppsAck(MOBILE_APP_MCU_PROTOCOL, STS_OK);
-					//BT_ToggleAudioPath();
-				break;
-				case APPS_SET_INDIV_MMI_ACTION:
-					BT_SendAppsAck(MOBILE_APP_MCU_PROTOCOL, STS_OK);
-					if(payload_length-2 == INDIV_ACTION_CMD_LENGTH && 
-					   buffer[6] == MMI_CMD)
-						BT_Vendor_SendCommand(&buffer[1] ,INDIV_ACTION_CMD_LENGTH);
-				break;
-				default:
-					BT_SendAppsAck(MOBILE_APP_MCU_PROTOCOL, ERROR_COMMAND_UNKNOW);
-				break;
-			}
-		break;
-		default:
-			BT_SendAppsAck(MOBILE_APP_MCU_PROTOCOL, ERROR_COMMAND_UNKNOW);
-		break;
-	}	
-}
-void BT_CommandDecode1MS_event( void )
-{
 }
 
