@@ -21,7 +21,6 @@
 #include "mcc_generated_files/uart4.h"
 #include "timeout.h"
 #include "interval.h"
-#include "app.h"
 #include <stdio.h>
 
 /**
@@ -59,6 +58,10 @@
  */
 static struct {
   /**
+   * Event handler function pointer.
+   */
+  TRANSCEIVER_EventHandler eventHandler;
+  /**
    * Timeout used to give up on waiting for indication that the Transceiver is ready.
    */
   timeout_t transceiverReadyTimeout;
@@ -91,7 +94,8 @@ static struct {
   bool isBatteryLevelLow;
 } module;
 
-void TRANSCEIVER_Initialize(void) {
+void TRANSCEIVER_Initialize(TRANSCEIVER_EventHandler eventHandler) {
+  module.eventHandler = eventHandler;
   TIMEOUT_Start(&module.transceiverReadyTimeout, TRANSCEIVER_READY_TIMOUT);
   INTERVAL_Init(&module.batteryLevelRequestInterval, BATTERY_LEVEL_REQUEST_INTERVAL);
   TIMEOUT_Cancel(&module.batteryLevelRequestTimeout);
@@ -112,7 +116,7 @@ void TRANSCEIVER_Task(void) {
       if (!module.isBatteryLevelLow) {
         printf("[TSCVR] Battery Level LOW!\r\n");
         module.isBatteryLevelLow = true;
-        APP_TRANSCEIVER_EventHandler(TRANSCEIVER_EventType_BATTERY_LEVEL_IS_LOW);
+        module.eventHandler(TRANSCEIVER_EventType_BATTERY_LEVEL_IS_LOW);
         TRANSCEIVER_PollBatteryLevelNow();
       }
       
@@ -154,7 +158,7 @@ void TRANSCEIVER_Task(void) {
         printf("[TSCVR] Battery Level Received: %d\r\n", (uint16_t)module.pendingBatteryLevel);
         if (module.pendingBatteryLevel != module.batteryLevel) {
           module.batteryLevel = module.pendingBatteryLevel;
-          APP_TRANSCEIVER_EventHandler(TRANSCEIVER_EventType_BATTERY_LEVEL_CHANGED);
+          module.eventHandler(TRANSCEIVER_EventType_BATTERY_LEVEL_CHANGED);
         }
         TIMEOUT_Cancel(&module.batteryLevelRequestTimeout);
 
@@ -186,7 +190,7 @@ void TRANSCEIVER_Task(void) {
     // to indicate low battery. So the battery level must be OK now.
     printf("[TSCVR] Battery Level OK!\r\n");
     module.isBatteryLevelLow = false;
-    APP_TRANSCEIVER_EventHandler(TRANSCEIVER_EventType_BATTERY_LEVEL_IS_OK);
+    module.eventHandler(TRANSCEIVER_EventType_BATTERY_LEVEL_IS_OK);
     TRANSCEIVER_PollBatteryLevelNow();
   }
   

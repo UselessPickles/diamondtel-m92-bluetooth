@@ -44,9 +44,16 @@ typedef enum TRANSCEIVER_EventType {
 } TRANSCEIVER_EventType;  
 
 /**
- * Initialize the transceiver module.
+ * TRANSCEIVER event handler function pointer.
  */
-void TRANSCEIVER_Initialize(void);
+typedef void (*TRANSCEIVER_EventHandler)(TRANSCEIVER_EventType);
+
+/**
+ * Initialize the transceiver module.
+ * 
+ * @param eventHandler - Event handler function pointer.
+ */
+void TRANSCEIVER_Initialize(TRANSCEIVER_EventHandler eventHandler);
 
 /**
  * Main task loop behavior for the Transceiver module.

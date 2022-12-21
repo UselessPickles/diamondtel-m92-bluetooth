@@ -1314,6 +1314,7 @@ static uint8_t getCreditCardMemoryIndexFromButton(HANDSET_Button button) {
 }
 
 void handle_HANDSET_Event(HANDSET_Event const* event);
+void handle_TRANSCEIVER_Event(TRANSCEIVER_EventType event);
 
 void APP_Initialize(void) {
   IO_BT_RESET_SetLow();
@@ -1325,7 +1326,7 @@ void APP_Initialize(void) {
   EEPROM_Initialize();
   TONE_Initialize();
   HANDSET_Initialize(handle_HANDSET_Event);
-  TRANSCEIVER_Initialize();
+  TRANSCEIVER_Initialize(handle_TRANSCEIVER_Event);
   INDICATOR_Initialize();
   CALL_TIMER_Initialize();
   BT_CommandDecodeInit();
@@ -2924,7 +2925,7 @@ void handle_HANDSET_Event(HANDSET_Event const* event) {
   }
 }
 
-void APP_TRANSCEIVER_EventHandler(TRANSCEIVER_EventType event) {
+void handle_TRANSCEIVER_Event(TRANSCEIVER_EventType event) {
   switch (event)  {
     case TRANSCEIVER_EventType_BATTERY_LEVEL_CHANGED:
       if (appState == APP_State_DISPLAY_BATTERY_LEVEL) {
