@@ -59,6 +59,8 @@ The following setup is needed for both Firmware and Software installation:
 
 ## Firmware Install
 
+This section will guide you through installing the correct version of the core firmware for the BM62. The BM62 very likely comes pre-installed with an older firmware version.
+
 NOTE: If you have previously installed the DSPK 2.1.5 firmware and only need to install a new version of the software for this project, then skip to the [Software Install]{#software-install} section.
 
 1. [Prepare the BM62 for Firmware/Software Install](#prepare-the-bm62-for-firmwaresoftware-install)
@@ -76,6 +78,8 @@ NOTE: If you have previously installed the DSPK 2.1.5 firmware and only need to 
 1. Click `Disconnect` when done.
 
 ## Software Install
+
+This section will guide you through installing the customized software/configuration of the BM62 for us in this DiamondTeml Model 92 Bluetooth Adapter project.
 
 1. [Prepare the BM62 for Firmware/Software Install](#prepare-the-bm62-for-firmwaresoftware-install)
 1. Launch the `DSPK v2.1.5 Package\Tools\FlashUpdate Tool\isupdate.exe`.
