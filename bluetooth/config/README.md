@@ -61,7 +61,7 @@ The following setup is needed for both Firmware and Software installation:
 
 This section will guide you through installing the correct version of the core firmware for the BM62. The BM62 very likely comes pre-installed with an older firmware version.
 
-NOTE: If you have previously installed the DSPK 2.1.5 firmware and only need to install a new version of the software for this project, then skip to the [Software Install]{#software-install} section.
+NOTE: If you have previously installed the DSPK 2.1.5 firmware and only need to install a new version of the software for this project, then skip to the [Software Install](#software-install) section.
 
 Consider reviewing the following resources that guided the writing of the following instructions (these were both sent to me by Michrochip tech support when asking how to install firmware 2.1.5 on a BM62):
 - [A Microchip Knowledge Base article about installing firmware 2.1.5 on a BM64](https://microchipsupport.force.com/s/article/BM64-Firmware-update-for-DSPK-v2-1-5-package).
