@@ -12,7 +12,7 @@ This directory contains configuration files for the Microchip BM62 Bluetooth Mod
 
 ## Contents
 
-- `firmware`: BM62 firmware version 2.1.3 hex file.
+- `firmware`: BM62 firmware version 2.1.5 hex file.
 - `src`: The individual sources for the full EEPROM software and configuration.
     - The two `.txt` files are the source config files that can be edited with the `UI Tool` and the `DSP Tool`.
     - The `IS206X_012_DUALMODESPK2.1_E1.0.4.1_1214.bin` is the "default BIN" file that was originally combined together with the `UI` and `DSP` config source files using the `MPET` tool to produce the output found in the `dist` directory.
@@ -63,9 +63,14 @@ This section will guide you through installing the correct version of the core f
 
 NOTE: If you have previously installed the DSPK 2.1.5 firmware and only need to install a new version of the software for this project, then skip to the [Software Install]{#software-install} section.
 
+Consider reviewing the following resources that guided the writing of the following instructions (these were both sent to me by Michrochip tech support when asking how to install firmware 2.1.5 on a BM62):
+- [A Microchip Knowledge Base article about installing firmware 2.1.5 on a BM64](https://microchipsupport.force.com/s/article/BM64-Firmware-update-for-DSPK-v2-1-5-package).
+- [A YouTube video about installing firmware 2.1.5 on a BM62](https://www.youtube.com/watch?v=s2zi_sSPKU0).
+
+Installation instructions:
 1. [Prepare the BM62 for Firmware/Software Install](#prepare-the-bm62-for-firmwaresoftware-install)
 1. Launch the `DSPK v2.1.5 Package\Tools\FlashUpdate Tool\isupdate.exe`.
-    - The readme file for these tools says that `isupdate` should not be used for BM62, but there is no way to install firmware version 2.1.5 using the specified `isbtflash` tool for the BM62. I got these instruictions from microchip tech support as a "workaround".
+    - The readme file for these tools says that `isupdate` should not be used for BM62, but there is no way to install firmware version 2.1.5 using the specified `isbtflash` tool for the BM62. I got these instructions from Microchip tech support as a "workaround".
 1. Select the following options:
     - `port`: The port that your USB-UART adapter maps to.
     - `baudrate`: 115200
@@ -81,9 +86,10 @@ NOTE: If you have previously installed the DSPK 2.1.5 firmware and only need to 
 
 This section will guide you through installing the customized software/configuration of the BM62 for us in this DiamondTeml Model 92 Bluetooth Adapter project.
 
+Installation instructions:
 1. [Prepare the BM62 for Firmware/Software Install](#prepare-the-bm62-for-firmwaresoftware-install)
 1. Launch the `DSPK v2.1.5 Package\Tools\FlashUpdate Tool\isupdate.exe`.
-    - Again, the readme for these tools claims that `isupdate` is not for use with the BM62, but this seems to be the only way to install a full EEPROM file on to the BM62. These instructions are thanks to [Tomas Kovacik's blog](#https://github.com/tomaskovacik/IS2020/wiki/Upgrading-firmware-on-BM62) (the second section of the instructions about installing the `MCHP_DSPKv2.1.3_BM62_StandAlone` file).
+    - Again, the readme for these tools claims that `isupdate` is not for use with the BM62, but this seems to be the only way to install a full EEPROM file on to the BM62. These instructions are thanks to [Tomas Kovacik's blog](#https://github.com/tomaskovacik/IS2020/wiki/Upgrading-firmware-on-BM62) (the second section of the instructions about installing the `MCHP_DSPKv2.1.3_BM62_StandAlone` file; but don't install that file!).
 1. Select the following options:
     - `port`: The port that your USB-UART adapter maps to.
     - `baudrate`: 115200
