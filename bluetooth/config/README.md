@@ -63,7 +63,7 @@ This section will guide you through installing the correct version of the core f
 
 NOTE: If you have previously installed the DSPK 2.1.5 firmware and only need to install a new version of the software for this project, then skip to the [Software Install](#software-install) section.
 
-Consider reviewing the following resources that guided the writing of the following instructions (these were both sent to me by Michrochip tech support when asking how to install firmware 2.1.5 on a BM62):
+Consider reviewing the following resources that guided the writing of the following instructions (these were both sent to me by Microchip tech support when asking how to install firmware 2.1.5 on a BM62):
 - [A Microchip Knowledge Base article about installing firmware 2.1.5 on a BM64](https://microchipsupport.force.com/s/article/BM64-Firmware-update-for-DSPK-v2-1-5-package).
 - [A YouTube video about installing firmware 2.1.5 on a BM62](https://www.youtube.com/watch?v=s2zi_sSPKU0).
 
