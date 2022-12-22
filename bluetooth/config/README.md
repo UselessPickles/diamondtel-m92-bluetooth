@@ -38,7 +38,7 @@ BEWARE: Various documentation, instructions, readme files, etc., from Microchip 
 
 In addition to the software tools provided by Microchip, you will also need a USB to UART adapter to install the
 firmware and configuration onto the BM62 module. I found the `DSD TECH SH-U09C5` to be a very good option (reputable chipset,
-supports more baud rate options than some other options, adjustable voltage).
+supports more baud rates than some other options, adjustable voltage).
 
 ## Prepare the BM62 for Firmware/Software Install
 
@@ -69,7 +69,7 @@ Consider reviewing the following resources that guided the writing of the follow
 
 Installation instructions:
 1. [Prepare the BM62 for Firmware/Software Install](#prepare-the-bm62-for-firmwaresoftware-install)
-1. Launch the `DSPK v2.1.5 Package\Tools\FlashUpdate Tool\isupdate.exe`.
+1. Launch the `DSPK v2.1.5 Package\Tools\FlashUpdate Tool\isupdate.exe` tool.
     - The readme file for these tools says that `isupdate` should not be used for BM62, but there is no way to install firmware version 2.1.5 using the specified `isbtflash` tool for the BM62. I got these instructions from Microchip tech support as a "workaround".
 1. Select the following options:
     - `port`: The port that your USB-UART adapter maps to.
@@ -84,11 +84,11 @@ Installation instructions:
 
 ## Software Install
 
-This section will guide you through installing the customized software/configuration of the BM62 for us in this DiamondTeml Model 92 Bluetooth Adapter project.
+This section will guide you through installing the customized software/configuration of the BM62 for use in this DiamondTel Model 92 Bluetooth Adapter project.
 
 Installation instructions:
 1. [Prepare the BM62 for Firmware/Software Install](#prepare-the-bm62-for-firmwaresoftware-install)
-1. Launch the `DSPK v2.1.5 Package\Tools\FlashUpdate Tool\isupdate.exe`.
+1. Launch the `DSPK v2.1.5 Package\Tools\FlashUpdate Tool\isupdate.exe` tool.
     - Again, the readme for these tools claims that `isupdate` is not for use with the BM62, but this seems to be the only way to install a full EEPROM file on to the BM62. These instructions are thanks to [Tomas Kovacik's blog](#https://github.com/tomaskovacik/IS2020/wiki/Upgrading-firmware-on-BM62) (the second section of the instructions about installing the `MCHP_DSPKv2.1.3_BM62_StandAlone` file; but don't install that file!).
 1. Select the following options:
     - `port`: The port that your USB-UART adapter maps to.
