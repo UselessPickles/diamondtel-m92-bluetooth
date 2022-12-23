@@ -16,6 +16,11 @@ extern "C" {
 #endif
 
 /**
+ * The size (in bytes) of EEPROM storage.
+ */
+#define EEPROM_SIZE (1024)
+  
+/**
  * Initialize this module.
  */ 
 void EEPROM_Initialize(void);
@@ -67,6 +72,9 @@ void EEPROM_WriteBytes(uint16_t address, void const* data, uint16_t size);
  * Write a single byte of data to EEPROM asynchronously while allowing the 
  * main task loop of the application to continue running now.
  * 
+ * NOTE: This async write will be queued up behind any previously pending
+ *       async writes.
+ * 
  * @param address - The EEPROM address to write.
  * @param value - The value to write to EEPROM.
  * @return True if the byte was successfully added to the write buffer. 
@@ -75,8 +83,25 @@ void EEPROM_WriteBytes(uint16_t address, void const* data, uint16_t size);
 bool EEPROM_AsyncWriteByte(uint16_t address, uint8_t value);
 
 /**
+ * Write a byte of data N times to EEPROM, starting at a specified address.
+ * 
+ * NOTE: This async write will be queued up behind any previously pending
+ *       async writes.
+ * 
+ * @param address - The EEPROM address to start writing at.
+ * @param value - The value to write to EEPROM.
+ * @param count - The number of bytes of data to write to EEPROM.
+ * @return True if the data was successfully added to the write buffer. 
+ *         False if there was not sufficient room in the buffer.
+ */
+bool EEPROM_AsyncWriteByteN(uint16_t address, uint8_t value, uint16_t count);
+
+/**
  * Write multiple bytes of data to EEPROM asynchronously while allowing the 
  * main task loop of the application to continue running now.
+ * 
+ * NOTE: This async write will be queued up behind any previously pending
+ *       async writes.
  * 
  * @param address - The EEPROM address to start writing at.
  * @param data - A pointer to the data to write to EEPROM.
@@ -85,6 +110,14 @@ bool EEPROM_AsyncWriteByte(uint16_t address, uint8_t value);
  *         False if there was not sufficient room in the buffer.
  */
 bool EEPROM_AsyncWriteBytes(uint16_t address, void const* data, uint8_t size);
+
+/**
+ * Erase all EEPROM data by asynchronously writing 0xFF to ever EEPROM address.
+ * 
+ * NOTE: All previously pending async writes are canceled before starting the
+ *       erase.
+ */
+void EEPROM_AsyncErase(void);
 
 /**
  * Test if all current/pending EEPROM writes are complete.

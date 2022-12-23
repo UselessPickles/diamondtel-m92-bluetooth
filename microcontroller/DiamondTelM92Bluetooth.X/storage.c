@@ -159,7 +159,7 @@ static void uncompressPhoneNumber(char* dest, uint8_t const* compressedPhoneNumb
   *dest = 0;
 }
 
-static void resetStorage(void) {
+static void initializeDefaultStorageData(void) {
   storage.marker = MARKER;
   storage.version = VERSION;
   storage.lcdViewAngle = 0;
@@ -214,32 +214,32 @@ static void resetStorage(void) {
   }
 
   STORAGE_SetDirectoryEntry(
-      1,
+      10,
       "3433620506",
       "Harvard Lines"
   );
   STORAGE_SetDirectoryEntry(
-      2,
+      11,
       "9147379938",
       "CPTA Announcemnt"
   );
   STORAGE_SetDirectoryEntry(
-      3,
+      12,
       "2027621401",
       "US Naval Time"
   );
   STORAGE_SetDirectoryEntry(
-      4,
+      13,
       "5055034455",
       "Call Saul"
   );
   STORAGE_SetDirectoryEntry(
-      5,
+      14,
       "7192662837",
       "Callin Oates"
   );
   STORAGE_SetDirectoryEntry(
-      6,
+      15,
       "18884732963",
       "HP Fax Me"
   );
@@ -260,16 +260,12 @@ void STORAGE_Initialize(void) {
   storage.version = EEPROM_ReadByte(1);
   
   if ((storage.marker != MARKER) || (storage.version != VERSION)) {
-    resetStorage();
+    initializeDefaultStorageData();
   } else {
     EEPROM_ReadBytes(0, &storage, sizeof(storage));
   }
   
   initializeSortedNameIndexes();
-}
-
-void STORAGE_ResetToDefaults(void) {
-  resetStorage();
 }
 
 uint8_t STORAGE_GetLcdViewAngle(void) {

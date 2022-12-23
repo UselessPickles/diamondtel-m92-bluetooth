@@ -1327,11 +1327,16 @@ static void handle_CLR_CODES_Event(CLR_CODES_EventType event) {
       HANDSET_DisableTextDisplay();
       HANDSET_PrintString("FACTORY RESET ");
       HANDSET_EnableTextDisplay();
-      BT_DisconnectAllProfile();
+      // Reset the BT module (this erases all paired device info).
       BT_ResetEEPROM();
+      // Reset the BT device name to the default.
       BT_SetDeviceName("DiamondTel Model 92");
-      STORAGE_ResetToDefaults();
-      rebootAfterDelay(150);
+      // Erase all MCU EEPROM data. After rebooting, STORAGE_Initialize()
+      // will detect that the EEPROM data is not initialized, and defaults will
+      // be restored.
+      EEPROM_AsyncErase();
+      // Allow time for BT module commands to complete before rebooting
+      rebootAfterDelay(100);
       break;
   }
 }

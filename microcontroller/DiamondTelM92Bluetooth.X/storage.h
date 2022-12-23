@@ -28,8 +28,6 @@ extern "C" {
   
 void STORAGE_Initialize(void);
 
-void STORAGE_ResetToDefaults(void);
-
 uint8_t STORAGE_GetLcdViewAngle(void);
 void STORAGE_SetLcdViewAngle(uint8_t lcdViewAngle);
 
