@@ -50,7 +50,7 @@ The following setup is needed for both Firmware and Software installation:
 - `EAN` pulled high to `VDD_IO` 
     - Datasheet incorrectly claims EAN has an internal pull-up resistor.
 - `P2_0` pulled low.
-- `RXD`, `TXD`, Power, ground, and `#RESET` disconnected from the rest of the circuit so that the MCU cannot interfere with the update and no pins are inadvertantly pulled low.
+- `RXD`, `TXD`, Power, ground, and `#RESET` disconnected from the rest of the circuit so that the MCU cannot interfere with the update and no pins are inadvertently pulled low.
 - Connect a USB-UART adapter to the BM62.
     - Ground to ground.
     - +5V to `ADAPTER_IN`
