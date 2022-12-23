@@ -144,6 +144,7 @@ uint8_t BT_IsCommandSendTaskIdle( void );
 uint8_t BT_CalculateCmdChecksum(uint8_t const* startByte, uint8_t const* endByte);
 void BT_SendBytesAsCompleteCommand(uint8_t const* command, uint8_t command_length);
 
+void BT_ResetEEPROM(void);
 void BT_SetEventMask(void);
 void BT_ReadLinkedDeviceName(void);
 void BT_ReadDeviceName(void);

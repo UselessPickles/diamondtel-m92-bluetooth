@@ -90,6 +90,7 @@ static enum {
   APP_State_MEMORY_GAME,
   APP_State_TETRIS_GAME,
   APP_State_PROGRAMMING,
+  APP_State_REBOOT_AFTER_DELAY,
   APP_State_REBOOT
 } appState;
 
@@ -128,6 +129,7 @@ static const char* const appStateLabel[] = {
   "MEMORY_GAME",
   "TETRIS_GAME",
   "PROGRAMMING",
+  "REBOOT_AFTER_DELAY",
   "REBOOT"
 };
 
@@ -147,6 +149,15 @@ static void reboot(void) {
   TIMEOUT_Start(&appStateTimeout, 10);
   IO_BT_RESET_SetLow();
   appState = APP_State_REBOOT;
+}
+
+static void rebootAfterDelay(uint8_t delay) {
+  if (appState >= APP_State_REBOOT_AFTER_DELAY) {
+    return;
+  }
+
+  TIMEOUT_Start(&appStateTimeout, delay);
+  appState = APP_State_REBOOT_AFTER_DELAY;
 }
 
 #define INITIAL_BATTERY_LEVEL_REPORT_DELAY (100)
@@ -889,7 +900,7 @@ static void recallLastDialedNumber() {
   recallNumber(tempNumberBuffer);
 }
 
-static void recallBtDeviceName(bool requestName) {
+static void recallBtDeviceName(void) {
   CALL_TIMER_DisableDisplayUpdate();
   BT_ReadDeviceName();
   
@@ -967,6 +978,7 @@ typedef enum SecurityAction {
   SecurityAction_DISPLAY_TOTAL_TALK_TIME,
   SecurityAction_RCL_CARD_NUMBER,
   SecurityAction_STO_CARD_NUMBER,
+  SecurityAction_RESET_PAIRED_DEVICES,
   SecurityAction_SET_BT_DEVICE_NAME,
   SecurityAction_TOGGLE_DUAL_NUMBER
 } SecurityAction;
@@ -1014,6 +1026,13 @@ static void handle_SECURITY_CODE_Success_CLR_CARD_NUMBER(void) {
   numberInputIsStale = true;
 }
 
+static void handle_SECURITY_CODE_Success_RESET_PAIRED_DEVICES(void) {
+  BT_DisconnectAllProfile();
+  BT_ResetEEPROM();
+  STORAGE_SetPairedDeviceName("");
+  returnToNumberInput(false);
+}
+
 static void handle_SECURITY_CODE_Success_SET_BT_DEVICE_NAME(void) {
   startNameInput(NAME_INPUT_BluetoothName, true);
 }
@@ -1028,6 +1047,7 @@ static SECURITY_CODE_Callback SECURITY_CODE_SUCCESS_CALLBACKS[] = {
   handle_SECURITY_CODE_Success_DISPLAY_TOTAL_TALK_TIME,
   handle_SECURITY_CODE_Success_RCL_CARD_NUMBER,
   handle_SECURITY_CODE_Success_CLR_CARD_NUMBER,
+  handle_SECURITY_CODE_Success_RESET_PAIRED_DEVICES,
   handle_SECURITY_CODE_Success_SET_BT_DEVICE_NAME,
   handle_SECURITY_CODE_Success_TOGGLE_DUAL_NUMBER
 };
@@ -1301,6 +1321,17 @@ static void handle_CLR_CODES_Event(CLR_CODES_EventType event) {
       STORAGE_SetProgrammingCount(0);
       appState = APP_State_PROGRAMMING;
       PROGRAMMING_Start(reboot);
+      break;
+    
+    case CLR_CODES_EventType_FACTORY_RESET: 
+      HANDSET_DisableTextDisplay();
+      HANDSET_PrintString("FACTORY RESET ");
+      HANDSET_EnableTextDisplay();
+      BT_DisconnectAllProfile();
+      BT_ResetEEPROM();
+      BT_SetDeviceName("DiamondTel Model 92");
+      STORAGE_ResetToDefaults();
+      rebootAfterDelay(150);
       break;
   }
 }
@@ -1622,6 +1653,12 @@ void APP_Task(void) {
       TETRIS_GAME_Task();
       break;
       
+    case APP_State_REBOOT_AFTER_DELAY:
+      if (!TIMEOUT_IsPending(&appStateTimeout)) {
+        reboot();
+      }
+      break;
+      
     case APP_State_REBOOT:
       if (!TIMEOUT_IsPending(&appStateTimeout) && EEPROM_IsDoneWriting()) {
         RESET();
@@ -1638,6 +1675,7 @@ void APP_Timer10MS_event(void) {
   TIMEOUT_Timer_event(&appStateTimeout);
 
   switch (appState) {
+    case APP_State_REBOOT_AFTER_DELAY:
     case APP_State_REBOOT:
       return;
       
@@ -1790,8 +1828,9 @@ void handle_HANDSET_Event(HANDSET_Event const* event) {
           // Look out below!
 
         case HANDSET_Button_STO:
-          if ((button == HANDSET_Button_STO) && (appState == APP_State_RECALL_BT_DEVICE_NAME)) {
-            // STO does NOT escape from BT device name
+          if ((button == HANDSET_Button_STO) && 
+              ((appState == APP_State_RECALL_BT_DEVICE_NAME) || (appState == APP_State_RECALL_PAIRED_DEVICE_NAME))) {
+            // STO does NOT escape from BT device name or paired device name
             break;
           }
           // Look out below!
@@ -2279,7 +2318,7 @@ void handle_HANDSET_Event(HANDSET_Event const* event) {
               }
             } else if ((button == HANDSET_Button_ASTERISK) && (rclOrStoAddr == 0xFF)) {
               SOUND_PlayDTMFButtonBeep(button, false);
-              recallBtDeviceName(true);
+              recallBtDeviceName();
             } else if ((button == HANDSET_Button_POUND) && (rclOrStoAddr == 0xFF)) {
               SOUND_PlayDTMFButtonBeep(button, false);
               recallPairedDeviceName(false);
@@ -2878,6 +2917,15 @@ void handle_HANDSET_Event(HANDSET_Event const* event) {
       }
       break;
       
+    case APP_State_RECALL_PAIRED_DEVICE_NAME:
+      if (isButtonDown) {
+        if (button == HANDSET_Button_STO) {
+          SOUND_PlayButtonBeep(button, false);
+          startEnterSecurityCode(SecurityAction_RESET_PAIRED_DEVICES, true);
+        }
+      }
+      break;
+      
     case APP_State_RECALL_BT_DEVICE_NAME:
       if (isButtonDown) {
         if (button == HANDSET_Button_STO) {
@@ -3069,7 +3117,7 @@ void APP_BT_EventHandler(uint8_t event, uint16_t para, uint8_t* para_full) {
     case BT_EVENT_ACL_DISCONNECTED:  
       printf("[ACL] Disconnected\r\n");
       
-      if (appState != APP_State_PAIRING) {
+      if ((appState != APP_State_PAIRING) && (appState < APP_State_REBOOT_AFTER_DELAY)) {
         BT_LinkBackToLastDevice();
       }
       break;

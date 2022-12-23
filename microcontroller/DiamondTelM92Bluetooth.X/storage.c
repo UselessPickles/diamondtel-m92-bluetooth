@@ -235,16 +235,11 @@ static void resetStorage(void) {
   );
   STORAGE_SetDirectoryEntry(
       5,
-      "5058425662",
-      "Call McGill"
-  );
-  STORAGE_SetDirectoryEntry(
-      6,
       "7192662837",
       "Callin Oates"
   );
   STORAGE_SetDirectoryEntry(
-      8,
+      6,
       "18884732963",
       "HP Fax Me"
   );
@@ -271,6 +266,10 @@ void STORAGE_Initialize(void) {
   }
   
   initializeSortedNameIndexes();
+}
+
+void STORAGE_ResetToDefaults(void) {
+  resetStorage();
 }
 
 uint8_t STORAGE_GetLcdViewAngle(void) {

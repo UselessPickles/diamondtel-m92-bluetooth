@@ -17,7 +17,8 @@ extern "C" {
 typedef enum CLR_CODES_EventType {
   CLR_CODES_EventType_PROGRAM,
   CLR_CODES_EventType_PROGRAM_RESET,
-  CLR_CODES_EventType_SELF_DIAGNOSTICS
+  CLR_CODES_EventType_SELF_DIAGNOSTICS,
+  CLR_CODES_EventType_FACTORY_RESET,
 } CLR_CODES_EventType;
 
 typedef void (*CLR_CODES_EventHandler)(CLR_CODES_EventType);

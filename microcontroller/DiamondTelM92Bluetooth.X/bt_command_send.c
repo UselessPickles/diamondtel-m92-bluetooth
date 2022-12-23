@@ -269,6 +269,10 @@ void BT_SendBytesAsCompleteCommand(uint8_t const* command, uint8_t command_lengt
 
 /*------------------------------------------------------------*/
 
+void BT_ResetEEPROM(void) {
+  BT_MMI_ActionCommand(RESET_EEPROM_SETTING, BT_linkIndex);
+}
+
 void BT_SetEventMask(void) {
   uint8_t command[9];
   command[0] = 0xAA;                      //header byte 0

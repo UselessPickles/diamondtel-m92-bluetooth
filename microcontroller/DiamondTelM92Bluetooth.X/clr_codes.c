@@ -46,6 +46,17 @@ static char const SELF_DIAGNOSTICS_CODE[] = {
   0
 };
 
+static char const FACTORY_RESET_CODE[] = {
+  HANDSET_Button_CLR_3,
+  HANDSET_Button_CLR_3,
+  HANDSET_Button_CLR_3,
+  HANDSET_Button_CLR_2,
+  HANDSET_Button_CLR_8,
+  HANDSET_Button_CLR_5,
+  HANDSET_Button_CLR_8,
+  0
+};
+
 static void resetInput(void) {
   module.inputLength = 0;
   module.input[0] = 0;
@@ -95,6 +106,8 @@ void CLR_CODES_HANDSET_EventHandler(HANDSET_Event const* event) {
         module.eventHandler(CLR_CODES_EventType_PROGRAM_RESET);
       } else if (strcmp(module.input, SELF_DIAGNOSTICS_CODE) == 0) {
         module.eventHandler(CLR_CODES_EventType_SELF_DIAGNOSTICS);
+      } else if (strcmp(module.input, FACTORY_RESET_CODE) == 0) {
+        module.eventHandler(CLR_CODES_EventType_FACTORY_RESET);
       }
     }
   } else {
