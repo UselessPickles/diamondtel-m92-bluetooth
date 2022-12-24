@@ -25,8 +25,6 @@ typedef enum RINGTONE_Type {
 
 char const* RINGTONE_GetName(RINGTONE_Type ringtone);
 
-void RINGTONE_Preview(RINGTONE_Type ringtone);
-
 void RINGTONE_Start(RINGTONE_Type ringtone);
 
 void RINGTONE_Stop(void);

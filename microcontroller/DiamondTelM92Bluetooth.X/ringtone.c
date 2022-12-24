@@ -17,16 +17,6 @@ char const* RINGTONE_GetName(RINGTONE_Type ringtone) {
   return ringtones[ringtone].name;
 }
 
-void RINGTONE_Preview(RINGTONE_Type ringtone) {
-  SOUND_PlayEffect(
-    SOUND_Channel_FOREGROUND, 
-    SOUND_Target_SPEAKER,
-    VOLUME_Mode_ALERT,
-    ringtones[ringtone].effect, 
-    true
-  );  
-}
-
 void RINGTONE_Start(RINGTONE_Type ringtone) {
   SOUND_PlayEffect(
     SOUND_Channel_BACKGROUND, 
