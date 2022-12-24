@@ -33,12 +33,6 @@ typedef struct {
    */
   uint8_t sizeLow: 8;
   /**
-   * The repeating byte value to be written.
-   * 
-   * Only relevant if `isRepeatingByte` is true.
-   */
-  uint8_t repeatingByte: 8;  
-  /**
    * High byte of the target address.
    * 
    * NOTE: Max valid address is 0x03FF.
@@ -51,7 +45,9 @@ typedef struct {
    */
   uint8_t sizeHigh: 3;
   /**
-   * True if this entry is for writing a repeating byte.
+   * True if this entry is for writing a repeating byte, and the next byte
+   * in the buffer will be written multiple times.
+   * 
    * False if this entry is for writing subsequent bytes in the buffer.
    */
   bool isRepeatingByte: 1;
@@ -66,7 +62,7 @@ static struct {
    * 
    * Each buffered write is stored in this buffer as follows:
    * - `header`: See the `write_buffer_header_t` type.
-   * - `data`: zero or more bytes of data to be written, depending on the content of the header.
+   * - `data`: One or more bytes of data to be written, depending on the content of the header.
    */
   uint8_t buffer[EEPROM_WRITE_BUFFER_SIZE];
   /**
@@ -203,6 +199,9 @@ static void writeHeaderToWriteBuffer(write_buffer_header_t const* header) {
  *         exists in EEPROM.
  */
 static bool writeByteWithoutWaitingForCompletion(uint16_t address, uint8_t value) {
+  // Ensure that EEPROM is ready for a new operation
+  while(NVMCON0bits.GO);
+
   // Set NVMADR with the target address (0x380000 - 0x3803FF)
   NVMADRU = 0x38;
   NVMADRH = (uint8_t) ((address & 0x0300) >> 8);
@@ -211,14 +210,11 @@ static bool writeByteWithoutWaitingForCompletion(uint16_t address, uint8_t value
   // Set the NVMCMD control bits for DFM Byte Read operation
   NVMCON1bits.NVMCMD = 0b000;
   NVMCON0bits.GO = 1;
-  uint8_t oldByte = NVMDATL;
 
   // Do nothing if the desired value already exists at this address
-  if (oldByte == value) {
+  if (NVMDATL == value) {
     return false;
   }  
-  
-  while(NVMCON0bits.GO);
   
   // Set the NVMCMD control bits for DFM Byte Write operation
   NVMCON1bits.NVMCMD = 0b011;
@@ -296,13 +292,16 @@ void EEPROM_Task(void) {
     asyncWriteState.writeSize += header.sizeLow;
 
     asyncWriteState.isRepeatingByte = header.isRepeatingByte;
-    asyncWriteState.repeatingByte = header.repeatingByte;
+    
+    if (asyncWriteState.isRepeatingByte) {
+      asyncWriteState.repeatingByte = readByteFromWriteBuffer();
+    }
   }
 }
 
 uint8_t EEPROM_ReadByte(uint16_t address) {
-  // Wait for any previous pending EEPROM write to complete
-  while (NVMCON0bits.GO);
+  // Ensure that EEPROM is ready for a new operation
+  while(NVMCON0bits.GO);
   
   // Set NVMADR with the target address (0x380000 - 0x3803FF)
   NVMADRU = 0x38;
@@ -317,8 +316,12 @@ uint8_t EEPROM_ReadByte(uint16_t address) {
 }
 
 void* EEPROM_ReadBytes(uint16_t address, void* dest, uint16_t size) {
-  // Wait for any previous pending EEPROM write to complete
-  while (NVMCON0bits.GO);
+  if (size == 0) {
+    return dest;
+  }
+
+  // Ensure that EEPROM is ready for a new operation
+  while(NVMCON0bits.GO);
   
   // Set NVMADR with the target word address (0x380000 - 0x3803FF)
   NVMADRU = 0x38;
@@ -343,9 +346,6 @@ void* EEPROM_ReadBytes(uint16_t address, void* dest, uint16_t size) {
 }
 
 void EEPROM_WriteByte(uint16_t address, uint8_t value) {
-  // Wait for any previous pending EEPROM write to complete
-  while (NVMCON0bits.GO);
-  
   if (writeByteWithoutWaitingForCompletion(address, value)) {
     // wait for the operation to complete
     while (NVMCON0bits.GO);
@@ -356,8 +356,12 @@ void EEPROM_WriteByte(uint16_t address, uint8_t value) {
 }
 
 void EEPROM_WriteBytes(uint16_t address, void const* data, uint16_t size) {
-  // Wait for any previous pending EEPROM write to complete
-  while (NVMCON0bits.GO);
+  if (size == 0) {
+    return;
+  }
+  
+  // Ensure that EEPROM is ready for a new operation
+  while(NVMCON0bits.GO);
   
   // Set NVMADR with the target address (0x380000 - 0x3803FF)
   NVMADRU = 0x38;
@@ -377,11 +381,8 @@ void EEPROM_WriteBytes(uint16_t address, void const* data, uint16_t size) {
     // Read the current value in EEPROM
     NVMCON0bits.GO = 1;
 
-    uint8_t oldByte = NVMDATL;
-    
     // Check if the existing byte in EEPROM is different than what we want to write
-    if (oldByte != nextByte) {
-      while(NVMCON0bits.GO);
+    if (NVMDATL != nextByte) {
       
       // Set the NVMCMD control bits for DFM Byte Write operation, post increment
       NVMCON1bits.NVMCMD = 0b100;
@@ -423,42 +424,50 @@ bool EEPROM_AsyncWriteByte(uint16_t address, uint8_t value) {
   return EEPROM_AsyncWriteByteN(address, value, 1);
 }
 
-bool EEPROM_AsyncWriteByteN(uint16_t address, uint8_t value, uint16_t repeat) {
+bool EEPROM_AsyncWriteByteN(uint16_t address, uint8_t value, uint16_t n) {
+  if (n == 0) {
+    return true;
+  }
+  
   // Confirm that there's enough room in the buffer for this byte and a header
-  if (EEPROM_WRITE_BUFFER_HEADER_SIZE > writeBufferState.remaining) {
+  if (1 + EEPROM_WRITE_BUFFER_HEADER_SIZE > writeBufferState.remaining) {
     printf("[EEPROM] Buffer Overflow!\r\n");
     return false;
   }
 
+  // Build the buffered write header, and write it to the buffer
   write_buffer_header_t header;
-  
   header.addressLow = address & 0x00FF;
   header.addressHigh = (address & 0x0300) >> 8;
-  header.sizeLow = repeat & 0x00FF;
-  header.sizeHigh = (repeat & 0x0700) >> 8;
+  header.sizeLow = n & 0x00FF;
+  header.sizeHigh = (n & 0x0700) >> 8;
   header.isRepeatingByte = true;
-  header.repeatingByte = value;
-  
   writeHeaderToWriteBuffer(&header);
+  
+  // Write the value to the buffer
+  writeByteToWriteBuffer(value);
   
   return true;
 }
 
 bool EEPROM_AsyncWriteBytes(uint16_t address, void const* data, uint8_t size) {
+  if (size == 0) {
+    return true;
+  }
+
   // Confirm that there's enough room in the buffer for this data and a header
   if (size + EEPROM_WRITE_BUFFER_HEADER_SIZE > writeBufferState.remaining) {
     printf("[EEPROM] Buffer Overflow!\r\n");
     return false;
   }
 
+  // Build the buffered write header, and write it to the buffer
   write_buffer_header_t header;
-  
   header.addressLow = address & 0x00FF;
   header.addressHigh = (address & 0x0300) >> 8;
   header.sizeLow = size;
   header.sizeHigh = 0;
   header.isRepeatingByte = false;
-  
   writeHeaderToWriteBuffer(&header);
   
   /**
@@ -483,5 +492,7 @@ void EEPROM_AsyncErase(void) {
 }
 
 bool EEPROM_IsDoneWriting(void) {
-  return (writeBufferState.remaining == EEPROM_WRITE_BUFFER_SIZE) && !NVMCON0bits.GO;
+  return (writeBufferState.remaining == EEPROM_WRITE_BUFFER_SIZE) &&
+      (asyncWriteState.writeSize == 0) && 
+      !NVMCON0bits.GO;
 }

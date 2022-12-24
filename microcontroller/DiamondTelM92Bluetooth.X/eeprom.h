@@ -90,11 +90,11 @@ bool EEPROM_AsyncWriteByte(uint16_t address, uint8_t value);
  * 
  * @param address - The EEPROM address to start writing at.
  * @param value - The value to write to EEPROM.
- * @param count - The number of bytes of data to write to EEPROM.
+ * @param n - The number of bytes of data to write to EEPROM.
  * @return True if the data was successfully added to the write buffer. 
  *         False if there was not sufficient room in the buffer.
  */
-bool EEPROM_AsyncWriteByteN(uint16_t address, uint8_t value, uint16_t count);
+bool EEPROM_AsyncWriteByteN(uint16_t address, uint8_t value, uint16_t n);
 
 /**
  * Write multiple bytes of data to EEPROM asynchronously while allowing the 
