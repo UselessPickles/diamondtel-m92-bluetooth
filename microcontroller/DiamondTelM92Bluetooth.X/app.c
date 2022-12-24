@@ -1381,6 +1381,7 @@ void APP_Task(void) {
   }
   
   EEPROM_Task();
+  VOLUME_Task();
   SOUND_Task();
   CALL_TIMER_Task();
   INDICATOR_Task();
@@ -1702,6 +1703,8 @@ void APP_Timer10MS_event(void) {
   }
   
   CLR_CODES_Timer10MS_event();
+  VOLUME_Timer10MS_event();
+  
   TIMEOUT_Timer_event(&idleTimeout);
   TIMEOUT_Timer_event(&fcnTimeout);
   TIMEOUT_Timer_event(&callActionTimeout);

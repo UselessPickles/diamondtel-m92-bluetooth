@@ -3,7 +3,6 @@
 #include "sound.h"
 #include "volume.h"
 #include "tone.h"
-#include "storage.h"
 #include "mcc_generated_files/pin_manager.h"
 
 #define BUTTON_BEEP_LIMITED_DURATION (250)
@@ -68,7 +67,7 @@ static bool isSoundEffectOnAndNotMuted(SoundEffectState const* soundEffectState)
     return false;
   }
   
-  return STORAGE_GetVolumeLevel(soundEffectState->volumeMode) != VOLUME_Level_OFF;
+  return VOLUME_GetLevel(soundEffectState->volumeMode) != VOLUME_Level_OFF;
 }
 
 static bool playCurrentSoundEffectStateTone(SoundEffectState const* soundEffectState) {

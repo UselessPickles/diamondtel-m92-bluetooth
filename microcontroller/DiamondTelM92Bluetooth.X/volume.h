@@ -54,6 +54,20 @@ typedef enum VOLUME_Level {
 void VOLUME_Initialize(void);
 
 /**
+ * The main task implementation of this module.
+ * 
+ * This must be called from the main task loop of the application.
+ */
+void VOLUME_Task(void);
+
+/**
+ * 10 millisecond timer event handler for the this module.
+ * 
+ * This must be called from a timer interrupt with a 10 millisecond period.
+ */
+void VOLUME_Timer10MS_event(void);
+
+/**
  * Enable audio output to the handset.
  * 
  * Volume will be set to the current volume level of the current volume mode.

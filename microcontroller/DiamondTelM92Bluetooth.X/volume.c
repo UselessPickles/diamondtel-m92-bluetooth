@@ -1,6 +1,7 @@
 
 #include "volume.h"
 #include "storage.h"
+#include "timeout.h"
 #include "mcc_generated_files/spi1.h"
 #include "mcc_generated_files/pin_manager.h"
 
@@ -20,7 +21,31 @@ static struct {
    * Current volume mode.
    */
   VOLUME_Mode currentMode; 
+  
+  /**
+   * A timeout used to defer the storing of a volume level change.
+   * 
+   * This helps avoid excessive EEPROM updates as the user is changing the 
+   * volume level.
+   */
+  timeout_t deferredStoreTimeout;
+  
+  /**
+   * The volume mode of the volume level change whose storage has been deferred.
+   */
+  VOLUME_Mode deferredStoreMode; 
+  
+  /**
+   * The volume level change whose storage has been deferred.
+   */
+  VOLUME_Level deferredStoreLevel;
 } module;
+
+/**
+ * The delay (in hundredths of a second) between a volume level change and 
+ * when it is stored.
+ */
+#define DEFERRED_STORE_TIMEOUT (500)
 
 /**
  * Digital potentiometer wiper position values, indexed by VOLUME_Level.
@@ -91,6 +116,17 @@ void VOLUME_Initialize(void) {
   module.currentMode = 0xFF;
   VOLUME_Disable();
   VOLUME_SetMode(VOLUME_Mode_SPEAKER);
+  TIMEOUT_Cancel(&module.deferredStoreTimeout);
+}
+
+void VOLUME_Task(void) {
+  if (TIMEOUT_Task(&module.deferredStoreTimeout)) {
+    STORAGE_SetVolumeLevel(module.deferredStoreMode, module.deferredStoreLevel);
+  }
+}
+
+void VOLUME_Timer10MS_event(void) {
+  TIMEOUT_Timer_event(&module.deferredStoreTimeout);
 }
 
 void VOLUME_Enable(void) {
@@ -116,7 +152,14 @@ void VOLUME_SetMode(VOLUME_Mode mode) {
 }
 
 VOLUME_Level VOLUME_GetLevel(VOLUME_Mode mode) {
-  return STORAGE_GetVolumeLevel(mode);
+  // If a deferred storage is pending, and the requested mode matches the mode
+  // of the deferred storage, then return the level value that has not yet been
+  // stored.
+  if (TIMEOUT_IsPending(&module.deferredStoreTimeout) && (mode == module.deferredStoreMode)) {
+    return module.deferredStoreLevel;
+  } else {
+    return STORAGE_GetVolumeLevel(mode);
+  }
 }
 
 void VOLUME_SetLevel(VOLUME_Mode mode, VOLUME_Level level) {
@@ -124,6 +167,17 @@ void VOLUME_SetLevel(VOLUME_Mode mode, VOLUME_Level level) {
     setPotentiometerLevel(level);
   }
   
-  STORAGE_SetVolumeLevel(mode, level);
+  // We can only keep track of one deferred storage of volume level change,
+  // so if there's a pending deferred storage for a different volume mode, then
+  // we must store it now before we setup the deferred storage of this new
+  // change
+  if (TIMEOUT_IsPending(&module.deferredStoreTimeout) && (mode != module.deferredStoreMode)) {
+    STORAGE_SetVolumeLevel(module.deferredStoreMode, module.deferredStoreLevel);
+  }
+
+  // Defer the storage of this change
+  module.deferredStoreMode = mode;
+  module.deferredStoreLevel = level;
+  TIMEOUT_Start(&module.deferredStoreTimeout, DEFERRED_STORE_TIMEOUT);
 }
 
