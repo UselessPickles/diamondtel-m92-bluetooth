@@ -1,3 +1,10 @@
+/** 
+ * @file
+ * @author Jeff Lau
+ * 
+ * UI module for adjusting volume level.
+ */
+
 #include "volume_adjust.h"
 #include "sound.h"
 #include "timeout.h"
@@ -12,15 +19,40 @@ typedef enum State {
  * Module state.
  */
 static struct {
+  /**
+   * Return callback function pointer.
+   */
   VOLUME_ADJUST_ReturnCallback returnCallback;
+  /**
+   * Current state.
+   */
   State state;
+  /**
+   * Context sensitive timeout used for state transitions.
+   */
   timeout_t stateTimeout;
+  /**
+   * The volume mode that is being adjusted.
+   */
   VOLUME_Mode volumeAdjustMode;
 } module;
 
+/**
+ * Amount of time (in hundredths of a second) to wait after the last user input
+ * before automatically exiting volume adjust.
+ */
 #define VOLUME_ADJUST_IDLE_TIMEOUT (75)
+
+/**
+ * Amount of time (in hundredths of a second) to wait while the up/down button
+ * is pressed before repeating the same volume adjustment.
+ */
 #define VOLUME_ADJUST_REPEAT_DELAY (50)
 
+/**
+ * Display labels for each volume mode, ordered such that the VOLUME_Mode enum 
+ * value is used as an index into this array.
+ */
 char const* const volumeModeLabels[] = {
   "ALERT",
   "SP   ",
@@ -30,55 +62,70 @@ char const* const volumeModeLabels[] = {
   "TONE "
 };
 
-static void playVolumeAdjustSound(VOLUME_Mode volumeMode) {
-  if (VOLUME_GetLevel(volumeMode) == VOLUME_Level_OFF) {
+/**
+ * Play the volume adjust sound effect for current volume mode.
+ */
+static void playVolumeAdjustSound(void) {
+  if (VOLUME_GetLevel(module.volumeAdjustMode) == VOLUME_Level_OFF) {
     SOUND_Stop(SOUND_Channel_FOREGROUND);
     return;
   }
   
-  switch (volumeMode) {
+  switch (module.volumeAdjustMode) {
     case VOLUME_Mode_ALERT:
-      SOUND_PlayEffect(SOUND_Channel_FOREGROUND, SOUND_Target_SPEAKER, volumeMode, SOUND_Effect_ALERT, true);
+      SOUND_PlayEffect(SOUND_Channel_FOREGROUND, SOUND_Target_SPEAKER, module.volumeAdjustMode, SOUND_Effect_ALERT, true);
       break;
     case VOLUME_Mode_SPEAKER:
     case VOLUME_Mode_GAME_MUSIC:
-      SOUND_PlaySingleTone(SOUND_Channel_FOREGROUND, SOUND_Target_SPEAKER, volumeMode, TONE_LOW, 0);
+      SOUND_PlaySingleTone(SOUND_Channel_FOREGROUND, SOUND_Target_SPEAKER, module.volumeAdjustMode, TONE_LOW, 0);
       break;
     case VOLUME_Mode_TONE:
-      SOUND_PlayDualTone(SOUND_Channel_FOREGROUND, SOUND_Target_SPEAKER, volumeMode, TONE_LOW, TONE_HIGH, 300);
+      SOUND_PlayDualTone(SOUND_Channel_FOREGROUND, SOUND_Target_SPEAKER, module.volumeAdjustMode, TONE_LOW, TONE_HIGH, 300);
       break;
     case VOLUME_Mode_HANDSET:
     case VOLUME_Mode_HANDS_FREE:
-      SOUND_PlaySingleTone(SOUND_Channel_FOREGROUND, SOUND_Target_EAR, volumeMode, TONE_LOW, 0);
+      SOUND_PlaySingleTone(SOUND_Channel_FOREGROUND, SOUND_Target_EAR, module.volumeAdjustMode, TONE_LOW, 0);
       break;
   }
 }
 
-static void adjustVolumeLevel(VOLUME_Mode volumeMode, bool up) {
-  VOLUME_Level volumeLevel = VOLUME_GetLevel(volumeMode);
+/**
+ * Adjust the volume up or down.
+ * 
+ * This function:
+ * - Updates the volume level of the current volume mode.
+ * - Plays the appropriate sound for volume adjustment of the current volume mode.
+ * 
+ * @param up - True to adjust volume up. False to adjust volume down.
+ */
+static void adjustVolumeLevel(bool up) {
+  VOLUME_Level volumeLevel = VOLUME_GetLevel(module.volumeAdjustMode);
   
   if (up) {
     if (volumeLevel < VOLUME_Level_MAX) {
       ++volumeLevel;
     }
   } else {
-    uint8_t minLevel = (volumeMode > VOLUME_Mode_GAME_MUSIC);
+    uint8_t minLevel = (module.volumeAdjustMode > VOLUME_Mode_GAME_MUSIC);
     
     if (volumeLevel > minLevel) {
       --volumeLevel;
     }
   }
   
-  VOLUME_SetLevel(volumeMode, volumeLevel);
-  playVolumeAdjustSound(volumeMode);
+  VOLUME_SetLevel(module.volumeAdjustMode, volumeLevel);
+  playVolumeAdjustSound();
 }
 
-static void displayVolumeLevel(VOLUME_Mode volumeMode) {
-  VOLUME_Level volumeLevel = VOLUME_GetLevel(volumeMode);
+/**
+ * Fully updates the display to show the current volume mode level.
+ */
+static void displayVolumeLevel(void) {
+  VOLUME_Level volumeLevel = VOLUME_GetLevel(module.volumeAdjustMode);
   
   HANDSET_DisableTextDisplay();
   HANDSET_ClearText();
-  HANDSET_PrintString(volumeModeLabels[volumeMode]);
+  HANDSET_PrintString(volumeModeLabels[module.volumeAdjustMode]);
   HANDSET_PrintCharN(' ', 2);
   
   if (!volumeLevel) {
@@ -91,8 +138,15 @@ static void displayVolumeLevel(VOLUME_Mode volumeMode) {
   HANDSET_EnableTextDisplay();
 }
 
-static void displayVolumeLevelChange(VOLUME_Mode volumeMode) {
-  VOLUME_Level volumeLevel = VOLUME_GetLevel(volumeMode);
+/**
+ * Minimally updates the display of the volume level to handle a change in 
+ * volume level. Assumptions:
+ * - The current volume mode level was already displayed.
+ * - The volume level has not changed by more than 1 in either direction since
+ *   the display was last updated.
+ */
+static void displayVolumeLevelChange(void) {
+  VOLUME_Level volumeLevel = VOLUME_GetLevel(module.volumeAdjustMode);
   
   if (!volumeLevel) {
     HANDSET_PrintStringAt("OFF", 6);
@@ -103,9 +157,15 @@ static void displayVolumeLevelChange(VOLUME_Mode volumeMode) {
   }
 }
 
+/**
+ * Continues volume adjustment in the specified direction (up/down button
+ * press handler after we're already in the volume adjust UI).
+ * 
+ * @param up - True to adjust volume up. False to adjust volume down.
+ */
 static void continueVolumeAdjust(bool up) {
-  adjustVolumeLevel(module.volumeAdjustMode, up);
-  displayVolumeLevelChange(module.volumeAdjustMode);
+  adjustVolumeLevel(up);
+  displayVolumeLevelChange();
   TIMEOUT_Start(&module.stateTimeout, VOLUME_ADJUST_REPEAT_DELAY);
   module.state = up ? State_ADJUSTING_UP : State_ADJUSTING_DOWN;
 }
@@ -114,8 +174,8 @@ static void continueVolumeAdjust(bool up) {
 void VOLUME_ADJUST_Start(VOLUME_Mode volumeMode, bool isInitialAdjustUp, VOLUME_ADJUST_ReturnCallback returnCallback) {
   module.volumeAdjustMode = volumeMode;
   module.returnCallback = returnCallback;
-  adjustVolumeLevel(volumeMode, isInitialAdjustUp);
-  displayVolumeLevel(volumeMode);
+  adjustVolumeLevel(isInitialAdjustUp);
+  displayVolumeLevel();
   TIMEOUT_Start(&module.stateTimeout, VOLUME_ADJUST_REPEAT_DELAY);
   module.state = isInitialAdjustUp ? State_ADJUSTING_UP : State_ADJUSTING_DOWN;
 }
@@ -147,6 +207,7 @@ void VOLUME_ADJUST_HANDSET_EventHandler(HANDSET_Event const* event) {
   bool const isButtonDown = (event->type == HANDSET_EventType_BUTTON_DOWN);
   
   if (!isButtonDown && (event->type != HANDSET_EventType_BUTTON_UP)) {
+    // Only handle button press and release events.
     return;
   }
   
@@ -156,6 +217,7 @@ void VOLUME_ADJUST_HANDSET_EventHandler(HANDSET_Event const* event) {
     case HANDSET_Button_CLR:
       if (isButtonDown) {
         SOUND_PlayButtonBeep(button, true);
+        HANDSET_CancelCurrentButtonHoldEvents();
         module.returnCallback();
       }
       break;
