@@ -59,8 +59,8 @@ void VOLUME_ADJUST_Timer10MS_event(void);
  * 
  * The parent module must call this from its handset event handler while 
  * volume adjustment is "active".
-
- *  * @param event - The handset event.
+ * 
+ * @param event - The handset event.
  */
 void VOLUME_ADJUST_HANDSET_EventHandler(HANDSET_Event const* event);
 
