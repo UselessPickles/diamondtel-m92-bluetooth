@@ -1,3 +1,14 @@
+/* 
+ * File:   volume.h
+ * Author: Jeff
+ *
+ * API for controlling the volume level of sound to the phone handset.
+ * 
+ * Separate volume levels are maintained for each of the volume "modes".
+ * 
+ * Volume can be enabled/disabled independently of current volume mode and 
+ * volume level.
+ */
 
 #include "volume.h"
 #include "storage.h"
