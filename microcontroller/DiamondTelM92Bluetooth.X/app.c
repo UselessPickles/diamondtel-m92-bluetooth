@@ -16,6 +16,7 @@
 #include "call_timer.h"
 #include "indicator.h"
 #include "ringtone.h"
+#include "ringtone_select.h"
 #include "timeout.h"
 #include "marquee.h"
 #include "interval.h"
@@ -960,19 +961,6 @@ static void selectSystemMode(bool isVehicleMode) {
   appState = APP_State_SELECT_SYSTEM_MODE;
 }
 
-static void selectRingtone(RINGTONE_Type ringtone) {
-  STORAGE_SetRingtone(ringtone);
-  
-  CALL_TIMER_DisableDisplayUpdate();
-  HANDSET_DisableTextDisplay();
-  HANDSET_ClearText();
-  HANDSET_PrintString("RINGER ");
-  HANDSET_PrintString(RINGTONE_GetName(ringtone));
-  HANDSET_EnableTextDisplay();
-  
-  appState = APP_State_SELECT_RINGTONE;
-}
-
 typedef enum SecurityAction {
   SecurityAction_CLEAR_TALK_TIME,
   SecurityAction_DISPLAY_TOTAL_TALK_TIME,
@@ -1069,25 +1057,14 @@ static void startEnterSecurityCode(SecurityAction action, bool prompt) {
   appState = APP_State_ENTER_SECURITY_CODE;
 }
 
-static bool isVolumeAdjustForRingtoneSelection;
-
-static void handle_VOLUME_ADJUST_Return(void) {
+static void handleReturnFromSubModule(void) {
   HANDSET_CancelCurrentButtonHoldEvents();
 
   if (BT_CallStatus == BT_CALL_INCOMING) {
     showIncomingCall(false);
   } else {
-    if (isVolumeAdjustForRingtoneSelection) {
-      selectRingtone(STORAGE_GetRingtone());
-    } else {
-      returnToNumberInput(false);
-    }
+    returnToNumberInput(false);
   }  
-}
-
-static void handleGameReturn(void) {
-  HANDSET_CancelCurrentButtonHoldEvents();
-  returnToNumberInput(false);
 }
 
 static void startVolumeAdjust(VOLUME_Mode volumeMode, bool up) {
@@ -1095,8 +1072,7 @@ static void startVolumeAdjust(VOLUME_Mode volumeMode, bool up) {
   HANDSET_SetTextBlink(false);
   MARQUEE_Stop();
   CALL_TIMER_DisableDisplayUpdate();
-  isVolumeAdjustForRingtoneSelection = (appState == APP_State_SELECT_RINGTONE);
-  VOLUME_ADJUST_Start(volumeMode, up, handle_VOLUME_ADJUST_Return);
+  VOLUME_ADJUST_Start(volumeMode, up, handleReturnFromSubModule);
   appState = APP_State_ADJUST_VOLUME;
 }
 
@@ -1617,6 +1593,10 @@ void APP_Task(void) {
       VOLUME_ADJUST_Task();
       break;
       
+    case APP_State_SELECT_RINGTONE: 
+      RINGTONE_SELECT_Task();
+      break;
+      
     case APP_State_BROWSE_DIRECTORY_UP:
       if (!TIMEOUT_IsPending(&appStateTimeout)) {
         uint8_t index = STORAGE_GetDirectoryIndex();
@@ -1687,6 +1667,10 @@ void APP_Timer10MS_event(void) {
       
     case APP_State_ADJUST_VOLUME:
       VOLUME_ADJUST_Timer10MS_event();
+      break;
+      
+    case APP_State_SELECT_RINGTONE:
+      RINGTONE_SELECT_Timer10MS_event();
       break;
       
     case APP_State_SNAKE_GAME:
@@ -1794,6 +1778,10 @@ void handle_HANDSET_Event(HANDSET_Event const* event) {
 
       case APP_State_ADJUST_VOLUME:
         VOLUME_ADJUST_HANDSET_EventHandler(event);
+        return;
+        
+      case APP_State_SELECT_RINGTONE:
+        RINGTONE_SELECT_HANDSET_EventHandler(event);
         return;
         
       case APP_State_SNAKE_GAME:
@@ -1956,7 +1944,6 @@ void handle_HANDSET_Event(HANDSET_Event const* event) {
         }
         // Look out below!
         
-      case APP_State_SELECT_RINGTONE: 
       case APP_State_DISPLAY_CREDIT_CARD_NUMBER:  
       case APP_State_RECALL_BT_DEVICE_NAME:  
       case APP_State_RECALL_PAIRED_DEVICE_NAME:  
@@ -1968,7 +1955,7 @@ void handle_HANDSET_Event(HANDSET_Event const* event) {
           TIMEOUT_Cancel(&fcnTimeout);
           resetFcn();
           volumeMode = VOLUME_Mode_SPEAKER;
-        } else if ((appState == APP_State_SELECT_RINGTONE) || ((appState == APP_State_INCOMING_CALL) && (BT_CallStatus == BT_CALL_INCOMING))) {
+        } else if ((appState == APP_State_INCOMING_CALL) && (BT_CallStatus == BT_CALL_INCOMING)) {
           volumeMode = VOLUME_Mode_ALERT;
         } else if (BT_CallStatus != BT_CALL_IDLE) {
           volumeMode = event->isOnHook ? VOLUME_Mode_HANDS_FREE : VOLUME_Mode_HANDSET;
@@ -2182,7 +2169,9 @@ void handle_HANDSET_Event(HANDSET_Event const* event) {
                 selectSystemMode(STORAGE_GetVehicleModeEnabled());
               } else if (button == HANDSET_Button_3) {
                 SOUND_PlayDTMFButtonBeep(button, false);
-                selectRingtone(STORAGE_GetRingtone());
+                CALL_TIMER_DisableDisplayUpdate();
+                RINGTONE_SELECT_Start(handleReturnFromSubModule);
+                appState = APP_State_SELECT_RINGTONE;
               } else if (button == HANDSET_Button_4) {
                 if (BT_CallStatus == BT_CALL_IDLE) {
                   SOUND_PlayDTMFButtonBeep(button, false);
@@ -2225,17 +2214,17 @@ void handle_HANDSET_Event(HANDSET_Event const* event) {
               } else if (button == HANDSET_Button_P1) {
                 SOUND_PlayButtonBeep(button, false);
                 CALL_TIMER_DisableDisplayUpdate();
-                SNAKE_GAME_Start(handleGameReturn);
+                SNAKE_GAME_Start(handleReturnFromSubModule);
                 appState = APP_State_SNAKE_GAME;
               } else if (button == HANDSET_Button_P2) {
                 SOUND_PlayButtonBeep(button, false);
                 CALL_TIMER_DisableDisplayUpdate();
-                MEMORY_GAME_Start(handleGameReturn);
+                MEMORY_GAME_Start(handleReturnFromSubModule);
                 appState = APP_State_MEMORY_GAME;
               } else if (button == HANDSET_Button_P3) {
                 SOUND_PlayButtonBeep(button, false);
                 CALL_TIMER_DisableDisplayUpdate();
-                TETRIS_GAME_Start(handleGameReturn);
+                TETRIS_GAME_Start(handleReturnFromSubModule);
                 appState = APP_State_TETRIS_GAME;
               }
             }
@@ -2498,22 +2487,6 @@ void handle_HANDSET_Event(HANDSET_Event const* event) {
       }
       break;
     }
-    
-    case APP_State_SELECT_RINGTONE: 
-      if (isButtonDown) {
-        if (button == HANDSET_Button_CLR) {
-          SOUND_PlayButtonBeep(button, false);
-          returnToNumberInput(false);
-          // Prevent short hold of CLR from clearing input
-          HANDSET_CancelCurrentButtonHoldEvents();
-        } else if (button == HANDSET_Button_RCL) {
-          RINGTONE_Preview(STORAGE_GetRingtone());
-        } else if ((button - '1') < RINGTONE_COUNT) {
-          SOUND_PlayDTMFButtonBeep(button, false);
-          selectRingtone(button - '1');
-        }
-      }
-      break;
     
     case APP_State_SELECT_SYSTEM_MODE: 
       if (isButtonDown) {

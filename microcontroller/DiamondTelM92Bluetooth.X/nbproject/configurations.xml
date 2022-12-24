@@ -49,6 +49,7 @@
       <itemPath>snake_game.h</itemPath>
       <itemPath>tetris_game.h</itemPath>
       <itemPath>level_select.h</itemPath>
+      <itemPath>ringtone_select.h</itemPath>
     </logicalFolder>
     <logicalFolder name="LinkerScript"
                    displayName="Linker Files"
@@ -103,6 +104,7 @@
       <itemPath>snake_game.c</itemPath>
       <itemPath>tetris_game.c</itemPath>
       <itemPath>level_select.c</itemPath>
+      <itemPath>ringtone_select.c</itemPath>
     </logicalFolder>
     <logicalFolder name="ExternalFiles"
                    displayName="Important Files"
