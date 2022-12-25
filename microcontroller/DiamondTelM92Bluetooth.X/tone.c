@@ -161,7 +161,7 @@ static void initToneState(toneState_t* toneState, tone_t tone) {
  * @param toneState - Pointer to a tone state.
  * @return The next sine wave sample value for the tone.
  */
-static uint16_t getNextToneSample(toneState_t* toneState, uint16_t* sampleAccumulator) {
+static uint16_t getNextToneSample(toneState_t* toneState) {
   if (!toneState->tone) {
     return SINE_MIDPOINT_VALUE;
   }
@@ -221,9 +221,9 @@ static void outputSoundSampleAndCalculateNextSample(void) {
 
   // Add up the sample from both tones and divide by 2 to guarantee the result
   // is in the range of 0-255.
-  uint16_t nextOutputCalc = 
-      (getNextToneSample(&state.tone1, &nextOutputCalc) +
-      getNextToneSample(&state.tone2, &nextOutputCalc)) >> 1;
+  uint16_t const nextOutputCalc = 
+      (getNextToneSample(&state.tone1) +
+      getNextToneSample(&state.tone2)) >> 1;
 
   state.nextSample = (uint8_t)nextOutputCalc;
 }
