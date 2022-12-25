@@ -916,6 +916,7 @@ void TETRIS_GAME_HANDSET_EventHandler(HANDSET_Event const* event) {
     case State_GAME_OVER_3:
     case State_GAME_OVER_4:
     case State_GAME_OVER_5:
+    case State_GAME_OVER_6:
       if (isButtonDown && !isFcn) {
         switch(button) {
           case HANDSET_Button_CLR:
