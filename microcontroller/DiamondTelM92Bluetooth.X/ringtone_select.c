@@ -11,6 +11,9 @@
 #include "sound.h"
 #include "storage.h"
 
+/**
+ * Module state.
+ */
 static struct {
   /**
    * Return callback function pointer.

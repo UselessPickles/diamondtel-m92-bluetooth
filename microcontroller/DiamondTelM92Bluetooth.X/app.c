@@ -26,6 +26,7 @@
 #include "memory_game.h"
 #include "tetris_game.h"
 #include "security_code.h"
+#include "view_adjust.h"
 
 static enum {
   APP_CALL_IDLE,
@@ -1783,6 +1784,10 @@ void handle_HANDSET_Event(HANDSET_Event const* event) {
       case APP_State_SELECT_RINGTONE:
         RINGTONE_SELECT_HANDSET_EventHandler(event);
         return;
+      
+      case APP_State_ADJUST_VIEW_ANGLE:
+        VIEW_ADJUST_HANDSET_EventHandler(event);
+        return;
         
       case APP_State_SNAKE_GAME:
         SNAKE_GAME_HANDSET_EventHandler(event);
@@ -1806,7 +1811,6 @@ void handle_HANDSET_Event(HANDSET_Event const* event) {
   // Process common escapes back to number input state
   if (
       (appState == APP_State_ENTER_SECURITY_CODE) || 
-      (appState == APP_State_ADJUST_VIEW_ANGLE) || 
       (appState == APP_State_DISPLAY_DISMISSABLE_TEXT) ||
       (appState == APP_State_DISPLAY_BATTERY_LEVEL) ||
       (appState == APP_State_DISPLAY_PAIRED_BATTERY_LEVEL) ||
@@ -1904,27 +1908,6 @@ void handle_HANDSET_Event(HANDSET_Event const* event) {
     bool up = (button == HANDSET_Button_UP);
     
     switch (appState) {
-      case APP_State_ADJUST_VIEW_ANGLE: {
-        bool isViewAngleChanged = false;
-        uint8_t lcdViewAngle = STORAGE_GetLcdViewAngle();
-
-        if (up && (lcdViewAngle > 0)) {
-          --lcdViewAngle;
-          isViewAngleChanged = true;
-        } else if (!up && (lcdViewAngle < 7)) {
-          ++lcdViewAngle;
-          isViewAngleChanged = true;
-        }
-
-        if (isViewAngleChanged) {
-          SOUND_PlayButtonBeep(button, false);
-          HANDSET_SetLcdViewAngle(lcdViewAngle);
-          HANDSET_PrintCharAt('0' + (8 - lcdViewAngle), 0);
-          STORAGE_SetLcdViewAngle(lcdViewAngle);
-        }         
-        return;
-      }
-      
       case APP_State_DISPLAY_DISMISSABLE_TEXT: 
       case APP_State_DISPLAY_BATTERY_LEVEL:  
       case APP_State_DISPLAY_PAIRED_BATTERY_LEVEL:  
@@ -1997,7 +1980,6 @@ void handle_HANDSET_Event(HANDSET_Event const* event) {
 //        (appState == APP_State_DISPLAY_BATTERY_LEVEL) ||
 //        (appState == APP_State_DISPLAY_PAIRED_BATTERY_LEVEL) ||
 //        (appState == APP_State_DISPLAY_NUMBER_OVERFLOW) ||
-//        (appState == APP_State_ADJUST_VIEW_ANGLE) || 
 //        (appState == APP_State_BROWSE_DIRECTORY_IDLE)
 //      )
   ) {
@@ -2476,11 +2458,7 @@ void handle_HANDSET_Event(HANDSET_Event const* event) {
             TIMEOUT_Cancel(&fcnTimeout);
             resetFcn();
             CALL_TIMER_DisableDisplayUpdate();
-            HANDSET_DisableTextDisplay();
-            HANDSET_ClearText();
-            HANDSET_PrintString("VIEW   ANGLE ");
-            HANDSET_PrintChar('0' + (8 - STORAGE_GetLcdViewAngle()));
-            HANDSET_EnableTextDisplay();
+            VIEW_ADJUST_Start(handleReturnFromSubModule);
             appState = APP_State_ADJUST_VIEW_ANGLE;
           }
           break; 

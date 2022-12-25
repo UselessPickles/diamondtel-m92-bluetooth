@@ -50,6 +50,7 @@
       <itemPath>tetris_game.h</itemPath>
       <itemPath>level_select.h</itemPath>
       <itemPath>ringtone_select.h</itemPath>
+      <itemPath>view_adjust.h</itemPath>
     </logicalFolder>
     <logicalFolder name="LinkerScript"
                    displayName="Linker Files"
@@ -105,6 +106,7 @@
       <itemPath>tetris_game.c</itemPath>
       <itemPath>level_select.c</itemPath>
       <itemPath>ringtone_select.c</itemPath>
+      <itemPath>view_adjust.c</itemPath>
     </logicalFolder>
     <logicalFolder name="ExternalFiles"
                    displayName="Important Files"
