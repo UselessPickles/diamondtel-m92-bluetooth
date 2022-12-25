@@ -146,7 +146,10 @@ static bool storeInput(void) {
       
     case State_SET_TEL_NUMBER1:
     case State_SET_TEL_NUMBER2: {
-      if (module.inputLength != STANDARD_PHONE_NUMBER_LENGTH) {
+      if (
+          (module.inputLength != STANDARD_PHONE_NUMBER_LENGTH) &&
+          (module.inputLength != SHORT_PHONE_NUMBER_LENGTH)
+          ) {
         return false;
       }
       
