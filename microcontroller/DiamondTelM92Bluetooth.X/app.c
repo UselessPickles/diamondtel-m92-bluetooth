@@ -2409,7 +2409,7 @@ void handle_HANDSET_Event(HANDSET_Event const* event) {
                     ++dialedNumberNextDigitsToDial;
                   } else if (isCreditCardRecall) {
                     char creditCardNumber[CREDIT_CARD_LENGTH + 1];
-                    STORAGE_GetCreditCardNumber(*dialedNumberNextDigitsToDial++ - '0', creditCardNumber);
+                    STORAGE_GetCreditCardNumber(*dialedNumberNextDigitsToDial++ - '1', creditCardNumber);
                     sendDtmfString(creditCardNumber);
                     isCreditCardRecall = false;
                   } else {
