@@ -52,7 +52,7 @@ This phone is of particular interest to me because it was available as an [offic
 
 ### General
 
-The handset is purely an I/O device, like a combined monitor, keyboard, microphone, and speakers. It only knows how to display whatever it is commanded to display, play watever sounds are provided to it, and it sends messages back to indicate when buttons are pressed/released. Whatever device the handset is plugged into (the original tranceiver, or the custom Bluetooth adapter) is responsiber for actually implementing all desired behavior.
+The handset is purely an I/O device, like a combined monitor, keyboard, microphone, and speakers. It only knows how to display whatever it is commanded to display, play watever sounds are provided to it, and it sends messages back to indicate when buttons are pressed/released. Whatever device the handset is plugged into (the original tranceiver, or the custom Bluetooth adapter) is responsible for actually implementing all desired behavior.
 
 ### Display
 
