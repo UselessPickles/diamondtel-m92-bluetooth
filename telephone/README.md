@@ -127,7 +127,7 @@ NOTE: All voltage observations mentioned in this section were taken while the ha
 
 Ground reference is provided on pin 4.
 
-The handset turns on when about +12V is supplied to pin 7. The exact violtage varies quite a bit based on the transceiver's power supply and battery level (when battery-powered). I've casually noticed voltages in the 10-14V range.
+The handset turns on when about +12V is supplied to pin 7. The exact voltage varies quite a bit based on the transceiver's power supply and battery level (when battery-powered). I've casually noticed voltages in the 10-14V range.
 
 ### PWR Button (Pin 8)
 
