@@ -1396,6 +1396,9 @@ void APP_Task(void) {
       (APP_CallAction == APP_CALL_IDLE)
       ) {
     BT_AcceptCall();
+    // Play a "virtual" button beep of no button in particular, but with a 
+    // limited beep duration. This simulates the sound of the user pressing the
+    // "SEND" button manually to answer the call.
     SOUND_PlayButtonBeep(HANDSET_Button_NONE, true);
     APP_CallAction = APP_CALL_ACCEPTING;
   }

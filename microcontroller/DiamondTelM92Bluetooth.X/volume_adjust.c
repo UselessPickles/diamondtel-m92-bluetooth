@@ -216,7 +216,7 @@ void VOLUME_ADJUST_HANDSET_EventHandler(HANDSET_Event const* event) {
   switch (button) {
     case HANDSET_Button_CLR:
       if (isButtonDown) {
-        SOUND_PlayButtonBeep(button, true);
+        SOUND_PlayButtonBeep(button, false);
         HANDSET_CancelCurrentButtonHoldEvents();
         module.returnCallback();
       }

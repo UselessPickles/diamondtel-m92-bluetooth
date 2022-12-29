@@ -193,6 +193,10 @@ void PROGRAMMING_HANDSET_EventHandler(HANDSET_Event const* event) {
 
   uint8_t button = event->button;
 
+  // The limited duration of the button beep sound is consistent with the 
+  // original programming functionality on the phone, which is strangely
+  // inconsistent with all primary functionality of the original phone where
+  // button beeps almost always last as long as the button is held.
   SOUND_PlayButtonBeep(button, true);
   
   if (module.state == State_INPUT) {

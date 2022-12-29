@@ -84,7 +84,7 @@ void RINGTONE_SELECT_HANDSET_EventHandler(HANDSET_Event const *event) {
   
   if (button == HANDSET_Button_CLR) {
     RINGTONE_Stop();
-    SOUND_PlayButtonBeep(button, true);
+    SOUND_PlayButtonBeep(button, false);
     HANDSET_CancelCurrentButtonHoldEvents();
     STORAGE_SetRingtone(module.currentRingtone);
     module.returnCallback();
@@ -105,7 +105,7 @@ void RINGTONE_SELECT_HANDSET_EventHandler(HANDSET_Event const *event) {
     if (module.isPreviewOn) {
       RINGTONE_Start(module.currentRingtone);
     } else {
-      SOUND_PlayButtonBeep(button, true);
+      SOUND_PlayButtonBeep(button, false);
     }
     
     displayRingtoneName();

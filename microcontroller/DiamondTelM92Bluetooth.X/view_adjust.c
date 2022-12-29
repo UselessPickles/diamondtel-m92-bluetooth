@@ -64,7 +64,7 @@ void VIEW_ADJUST_HANDSET_EventHandler(HANDSET_Event const* event) {
   HANDSET_Button const button = event->button;
   
   if (button == HANDSET_Button_CLR) {
-    SOUND_PlayButtonBeep(button, true);
+    SOUND_PlayButtonBeep(button, false);
     HANDSET_CancelCurrentButtonHoldEvents();
     STORAGE_SetLcdViewAngle(module.currentViewAngle);
     module.returnCallback();

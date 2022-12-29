@@ -313,12 +313,12 @@ void MEMORY_GAME_HANDSET_EventHandler(HANDSET_Event const* event) {
       if (isButtonDown) {
         switch(button) {
           case HANDSET_Button_CLR:
-            SOUND_PlayButtonBeep(button, true);
+            SOUND_PlayButtonBeep(button, false);
             module.returnCallback();
             break;
             
           case HANDSET_Button_POUND:
-            SOUND_PlayButtonBeep(button, true);
+            SOUND_PlayButtonBeep(button, false);
             if (module.isGameStarted) {
               displayMenu();
             } else {
@@ -344,12 +344,12 @@ void MEMORY_GAME_HANDSET_EventHandler(HANDSET_Event const* event) {
             break;
             
           case HANDSET_Button_1:
-            SOUND_PlayButtonBeep(button, true);
+            SOUND_PlayButtonBeep(button, false);
             resumeGame();
             break;
             
           case HANDSET_Button_2:
-            SOUND_PlayButtonBeep(button, true);
+            SOUND_PlayButtonBeep(button, false);
             displayLevelSelect();
             break;
             
@@ -465,12 +465,12 @@ void MEMORY_GAME_HANDSET_EventHandler(HANDSET_Event const* event) {
             break;
 
           case HANDSET_Button_ASTERISK:
-            SOUND_PlayButtonBeep(button, true);
+            SOUND_PlayButtonBeep(button, false);
             displayLevelSelect();
             break;
 
           case HANDSET_Button_POUND:
-            SOUND_PlayButtonBeep(button, true);
+            SOUND_PlayButtonBeep(button, false);
             startNewGame(module.level);
             break;
 
