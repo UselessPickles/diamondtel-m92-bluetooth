@@ -206,7 +206,7 @@ NOTE: The UART event codes for all of the "printable" buttons (#, *, and all num
 
 ### Button Release
 
-There is only a single UART event code sent when a any button is released. There is no way to deduce from the event code itself which button was released.
+There is only a single UART event code sent when any button is released. There is no way to deduce from the event code itself which button was released.
 
 | Action  | Event |
 |---------|-------|
