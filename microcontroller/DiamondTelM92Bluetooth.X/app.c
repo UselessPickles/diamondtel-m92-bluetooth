@@ -27,6 +27,8 @@
 #include "tetris_game.h"
 #include "security_code.h"
 #include "view_adjust.h"
+#include "char_input.h"
+#include "string_input.h"
 
 static enum {
   APP_CALL_IDLE,
@@ -87,6 +89,7 @@ static enum {
   APP_State_ALPHA_SCAN,    
   APP_State_ENTER_SECURITY_CODE,
   APP_State_RECALL_BT_DEVICE_NAME,
+  APP_State_SET_BT_DEVICE_NAME,
   APP_State_RECALL_PAIRED_DEVICE_NAME,
   APP_State_SNAKE_GAME,
   APP_State_MEMORY_GAME,
@@ -126,6 +129,7 @@ static const char* const appStateLabel[] = {
   "ALPHA_SCAN",    
   "ENTER_SECURITY_CODE",
   "RECALL_BT_DEVICE_NAME",
+  "SET_BT_DEVICE_NAME",
   "RECALL_PAIRED_DEVICE_NAME",
   "SNAKE_GAME",
   "MEMORY_GAME",
@@ -319,24 +323,8 @@ static volatile bool numberInputIsStale;
 
 static char tempNumberBuffer[NUMBER_INPUT_MAX_LENGTH + 1];
 
-static char const alphaLookup[9][6] = {
-  {'Q', 'Z', ' ', 'q', 'z', ' '},
-  {'A', 'B', 'C', 'a', 'b', 'c'},
-  {'D', 'E', 'F', 'd', 'e', 'f'},
-  {'G', 'H', 'I', 'g', 'h', 'i'},
-  {'J', 'K', 'L', 'j', 'k', 'l'},
-  {'M', 'N', 'O', 'm', 'n', 'o'},
-  {'P', 'R', 'S', 'p', 'r', 's'},
-  {'T', 'U', 'V', 't', 'u', 'v'},
-  {'W', 'X', 'Y', 'w', 'x', 'y'},
-};
-
-static char alphaInput[NUMBER_INPUT_MAX_LENGTH + 1];
-static uint8_t alphaButton;
-static uint8_t alphaCharIndex;
+static char alphaInput[MAX_DEVICE_NAME_LENGTH + 1];
 static bool isAlphaPromptDisplayed;
-static bool isAlphaCharAccepted;
-static bool isAlphaInput;
 static bool isFcnInputPendingForAlphaSto;
 
 typedef enum RecallOverflowType {
@@ -373,8 +361,8 @@ static bool NumberInput_HasIncompleteCreditCardMemorySymbol(void) {
 
 static void NumberInput_PopDigit(void) {
   if (numberInputLength) {
-    // delete "M*" together as a single "digit" in number input mode
-    if ((appState != APP_State_ALPHA_STO_NAME_INPUT) && NumberInput_HasIncompleteCreditCardMemorySymbol()) {
+    // delete "M*" together as a single "digit"
+    if (NumberInput_HasIncompleteCreditCardMemorySymbol()) {
       numberInput[--numberInputLength] = 0;
     }
 
@@ -603,50 +591,41 @@ static void showIncomingCall(bool isMissedCall) {
   }
 }
 
-typedef enum NameInputReason {
-  NAME_INPUT_Directory,
-  NAME_INPUT_BluetoothName
-} NameInputReason;
+static void startAlphaStoreNumberInput(bool reset);
 
-static NameInputReason nameInputReason;
-static uint8_t nameInputMaxLength;
+static void handleAlphaStoreStringInputReturn(STRING_INPUT_Result result, char const* name) {
+  if (result == STRING_INPUT_Result_APPLY) {
+    startAlphaStoreNumberInput(true);
+  } else {
+    returnToNumberInput(false);
+  }
+}
 
-static void startNameInput(NameInputReason reason, bool reset) {
-  nameInputReason = reason;
-  nameInputMaxLength = (reason == NAME_INPUT_Directory) ? MAX_NAME_LENGTH : BT_MAX_DEVICE_NAME_LENGTH;
-  
+static void startAlphaStoreNameInput(bool reset) {
   if (reset) {
-    NumberInput_Clear();
+    alphaInput[0] = 0;
   }
 
   CALL_TIMER_DisableDisplayUpdate();
-  HANDSET_DisableTextDisplay();
 
-  if (numberInputLength) {
-    NumberInput_PrintToHandset();
-
-    if (numberInputLength < nameInputMaxLength) {
-      HANDSET_PrintChar('_');
-    }
-    
-    isAlphaPromptDisplayed = false;
-  } else {
-    HANDSET_ClearText();
-    HANDSET_PrintString(reason == NAME_INPUT_BluetoothName ? "BT     NAME ? " : "NAME ?        ");
-    isAlphaPromptDisplayed = true;
-  }
+  STRING_INPUT_Start(
+      alphaInput,
+      MAX_NAME_LENGTH,
+      "NAME ?        ",
+      true,
+      false,
+      handleAlphaStoreStringInputReturn
+      );
   
-  HANDSET_EnableTextDisplay();
-  INDICATOR_StartFlashing(HANDSET_Indicator_FCN);  
-  
-  isAlphaInput = true;
-  isFcnInputPendingForAlphaSto = false;
-  alphaButton = 0;
-  alphaCharIndex = 0;
-  isAlphaCharAccepted = false;
-
   appState = APP_State_ALPHA_STO_NAME_INPUT;
   TIMEOUT_Cancel(&appStateTimeout);
+}
+
+static void recallAddress(uint8_t addr, bool isNameMode);
+
+static void handleAlphaScanCharInput(char c) {
+  HANDSET_SetIndicator(HANDSET_Indicator_FCN, false);
+  recallAddress(STORAGE_GetFirstNamedDirectoryIndexForLetter(c), true);  
 }
 
 static void startAlphaStoreNumberInput(bool reset) {
@@ -664,8 +643,6 @@ static void startAlphaStoreNumberInput(bool reset) {
     isAlphaPromptDisplayed = true;
   }
 
-  INDICATOR_StopFlashing(HANDSET_Indicator_FCN, false);
-  
   appState = APP_State_ALPHA_STO_NUMBER_INPUT;
   isFcnInputPendingForAlphaSto = false;
   isStoInputPending = false;
@@ -680,13 +657,9 @@ static void startAlphaScan(bool isFromDirectoryScan) {
     HANDSET_EnableTextDisplay();
   }
   
-  isAlphaPromptDisplayed = true;
-  isAlphaInput = true;
-  alphaButton = 0;
-  alphaCharIndex = 0;
-  isAlphaCharAccepted = false;
-
   INDICATOR_StartFlashing(HANDSET_Indicator_FCN);
+
+  CHAR_INPUT_Start(true, false, handleAlphaScanCharInput, NULL);
   
   appState = APP_State_ALPHA_SCAN;
 }
@@ -1022,8 +995,27 @@ static void handle_SECURITY_CODE_Success_RESET_PAIRED_DEVICES(void) {
   returnToNumberInput(false);
 }
 
+static void handleBluetoothNameStringInputReturn(STRING_INPUT_Result result, char const* name) {
+  if (result == STRING_INPUT_Result_APPLY) {
+    setBluetoothName(name);
+  } else {
+    returnToNumberInput(false);
+  }
+}
+
 static void handle_SECURITY_CODE_Success_SET_BT_DEVICE_NAME(void) {
-  startNameInput(NAME_INPUT_BluetoothName, true);
+  alphaInput[0] = 0;
+  
+  STRING_INPUT_Start(
+      alphaInput, 
+      MAX_DEVICE_NAME_LENGTH, 
+      "BT     NAME ? ",
+      true,
+      true,
+      handleBluetoothNameStringInputReturn
+      );
+  
+  appState = APP_State_SET_BT_DEVICE_NAME;
 }
 
 static void handle_SECURITY_CODE_Success_TOGGLE_DUAL_NUMBER(void) {
@@ -1801,6 +1793,10 @@ void handle_HANDSET_Event(HANDSET_Event const* event) {
         TETRIS_GAME_HANDSET_EventHandler(event);
         return;
         
+      case APP_State_SET_BT_DEVICE_NAME:
+        STRING_INPUT_HANDSET_EventHandler(event);
+        return;
+        
       case APP_State_ENTER_SECURITY_CODE:
         if (SECURITY_CODE_HANDSET_EventHandler(event)) {
           return;
@@ -1870,15 +1866,17 @@ void handle_HANDSET_Event(HANDSET_Event const* event) {
     if (isButtonDown) {
       if (isDirectoryScanNameMode && (button >= '1' && button <= '9')) {
         startAlphaScan(true);
-        // button will be processed below
+        // Immediately handle this button press as char input
+        CHAR_INPUT_HANDSET_EventHandler(event);
+        return;
       } else if ((!isDirectoryScanNameMode && HANDSET_IsButtonPrintable(button)) || (button == HANDSET_Button_STO)) {
         returnToNumberInput(false);
         // button will be processed below
       } else if(button == HANDSET_Button_CLR) {
         SOUND_PlayButtonBeep(button, false);
-        returnToNumberInput(false);
         // Prevent short hold of CLR from clearing input
         HANDSET_CancelCurrentButtonHoldEvents();
+        returnToNumberInput(false);
         return;
       } else if(button == HANDSET_Button_SEND) {
         if ((BT_CallStatus == BT_CALL_IDLE) && (APP_CallAction == APP_CALL_IDLE) && !callFailedTimer) {
@@ -2189,7 +2187,7 @@ void handle_HANDSET_Event(HANDSET_Event const* event) {
                 }
               } else if (button == HANDSET_Button_8) {
                 SOUND_PlayDTMFButtonBeep(button, false);
-                startNameInput(NAME_INPUT_Directory, true);
+                startAlphaStoreNameInput(true);
               } else if (button == HANDSET_Button_9) {
                 SOUND_PlayDTMFButtonBeep(button, false);
                 startAlphaScan(false);
@@ -2545,113 +2543,7 @@ void handle_HANDSET_Event(HANDSET_Event const* event) {
       break;
       
     case APP_State_ALPHA_STO_NAME_INPUT:
-      if (isButtonDown) {
-        if (button == HANDSET_Button_FCN) {
-          if (numberInputLength || (nameInputReason != NAME_INPUT_Directory)) {
-            SOUND_PlayButtonBeep(button, false);
-            isAlphaInput = !isAlphaInput;
-            
-            if (isAlphaInput) {
-              INDICATOR_StartFlashing(HANDSET_Indicator_FCN);
-            } else {
-              INDICATOR_StopFlashing(HANDSET_Indicator_FCN, false);
-            }
-          }
-        } else if (button == HANDSET_Button_STO)  {
-          if (numberInputLength) {
-            SOUND_PlayButtonBeep(button, false);
-            strcpy(alphaInput, numberInput);
-            
-            switch (nameInputReason) {
-              case NAME_INPUT_Directory:
-                startAlphaStoreNumberInput(true);
-                break;
-              
-              case NAME_INPUT_BluetoothName:
-                setBluetoothName(alphaInput);
-                break;
-            }
-          }
-        } else if (button == HANDSET_Button_CLR) {
-          SOUND_PlayButtonBeep(button, false);
-          
-          if (!numberInputLength) {
-            HANDSET_SetIndicator(HANDSET_Indicator_FCN, false);
-            returnToNumberInput(false);
-            // Prevent short hold of CLR from clearing input
-            HANDSET_CancelCurrentButtonHoldEvents();
-          } else if (numberInputLength == 1) {
-            startNameInput(nameInputReason, true);
-            HANDSET_CancelCurrentButtonHoldEvents();
-         } else {
-            NumberInput_PopDigit();
-            HANDSET_DisableTextDisplay();
-            NumberInput_PrintToHandset();
-            HANDSET_PrintChar('_');
-            HANDSET_EnableTextDisplay();
-          }
-        } else if (numberInputLength < nameInputMaxLength) {
-          if (isAlphaInput) {
-            if ((button >= '1') && (button <= '9')) {
-              SOUND_PlayDTMFButtonBeep(button, false);
-
-              if (button != alphaButton) {
-                alphaButton = button;
-                alphaCharIndex = 0;
-              }
-
-              uint8_t const c = alphaLookup[button - '1'][alphaCharIndex];
-
-              if (isAlphaPromptDisplayed) {
-                HANDSET_ClearText();
-                HANDSET_PrintChar(c);
-                isAlphaPromptDisplayed = false;
-              } else {
-                HANDSET_PrintCharAt(c, 0);
-              }
-            }
-          } else {
-            if (HANDSET_IsButtonPrintable(button)) {
-              SOUND_PlayDTMFButtonBeep(button, false);
-              NumberInput_PushDigit(button);
-
-              if (isAlphaPromptDisplayed) {
-                HANDSET_ClearText();
-                HANDSET_PrintChar(button);
-                isAlphaPromptDisplayed = false;
-              } else {
-                HANDSET_PrintCharAt(button, 0);
-              }
-            }
-          }
-        }
-      } else if (isButtonUp) {
-        if (isAlphaInput && (button >= '1') && (button <= '9')) {
-          if (isAlphaCharAccepted) {
-            alphaCharIndex = 0;
-            isAlphaCharAccepted = false;
-          } else if (!isAlphaPromptDisplayed && (numberInputLength < nameInputMaxLength)) {
-            if (++alphaCharIndex == 6) {
-              alphaCharIndex = 0;
-            }
-            HANDSET_PrintCharAt('_', 0);
-          }
-        } else if (!isAlphaInput && (numberInputLength < nameInputMaxLength) && HANDSET_IsButtonPrintable(button)) {
-          HANDSET_PrintChar('_');
-        }
-      } else if ((event->type == HANDSET_EventType_BUTTON_HOLD) && (event->holdDuration == HANDSET_HoldDuration_SHORT)) {
-        if (isAlphaInput && (numberInputLength < nameInputMaxLength) && (button >= '1') && (button <= '9')) {
-          SOUND_PlayEffect(SOUND_Channel_FOREGROUND, SOUND_Target_SPEAKER, VOLUME_Mode_SPEAKER, SOUND_Effect_REORDER_TONE, false);
-          isAlphaCharAccepted = true;
-          NumberInput_PushDigit(alphaLookup[button - '1'][alphaCharIndex]);
-          
-          if (numberInputLength < nameInputMaxLength) {
-            HANDSET_PrintChar('_');
-          }
-        } else if (button == HANDSET_Button_CLR) {
-          startNameInput(nameInputReason, true);
-        }
-      }
+      STRING_INPUT_HANDSET_EventHandler(event);
       break;
       
     case APP_State_ALPHA_STO_NUMBER_INPUT:
@@ -2676,8 +2568,7 @@ void handle_HANDSET_Event(HANDSET_Event const* event) {
                 NumberInput_PrintToHandset();
               }
             } else {
-              NumberInput_Overwrite(alphaInput);
-              startNameInput(nameInputReason, false);
+              startAlphaStoreNameInput(false);
               // Prevent short hold of CLR from clearing input
               HANDSET_CancelCurrentButtonHoldEvents();
             }
@@ -2755,6 +2646,7 @@ void handle_HANDSET_Event(HANDSET_Event const* event) {
           (event->holdDuration == HANDSET_HoldDuration_SHORT) &&
           (button == HANDSET_Button_CLR)
           ) {
+        SOUND_StopButtonBeep();
         startAlphaStoreNumberInput(true);
       }
       break;
@@ -2804,49 +2696,16 @@ void handle_HANDSET_Event(HANDSET_Event const* event) {
       break;
 
     case APP_State_ALPHA_SCAN:
-      if (isButtonDown) {
-        if (button == HANDSET_Button_CLR) {
-          SOUND_PlayButtonBeep(button, false);
-          HANDSET_SetIndicator(HANDSET_Indicator_FCN, false);
-          returnToNumberInput(false);
-          // Prevent short hold of CLR from clearing input
-          HANDSET_CancelCurrentButtonHoldEvents();
-        } else if (button >= '1' && button <= '9') {
-          SOUND_PlayDTMFButtonBeep(button, false);
-
-          if (button != alphaButton) {
-            alphaButton = button;
-            alphaCharIndex = 0;
-          }
-
-          uint8_t const c = alphaLookup[button - '1'][alphaCharIndex];
-
-          if (isAlphaPromptDisplayed) {
-            HANDSET_ClearText();
-            HANDSET_PrintChar(c);
-            isAlphaPromptDisplayed = false;
-          } else {
-            HANDSET_PrintCharAt(c, 0);
-          }
-        }
-      } else if (isButtonUp) {
-        if (!isAlphaPromptDisplayed && (button >= '1' && button <= '9')) {
-          HANDSET_PrintCharAt('_', 0);
-          
-          if (++alphaCharIndex == 3) {
-            alphaCharIndex = 0;
-          }
-        }
-      } else if (
-          (event->type == HANDSET_EventType_BUTTON_HOLD) &&
-          (event->holdDuration == HANDSET_HoldDuration_SHORT) &&
-          (button >= '1' && button <= '9')
-        ) {
-        SOUND_PlayEffect(SOUND_Channel_FOREGROUND, SOUND_Target_SPEAKER, VOLUME_Mode_SPEAKER, SOUND_Effect_REORDER_TONE, false);
+      if (isButtonDown && (button == HANDSET_Button_CLR)) {
+        SOUND_PlayButtonBeep(button, false);
         HANDSET_SetIndicator(HANDSET_Indicator_FCN, false);
+        // Prevent short hold of CLR from clearing input
         HANDSET_CancelCurrentButtonHoldEvents();
-        recallAddress(STORAGE_GetFirstNamedDirectoryIndexForLetter(alphaLookup[button - '1'][alphaCharIndex]), true);
+        returnToNumberInput(false);
+      } else {
+        CHAR_INPUT_HANDSET_EventHandler(event);
       }
+      break;
     
     case APP_State_DISPLAY_CREDIT_CARD_NUMBER:
       if (isButtonDown){

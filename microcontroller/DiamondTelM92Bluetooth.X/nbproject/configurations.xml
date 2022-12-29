@@ -51,6 +51,8 @@
       <itemPath>level_select.h</itemPath>
       <itemPath>ringtone_select.h</itemPath>
       <itemPath>view_adjust.h</itemPath>
+      <itemPath>char_input.h</itemPath>
+      <itemPath>string_input.h</itemPath>
     </logicalFolder>
     <logicalFolder name="LinkerScript"
                    displayName="Linker Files"
@@ -107,6 +109,8 @@
       <itemPath>level_select.c</itemPath>
       <itemPath>ringtone_select.c</itemPath>
       <itemPath>view_adjust.c</itemPath>
+      <itemPath>char_input.c</itemPath>
+      <itemPath>string_input.c</itemPath>
     </logicalFolder>
     <logicalFolder name="ExternalFiles"
                    displayName="Important Files"
