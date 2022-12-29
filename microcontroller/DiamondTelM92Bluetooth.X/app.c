@@ -1649,6 +1649,12 @@ void APP_Task(void) {
   }    
 }
 
+void APP_Timer1MS_Tick(void) {
+  SOUND_Timer1MS_Tick();
+  BT_CommandSend_Timer1MS_Tick();
+  HANDSET_Timer1MS_Tick();
+}
+
 void APP_Timer10MS_Tick(void) {
   if (appState == APP_State_PROGRAMMING) {
     return;
@@ -1682,6 +1688,9 @@ void APP_Timer10MS_Tick(void) {
       break;
   }
   
+  TRANSCEIVER_Timer10MS_Tick();
+  INDICATOR_Timer10MS_Tick();
+  MARQUEE_Timer10MS_Tick();
   CLR_CODES_Timer10MS_Tick();
   VOLUME_Timer10MS_Tick();
   

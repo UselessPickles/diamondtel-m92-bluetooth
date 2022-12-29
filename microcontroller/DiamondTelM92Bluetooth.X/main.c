@@ -42,29 +42,7 @@
 */
 
 #include "mcc_generated_files/mcc.h"
-#include "tone.h"
-#include "sound.h"
-#include "handset.h"
-#include "transceiver.h"
-#include "indicator.h"
 #include "app.h"
-#include "bt_command_send.h"
-#include "bt_command_decode.h"
-#include "marquee.h"
-
-
-static void Timer10MS() {
-  TRANSCEIVER_Timer10MS_Tick();
-  APP_Timer10MS_Tick();
-  INDICATOR_Timer10MS_Tick();
-  MARQUEE_Timer10MS_Tick();
-}
-
-static void Timer1MS() {
-  SOUND_Timer1MS_Tick();
-  BT_CommandSend_Timer1MS_Tick();
-  HANDSET_Timer1MS_Tick();
-}
 
 /*
                          Main application
@@ -79,10 +57,10 @@ void main(void)
     INTERRUPT_GlobalInterruptHighEnable();
     INTERRUPT_GlobalInterruptLowEnable();
 
-    TMR2_SetInterruptHandler(Timer10MS);
+    TMR2_SetInterruptHandler(APP_Timer10MS_Tick);
     TMR2_StartTimer();
     
-    TMR4_SetInterruptHandler(Timer1MS);
+    TMR4_SetInterruptHandler(APP_Timer1MS_Tick);
     TMR4_StartTimer();
 
     while (1)
