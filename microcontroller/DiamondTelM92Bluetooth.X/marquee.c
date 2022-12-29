@@ -38,14 +38,14 @@ static void printMarqueeText(void) {
 }
 
 void MARQUEE_Initialize(void) {
-  INTERVAL_Init(&state.scrollInterval, SCROLL_INTERVAL);
+  INTERVAL_Initialize(&state.scrollInterval, SCROLL_INTERVAL);
   memset(state.text, ' ', 6);
   state.text[MAX_TEXT_LENGTH] = 0;
 }
 
-void MARQUEE_Timer10MS_event(void) {
-  INTERVAL_Timer_event(&state.scrollInterval);
-  TIMEOUT_Timer_event(&state.scrollDelayTimeout);
+void MARQUEE_Timer10MS_Tick(void) {
+  INTERVAL_Timer_Tick(&state.scrollInterval);
+  TIMEOUT_Timer_Tick(&state.scrollDelayTimeout);
 }
 
 void MARQUEE_Task(void) {

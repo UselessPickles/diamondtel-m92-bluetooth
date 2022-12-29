@@ -527,7 +527,7 @@ void HANDSET_Task(void) {
   }
 }
 
-void HANDSET_Timer1MS_event(void) {
+void HANDSET_Timer1MS_Tick(void) {
   // Increment the hold duration of the current button, but not beyond
   // the max duration.
   if (

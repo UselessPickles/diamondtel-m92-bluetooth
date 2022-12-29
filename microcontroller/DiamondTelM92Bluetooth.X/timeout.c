@@ -8,7 +8,7 @@
 
 #include "timeout.h"
 
-void TIMEOUT_Timer_event(timeout_t* timeout) {
+void TIMEOUT_Timer_Tick(timeout_t* timeout) {
   if (!timeout->_timerExpired && timeout->_timer != 0) {
     if (--timeout->_timer == 0) {
       timeout->_timerExpired = true;

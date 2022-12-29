@@ -64,7 +64,7 @@ void SOUND_Enable(void);
 
 void SOUND_SetDefaultAudioSource(SOUND_AudioSource audioSource);
 
-void SOUND_Timer1MS_event(void);
+void SOUND_Timer1MS_Tick(void);
 
 void SOUND_Task(void);
 

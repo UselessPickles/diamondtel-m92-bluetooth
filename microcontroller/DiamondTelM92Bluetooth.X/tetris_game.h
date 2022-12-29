@@ -20,7 +20,7 @@ void TETRIS_GAME_Start(TETRIS_GAME_ReturnCallback returnCallback);
 
 void TETRIS_GAME_Task(void);
 
-void TETRIS_GAME_Timer10MS_event(void);
+void TETRIS_GAME_Timer10MS_Tick(void);
 
 void TETRIS_GAME_HANDSET_EventHandler(HANDSET_Event const* event);
 

@@ -8,7 +8,7 @@
 
 #include "interval.h"
 
-void INTERVAL_Init(interval_t* interval, uint16_t duration) {
+void INTERVAL_Initialize(interval_t* interval, uint16_t duration) {
   // First mark the timer as expired. This guarantees that execution of
   // INTERVAL_Timer_event from within a timer interrupt will not interfere 
   // with writing any other variables.
@@ -20,7 +20,7 @@ void INTERVAL_Init(interval_t* interval, uint16_t duration) {
   interval->_timerExpired = false;
 }
 
-void INTERVAL_Timer_event(interval_t* interval) {
+void INTERVAL_Timer_Tick(interval_t* interval) {
   if (!interval->_timerExpired && interval->_timer != 0) {
     if (--interval->_timer == 0) {
       interval->_timerExpired = true;

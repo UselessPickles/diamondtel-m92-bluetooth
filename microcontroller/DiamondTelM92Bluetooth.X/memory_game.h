@@ -20,7 +20,7 @@ void MEMORY_GAME_Start(MEMORY_GAME_ReturnCallback returnCallback);
 
 void MEMORY_GAME_Task(void);
 
-void MEMORY_GAME_Timer10MS_event(void);
+void MEMORY_GAME_Timer10MS_Tick(void);
 
 void MEMORY_GAME_HANDSET_EventHandler(HANDSET_Event const* event);
 

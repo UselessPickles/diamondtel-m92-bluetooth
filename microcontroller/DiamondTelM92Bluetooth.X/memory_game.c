@@ -142,7 +142,7 @@ static void initCards(void) {
 static void resumeGame(void) {
   displayGameTiles();
   module.showCursor = false;
-  INTERVAL_Init(&module.stateInterval, 25);
+  INTERVAL_Initialize(&module.stateInterval, 25);
   INTERVAL_Start(&module.stateInterval, false);
   module.state = State_PLAYING;
 }
@@ -160,7 +160,7 @@ static void startNewGame(uint8_t level) {
 }
 
 static void displayGameOver(void) {
-  INTERVAL_Init(&module.stateInterval, 150);
+  INTERVAL_Initialize(&module.stateInterval, 150);
   INTERVAL_Start(&module.stateInterval, true);
   
   module.isGameStarted = false;
@@ -281,14 +281,14 @@ void MEMORY_GAME_Task(void) {
   }
 }
 
-void MEMORY_GAME_Timer10MS_event(void) {
+void MEMORY_GAME_Timer10MS_Tick(void) {
   switch (module.state) {
     case State_VOLUME_ADJUST:
-      VOLUME_ADJUST_Timer10MS_event();
+      VOLUME_ADJUST_Timer10MS_Tick();
       break;
 
     default:
-      INTERVAL_Timer_event(&module.stateInterval);
+      INTERVAL_Timer_Tick(&module.stateInterval);
       break;
   }
 }

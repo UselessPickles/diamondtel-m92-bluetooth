@@ -291,7 +291,7 @@ void SOUND_SetDefaultAudioSource(SOUND_AudioSource audioSource) {
   setHandsetAudioOutput();
 }
 
-void SOUND_Timer1MS_event(void) {
+void SOUND_Timer1MS_Tick(void) {
   if (!isInitialized) {
     return;
   }

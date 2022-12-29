@@ -80,7 +80,7 @@ typedef struct interval_t {
  *        divide the amount of time by the period of the timer whose interrupt 
  *        is advancing this interval.
  */
-void INTERVAL_Init(interval_t* interval, uint16_t duration);
+void INTERVAL_Initialize(interval_t* interval, uint16_t duration);
 
 /**
  * Performs periodic advancement of the interval and detecting if its timer 
@@ -95,7 +95,7 @@ void INTERVAL_Init(interval_t* interval, uint16_t duration);
  * 
  * @param interval - Pointer to an interval.
  */
-void INTERVAL_Timer_event(interval_t* interval);
+void INTERVAL_Timer_Tick(interval_t* interval);
 
 /**
  * Performs main task loop processing of an interval.

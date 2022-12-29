@@ -135,7 +135,7 @@ uint8_t BT_linkIndex;
 void BT_CommandHandler(void);
 void BT_CommandDecode( void );
 
-void BT_CommandDecodeInit(void);
-void BT_CommandDecodeMain(void);
+void BT_CommandDecode_Initialize(void);
+void BT_CommandDecode_Task(void);
 
 #endif

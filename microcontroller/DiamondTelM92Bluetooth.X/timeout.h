@@ -72,7 +72,7 @@ typedef struct timeout_t {
  * 
  * @param timeout - Pointer to a timeout.
  */
-void TIMEOUT_Timer_event(timeout_t* timeout);
+void TIMEOUT_Timer_Tick(timeout_t* timeout);
 
 /**
  * Performs main task loop processing of a timeout.

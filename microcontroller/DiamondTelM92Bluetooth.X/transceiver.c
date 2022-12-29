@@ -97,7 +97,7 @@ static struct {
 void TRANSCEIVER_Initialize(TRANSCEIVER_EventHandler eventHandler) {
   module.eventHandler = eventHandler;
   TIMEOUT_Start(&module.transceiverReadyTimeout, TRANSCEIVER_READY_TIMOUT);
-  INTERVAL_Init(&module.batteryLevelRequestInterval, BATTERY_LEVEL_REQUEST_INTERVAL);
+  INTERVAL_Initialize(&module.batteryLevelRequestInterval, BATTERY_LEVEL_REQUEST_INTERVAL);
   TIMEOUT_Cancel(&module.batteryLevelRequestTimeout);
   module.pendingBatteryLevel = 0;
   module.batteryLevel = 0;
@@ -229,11 +229,11 @@ void TRANSCEIVER_Task(void) {
   }  
 }
 
-void TRANSCEIVER_Timer10MS_Event(void) {
-  TIMEOUT_Timer_event(&module.transceiverReadyTimeout);
-  TIMEOUT_Timer_event(&module.batteryLevelRequestTimeout);
-  TIMEOUT_Timer_event(&module.deferBatteryLevelOkEventTimeout);
-  INTERVAL_Timer_event(&module.batteryLevelRequestInterval);
+void TRANSCEIVER_Timer10MS_Tick(void) {
+  TIMEOUT_Timer_Tick(&module.transceiverReadyTimeout);
+  TIMEOUT_Timer_Tick(&module.batteryLevelRequestTimeout);
+  TIMEOUT_Timer_Tick(&module.deferBatteryLevelOkEventTimeout);
+  INTERVAL_Timer_Tick(&module.batteryLevelRequestInterval);
 }
 
 void TRANSCEIVER_PollBatteryLevelNow(void) {

@@ -199,8 +199,8 @@ void VOLUME_ADJUST_Task(void) {
   }
 }
 
-void VOLUME_ADJUST_Timer10MS_event(void) {
-  TIMEOUT_Timer_event(&module.stateTimeout);
+void VOLUME_ADJUST_Timer10MS_Tick(void) {
+  TIMEOUT_Timer_Tick(&module.stateTimeout);
 }
 
 void VOLUME_ADJUST_HANDSET_EventHandler(HANDSET_Event const* event) {

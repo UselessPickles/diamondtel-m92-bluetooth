@@ -18,7 +18,7 @@ extern "C" {
 
 void INDICATOR_Initialize(void);
 void INDICATOR_Task(void);
-void INDICATOR_Timer10MS_event(void);
+void INDICATOR_Timer10MS_Tick(void);
 
 void INDICATOR_StartFlashing(HANDSET_Indicator indicator);
 void INDICATOR_StopFlashing(HANDSET_Indicator indicator, bool isOn);

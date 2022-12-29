@@ -52,7 +52,7 @@ void VOLUME_ADJUST_Task(void);
  * The parent module must call this from its 10 millisecond timer handler while 
  * volume adjustment is "active".
  */
-void VOLUME_ADJUST_Timer10MS_event(void);
+void VOLUME_ADJUST_Timer10MS_Tick(void);
 
 /**
  * Handset event handler for this module.

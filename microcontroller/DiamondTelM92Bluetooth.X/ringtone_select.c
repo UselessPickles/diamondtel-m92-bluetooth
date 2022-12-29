@@ -62,9 +62,9 @@ void RINGTONE_SELECT_Task(void) {
   }
 }
 
-void RINGTONE_SELECT_Timer10MS_event(void) {
+void RINGTONE_SELECT_Timer10MS_Tick(void) {
   if (module.isAdjustingVolume) {
-    VOLUME_ADJUST_Timer10MS_event();
+    VOLUME_ADJUST_Timer10MS_Tick();
     return;
   }
 }

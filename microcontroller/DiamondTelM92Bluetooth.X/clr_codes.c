@@ -80,12 +80,12 @@ void CLR_CODES_Task(void) {
   }
 }
 
-void CLR_CODES_Timer10MS_event(void) {
+void CLR_CODES_Timer10MS_Tick(void) {
   if (!module.isActive) {
     return;
   }
   
-  TIMEOUT_Timer_event(&module.activeTimeout);
+  TIMEOUT_Timer_Tick(&module.activeTimeout);
 }
 
 void CLR_CODES_HANDSET_EventHandler(HANDSET_Event const* event) {

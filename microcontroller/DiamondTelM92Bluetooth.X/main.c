@@ -54,16 +54,16 @@
 
 
 static void Timer10MS() {
-  TRANSCEIVER_Timer10MS_Event();
-  APP_Timer10MS_event();
-  INDICATOR_Timer10MS_event();
-  MARQUEE_Timer10MS_event();
+  TRANSCEIVER_Timer10MS_Tick();
+  APP_Timer10MS_Tick();
+  INDICATOR_Timer10MS_Tick();
+  MARQUEE_Timer10MS_Tick();
 }
 
 static void Timer1MS() {
-  SOUND_Timer1MS_event();
-  BT_CommandSend1MS_event();
-  HANDSET_Timer1MS_event();
+  SOUND_Timer1MS_Tick();
+  BT_CommandSend_Timer1MS_Tick();
+  HANDSET_Timer1MS_Tick();
 }
 
 /*

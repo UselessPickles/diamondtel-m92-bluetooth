@@ -1335,12 +1335,12 @@ void APP_Initialize(void) {
   TRANSCEIVER_Initialize(handle_TRANSCEIVER_Event);
   INDICATOR_Initialize();
   CALL_TIMER_Initialize();
-  BT_CommandDecodeInit();
-  BT_CommandSendInit();
+  BT_CommandDecode_Initialize();
+  BT_CommandSend_Initialize();
   ATCMD_Initialize(handle_ATCMD_UnsolicitedResult);
   MARQUEE_Initialize();
   CLR_CODES_Initialize();
-  INTERVAL_Init(&lowBatteryBeepInterval, LOW_BATTERY_BEEP_INTERVAL);
+  INTERVAL_Initialize(&lowBatteryBeepInterval, LOW_BATTERY_BEEP_INTERVAL);
 }
 
 void APP_Task(void) {
@@ -1356,8 +1356,8 @@ void APP_Task(void) {
   INDICATOR_Task();
   MARQUEE_Task();
   ATCMD_Task();
-  BT_CommandDecodeMain();
-  BT_CommandSendTask();
+  BT_CommandDecode_Task();
+  BT_CommandSend_Task();
   HANDSET_Task();
   TRANSCEIVER_Task();
   CLR_CODES_Task();
@@ -1649,12 +1649,12 @@ void APP_Task(void) {
   }    
 }
 
-void APP_Timer10MS_event(void) {
+void APP_Timer10MS_Tick(void) {
   if (appState == APP_State_PROGRAMMING) {
     return;
   }
 
-  TIMEOUT_Timer_event(&appStateTimeout);
+  TIMEOUT_Timer_Tick(&appStateTimeout);
 
   switch (appState) {
     case APP_State_REBOOT_AFTER_DELAY:
@@ -1662,37 +1662,37 @@ void APP_Timer10MS_event(void) {
       return;
       
     case APP_State_ADJUST_VOLUME:
-      VOLUME_ADJUST_Timer10MS_event();
+      VOLUME_ADJUST_Timer10MS_Tick();
       break;
       
     case APP_State_SELECT_RINGTONE:
-      RINGTONE_SELECT_Timer10MS_event();
+      RINGTONE_SELECT_Timer10MS_Tick();
       break;
       
     case APP_State_SNAKE_GAME:
-      SNAKE_GAME_Timer10MS_event();
+      SNAKE_GAME_Timer10MS_Tick();
       break;
       
     case APP_State_MEMORY_GAME:
-      MEMORY_GAME_Timer10MS_event();
+      MEMORY_GAME_Timer10MS_Tick();
       break;
       
     case APP_State_TETRIS_GAME:
-      TETRIS_GAME_Timer10MS_event();
+      TETRIS_GAME_Timer10MS_Tick();
       break;
   }
   
-  CLR_CODES_Timer10MS_event();
-  VOLUME_Timer10MS_event();
+  CLR_CODES_Timer10MS_Tick();
+  VOLUME_Timer10MS_Tick();
   
-  TIMEOUT_Timer_event(&idleTimeout);
-  TIMEOUT_Timer_event(&fcnTimeout);
-  TIMEOUT_Timer_event(&callActionTimeout);
-  TIMEOUT_Timer_event(&autoAnswerTimeout);
-  TIMEOUT_Timer_event(&pendingCallStatusTimeout);
-  TIMEOUT_Timer_event(&linkbackRetryTimeout);
-  TIMEOUT_Timer_event(&cellPhoneState.initialBatteryLevelReportTimeout);
-  INTERVAL_Timer_event(&lowBatteryBeepInterval);
+  TIMEOUT_Timer_Tick(&idleTimeout);
+  TIMEOUT_Timer_Tick(&fcnTimeout);
+  TIMEOUT_Timer_Tick(&callActionTimeout);
+  TIMEOUT_Timer_Tick(&autoAnswerTimeout);
+  TIMEOUT_Timer_Tick(&pendingCallStatusTimeout);
+  TIMEOUT_Timer_Tick(&linkbackRetryTimeout);
+  TIMEOUT_Timer_Tick(&cellPhoneState.initialBatteryLevelReportTimeout);
+  INTERVAL_Timer_Tick(&lowBatteryBeepInterval);
   
   if (!callFailedTimerExpired && callFailedTimer) {
     if (!--callFailedTimer) {

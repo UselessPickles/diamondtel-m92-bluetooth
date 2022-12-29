@@ -13,8 +13,8 @@ static uint8_t signalSweepIndex;
 static interval_t signalSweepInterval;
 
 void INDICATOR_Initialize(void) {
-  INTERVAL_Init(&flashingInterval, 50);
-  INTERVAL_Init(&signalSweepInterval, 10);
+  INTERVAL_Initialize(&flashingInterval, 50);
+  INTERVAL_Initialize(&signalSweepInterval, 10);
 }
 
 void INDICATOR_Task(void) {
@@ -48,9 +48,9 @@ void INDICATOR_Task(void) {
   }
 }
 
-void INDICATOR_Timer10MS_event(void) {
-  INTERVAL_Timer_event(&flashingInterval);
-  INTERVAL_Timer_event(&signalSweepInterval);
+void INDICATOR_Timer10MS_Tick(void) {
+  INTERVAL_Timer_Tick(&flashingInterval);
+  INTERVAL_Timer_Tick(&signalSweepInterval);
 }
 
 void INDICATOR_StartFlashing(HANDSET_Indicator indicator) {

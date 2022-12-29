@@ -173,7 +173,7 @@ static unsigned short BT_CmdBufferPt;                    //
 /*======================================*/
 /*  function implemention       */
 /*======================================*/
-void BT_CommandDecodeInit(void)
+void BT_CommandDecode_Initialize(void)
 {
     BT_CmdDecodedFlag = 0;
     BT_CmdDecodeState = RX_DECODE_CMD_SYNC_AA;
@@ -184,7 +184,7 @@ void BT_CommandDecodeInit(void)
     // BT_SPPBuffClear();
 }
 
-void BT_CommandDecodeMain(void)
+void BT_CommandDecode_Task(void)
 {
 	BT_CommandHandler();
 	if(BT_CmdDecodedFlag)

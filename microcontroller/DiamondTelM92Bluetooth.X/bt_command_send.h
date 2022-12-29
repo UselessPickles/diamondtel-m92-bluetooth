@@ -168,9 +168,9 @@ void BT_CancelLinkback(void);
 void BT_DisconnectAllProfile(void);
 void BT_SetHFPGain(uint8_t gain);
 
-void BT_CommandSendInit(void);
-void BT_CommandSendTask( void );
-void BT_CommandSend1MS_event(void);
+void BT_CommandSend_Initialize(void);
+void BT_CommandSend_Task( void );
+void BT_CommandSend_Timer1MS_Tick(void);
 
 void UART_TransferFirstByte( void );
 void UART_TransferNextByte( void );

@@ -29,7 +29,7 @@ void CLR_CODES_Start(CLR_CODES_EventHandler eventHandler);
 
 void CLR_CODES_Task(void);
 
-void CLR_CODES_Timer10MS_event(void);
+void CLR_CODES_Timer10MS_Tick(void);
 
 void CLR_CODES_HANDSET_EventHandler(HANDSET_Event const* event);
 

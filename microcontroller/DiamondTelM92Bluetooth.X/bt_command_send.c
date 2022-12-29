@@ -502,7 +502,7 @@ void BT_SetHFPGain(uint8_t gain)
 }
 
 /*------------------------------------------------------------*/
-void BT_CommandSendInit( void )
+void BT_CommandSend_Initialize( void )
 {
     UR_TxBufHead = 0;
     UR_TxBufTail = 0;
@@ -511,7 +511,7 @@ void BT_CommandSendInit( void )
 }
 
 /*------------------------------------------------------------*/
-void BT_CommandSendTask( void )
+void BT_CommandSend_Task( void )
 {
     switch(BT_CMD_SendState)
     {
@@ -616,7 +616,7 @@ uint8_t BT_UpdateAckStatusWhenReceived(uint8_t command_id, uint8_t ack_status)
 }
 
 /*------------------------------------------------------------*/
-void BT_CommandSend1MS_event(void)
+void BT_CommandSend_Timer1MS_Tick(void)
 {
     if( BT_CommandSendTimer/*BT_CommandStartMFBWaitTimer*/)
     {

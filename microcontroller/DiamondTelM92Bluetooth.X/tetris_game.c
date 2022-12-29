@@ -479,7 +479,7 @@ static void addPieceToBoard(void) {
     }
     
     module.lineFlashCount = 0;
-    INTERVAL_Init(&module.stateInterval, LINE_FLASH_INTERVAL);
+    INTERVAL_Initialize(&module.stateInterval, LINE_FLASH_INTERVAL);
     
     playSoundEffect(
         module.lineClearCount == 2 
@@ -497,7 +497,7 @@ static void addPieceToBoard(void) {
     module.lineClearCount = 0;
 
     playSoundEffect(SOUND_Effect_TETRIS_PIECE_PLACED);
-    INTERVAL_Init(&module.stateInterval, INTERVALS_BY_LEVEL_INDEX[module.level]);
+    INTERVAL_Initialize(&module.stateInterval, INTERVALS_BY_LEVEL_INDEX[module.level]);
 
     spawnPiece();
   }
@@ -576,7 +576,7 @@ static void drawFullGameBoard(void) {
 static void displayGameOver(void) {
   stopMusic();
   
-  INTERVAL_Init(&module.stateInterval, 150);
+  INTERVAL_Initialize(&module.stateInterval, 150);
   INTERVAL_Start(&module.stateInterval, true);
   
   module.isGameStarted = false;
@@ -587,7 +587,7 @@ static void resumeGame(void) {
   startMusic();
   drawFullGameBoard();
   module.isFastDrop = false;
-  INTERVAL_Init(&module.stateInterval, module.lineClearCount ? LINE_FLASH_INTERVAL : INTERVALS_BY_LEVEL_INDEX[module.level]);
+  INTERVAL_Initialize(&module.stateInterval, module.lineClearCount ? LINE_FLASH_INTERVAL : INTERVALS_BY_LEVEL_INDEX[module.level]);
   INTERVAL_Start(&module.stateInterval, false);
   module.state = State_PLAYING;
 }
@@ -610,7 +610,7 @@ static void gameLoop(void) {
     if (++module.lineFlashCount == LINE_FLASH_COUNT) {
       updateBoardForLineClear();
       spawnPiece();
-      INTERVAL_Init(&module.stateInterval, INTERVALS_BY_LEVEL_INDEX[module.level]);
+      INTERVAL_Initialize(&module.stateInterval, INTERVALS_BY_LEVEL_INDEX[module.level]);
       INTERVAL_Start(&module.stateInterval, false);
     } else {
       char c = (module.lineFlashCount & 1) ? ' ' : HANDSET_Symbol_RECTANGLE;
@@ -742,15 +742,15 @@ void TETRIS_GAME_Task(void) {
   }
 }
 
-void TETRIS_GAME_Timer10MS_event(void) {
+void TETRIS_GAME_Timer10MS_Tick(void) {
   switch (module.state) {
     case State_VOLUME_ADJUST:
-      VOLUME_ADJUST_Timer10MS_event();
+      VOLUME_ADJUST_Timer10MS_Tick();
       break;
 
     default:
-      INTERVAL_Timer_event(&module.stateInterval);
-      TIMEOUT_Timer_event(&module.fcnTimeout);
+      INTERVAL_Timer_Tick(&module.stateInterval);
+      TIMEOUT_Timer_Tick(&module.fcnTimeout);
       break;
   }
 }
@@ -898,14 +898,14 @@ void TETRIS_GAME_HANDSET_EventHandler(HANDSET_Event const* event) {
           case HANDSET_Button_4: 
             if (!module.lineClearCount) {
               module.isFastDrop = true;
-              INTERVAL_Init(&module.stateInterval, FAST_DROP_INTERVAL);
+              INTERVAL_Initialize(&module.stateInterval, FAST_DROP_INTERVAL);
               INTERVAL_Start(&module.stateInterval, true);
             }
             break;
         }
       } else if (isButtonUp) {
         if ((button == HANDSET_Button_4) && module.isFastDrop) {
-          INTERVAL_Init(&module.stateInterval, INTERVALS_BY_LEVEL_INDEX[module.level]);
+          INTERVAL_Initialize(&module.stateInterval, INTERVALS_BY_LEVEL_INDEX[module.level]);
           INTERVAL_Start(&module.stateInterval, false);
         }
       }

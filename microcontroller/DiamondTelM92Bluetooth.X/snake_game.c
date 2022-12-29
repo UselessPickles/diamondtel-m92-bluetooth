@@ -123,7 +123,7 @@ static void resumeGame(void) {
   
   HANDSET_PrintCharAt('3', 3);
   
-  INTERVAL_Init(&module.stateInterval, 75);
+  INTERVAL_Initialize(&module.stateInterval, 75);
   INTERVAL_Start(&module.stateInterval, false);
   module.state = State_STARTING_1;
 }
@@ -147,7 +147,7 @@ static void startNewGame(uint8_t level) {
 }
 
 static void displayGameOver(void) {
-  INTERVAL_Init(&module.stateInterval, 150);
+  INTERVAL_Initialize(&module.stateInterval, 150);
   INTERVAL_Start(&module.stateInterval, true);
   
   module.isGameStarted = false;
@@ -273,7 +273,7 @@ void SNAKE_GAME_Task(void) {
         if (module.foodPosition == 0xFF) {
           placeFood();
         }
-        INTERVAL_Init(&module.stateInterval, intervalsByLevelIndex[module.level]);
+        INTERVAL_Initialize(&module.stateInterval, intervalsByLevelIndex[module.level]);
         INTERVAL_Start(&module.stateInterval, true);
         module.state = State_PLAYING;
       }
@@ -332,13 +332,13 @@ void SNAKE_GAME_Task(void) {
   }
 }
 
-void SNAKE_GAME_Timer10MS_event(void) {
+void SNAKE_GAME_Timer10MS_Tick(void) {
   switch (module.state) {
     case State_VOLUME_ADJUST:
-      VOLUME_ADJUST_Timer10MS_event();
+      VOLUME_ADJUST_Timer10MS_Tick();
       break;
     default:  
-      INTERVAL_Timer_event(&module.stateInterval);
+      INTERVAL_Timer_Tick(&module.stateInterval);
       break;
   }
 }

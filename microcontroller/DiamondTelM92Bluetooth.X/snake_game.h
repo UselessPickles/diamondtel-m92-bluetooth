@@ -20,7 +20,7 @@ void SNAKE_GAME_Start(SNAKE_GAME_ReturnCallback returnCallback);
 
 void SNAKE_GAME_Task(void);
 
-void SNAKE_GAME_Timer10MS_event(void);
+void SNAKE_GAME_Timer10MS_Tick(void);
 
 void SNAKE_GAME_HANDSET_EventHandler(HANDSET_Event const* event);
 
