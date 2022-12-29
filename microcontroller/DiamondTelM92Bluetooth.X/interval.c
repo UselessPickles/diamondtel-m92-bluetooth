@@ -10,7 +10,7 @@
 
 void INTERVAL_Initialize(interval_t* interval, uint16_t duration) {
   // First mark the timer as expired. This guarantees that execution of
-  // INTERVAL_Timer_event from within a timer interrupt will not interfere 
+  // INTERVAL_Timer_Interrupt from within a timer interrupt will not interfere 
   // with writing any other variables.
   interval->_timerExpired = true;
 
@@ -20,7 +20,7 @@ void INTERVAL_Initialize(interval_t* interval, uint16_t duration) {
   interval->_timerExpired = false;
 }
 
-void INTERVAL_Timer_Tick(interval_t* interval) {
+void INTERVAL_Timer_Interrupt(interval_t* interval) {
   if (!interval->_timerExpired && interval->_timer != 0) {
     if (--interval->_timer == 0) {
       interval->_timerExpired = true;
@@ -41,7 +41,7 @@ bool INTERVAL_Task(interval_t* interval) {
 
 void INTERVAL_Start(interval_t* interval, bool triggerImmediately) {
   // First mark the timer as expired. This guarantees that execution of
-  // INTERVAL_Timer_event from within a timer interrupt will not interfere 
+  // INTERVAL_Timer_Interrupt from within a timer interrupt will not interfere 
   // with writing any other variables.
   interval->_timerExpired = true;
   
@@ -64,7 +64,7 @@ void INTERVAL_SkipAhead(interval_t* interval) {
 
 void INTERVAL_Cancel(interval_t* interval) {
   // First mark the timer as expired. This guarantees that execution of
-  // INTERVAL_Timer_event from within a timer interrupt will not interfere 
+  // INTERVAL_Timer_Interrupt from within a timer interrupt will not interfere 
   // with writing any other variables.
   interval->_timerExpired = true;
 

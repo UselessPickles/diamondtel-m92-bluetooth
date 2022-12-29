@@ -43,9 +43,9 @@ void MARQUEE_Initialize(void) {
   state.text[MAX_TEXT_LENGTH] = 0;
 }
 
-void MARQUEE_Timer10MS_Tick(void) {
-  INTERVAL_Timer_Tick(&state.scrollInterval);
-  TIMEOUT_Timer_Tick(&state.scrollDelayTimeout);
+void MARQUEE_Timer10MS_Interrupt(void) {
+  INTERVAL_Timer_Interrupt(&state.scrollInterval);
+  TIMEOUT_Timer_Interrupt(&state.scrollDelayTimeout);
 }
 
 void MARQUEE_Task(void) {

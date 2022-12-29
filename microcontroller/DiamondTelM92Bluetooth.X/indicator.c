@@ -48,9 +48,9 @@ void INDICATOR_Task(void) {
   }
 }
 
-void INDICATOR_Timer10MS_Tick(void) {
-  INTERVAL_Timer_Tick(&flashingInterval);
-  INTERVAL_Timer_Tick(&signalSweepInterval);
+void INDICATOR_Timer10MS_Interrupt(void) {
+  INTERVAL_Timer_Interrupt(&flashingInterval);
+  INTERVAL_Timer_Interrupt(&signalSweepInterval);
 }
 
 void INDICATOR_StartFlashing(HANDSET_Indicator indicator) {

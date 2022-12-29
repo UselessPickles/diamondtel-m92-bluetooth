@@ -67,7 +67,7 @@ void TRANSCEIVER_Task(void);
  * 
  * This must be called from a timer interrupt with a 10 millisecond period.
  */
-void TRANSCEIVER_Timer10MS_Tick(void);
+void TRANSCEIVER_Timer10MS_Interrupt(void);
 
 /**
  * Poll the transceiver for the current battery level right now.

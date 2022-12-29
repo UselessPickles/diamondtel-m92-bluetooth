@@ -23,7 +23,7 @@ typedef void (*RINGTONE_SELECT_ReturnCallback)(void);
  * Start ringtone selection.
  * 
  * After calling this function, the parent module is responsible for calling
- * RINGTONE_SELECT_Task(), RINGTONE_SELECT_Timer10MS_event(), and
+ * RINGTONE_SELECT_Task(), RINGTONE_SELECT_Timer10MS_Interrupt(), and
  * RINGTONE_SELECT_HANDSET_EventHandler() appropriately until the
  * `returnCallback` has been called.
  *
@@ -48,7 +48,7 @@ void RINGTONE_SELECT_Task(void);
  * The parent module must call this from its 10 millisecond timer handler while 
  * ringtone selection is "active".
  */
-void RINGTONE_SELECT_Timer10MS_Tick(void);
+void RINGTONE_SELECT_Timer10MS_Interrupt(void);
 
 /**
  * Handset event handler for this module.

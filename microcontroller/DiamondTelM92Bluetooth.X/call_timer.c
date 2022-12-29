@@ -35,7 +35,7 @@ static void displayCallTime(void) {
 static volatile uint8_t timerInterruptCount;
 static volatile bool secondTimerExpired;
 
-static void timer100MS_event(void) {
+static void timer100MS_Interrupt(void) {
   if (++timerInterruptCount == 10) {
     secondTimerExpired = true;
     timerInterruptCount = 0;
@@ -48,7 +48,7 @@ void CALL_TIMER_Initialize(void) {
   isRunning = false;
   isDisplayUpdateEnabled = false;
   
-  TMR0_SetInterruptHandler(&timer100MS_event);
+  TMR0_SetInterruptHandler(&timer100MS_Interrupt);
 }
 
 void CALL_TIMER_Task(void) {

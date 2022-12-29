@@ -65,7 +65,7 @@ void VOLUME_Task(void);
  * 
  * This must be called from a timer interrupt with a 10 millisecond period.
  */
-void VOLUME_Timer10MS_Tick(void);
+void VOLUME_Timer10MS_Interrupt(void);
 
 /**
  * Enable audio output to the handset.

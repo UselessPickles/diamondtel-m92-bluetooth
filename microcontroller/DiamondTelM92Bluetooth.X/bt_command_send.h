@@ -170,7 +170,7 @@ void BT_SetHFPGain(uint8_t gain);
 
 void BT_CommandSend_Initialize(void);
 void BT_CommandSend_Task( void );
-void BT_CommandSend_Timer1MS_Tick(void);
+void BT_CommandSend_Timer1MS_Interrupt(void);
 
 void UART_TransferFirstByte( void );
 void UART_TransferNextByte( void );

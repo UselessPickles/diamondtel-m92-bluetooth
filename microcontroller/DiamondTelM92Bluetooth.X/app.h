@@ -22,9 +22,9 @@ void APP_Initialize(void);
 
 void APP_Task(void);
 
-void APP_Timer1MS_Tick(void);
+void APP_Timer1MS_Interrupt(void);
 
-void APP_Timer10MS_Tick(void);
+void APP_Timer10MS_Interrupt(void);
 
 void APP_BT_EventHandler(uint8_t event, uint16_t para, uint8_t* para_full);
 

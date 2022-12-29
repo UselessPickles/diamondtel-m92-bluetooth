@@ -229,11 +229,11 @@ void TRANSCEIVER_Task(void) {
   }  
 }
 
-void TRANSCEIVER_Timer10MS_Tick(void) {
-  TIMEOUT_Timer_Tick(&module.transceiverReadyTimeout);
-  TIMEOUT_Timer_Tick(&module.batteryLevelRequestTimeout);
-  TIMEOUT_Timer_Tick(&module.deferBatteryLevelOkEventTimeout);
-  INTERVAL_Timer_Tick(&module.batteryLevelRequestInterval);
+void TRANSCEIVER_Timer10MS_Interrupt(void) {
+  TIMEOUT_Timer_Interrupt(&module.transceiverReadyTimeout);
+  TIMEOUT_Timer_Interrupt(&module.batteryLevelRequestTimeout);
+  TIMEOUT_Timer_Interrupt(&module.deferBatteryLevelOkEventTimeout);
+  INTERVAL_Timer_Interrupt(&module.batteryLevelRequestInterval);
 }
 
 void TRANSCEIVER_PollBatteryLevelNow(void) {

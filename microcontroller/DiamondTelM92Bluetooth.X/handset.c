@@ -86,7 +86,7 @@ static struct {
    * The current duration (in milliseconds) that the current button has been 
    * held down.
    * 
-   * HANDSET_Timer1MS_event() event increments this value while 
+   * HANDSET_Timer1MS_Interrupt() event increments this value while 
    * `currentButtonDown` is populated.
    */
   volatile uint16_t currentButtonDownDuration;
@@ -95,7 +95,7 @@ static struct {
    * exceeded and is queued up for triggering the HANDSET_EventType_BUTTON_HOLD
    * event.
    * 
-   * HANDSET_Timer1MS_event() sets this value as each HANDSET_HoldDuration 
+   * HANDSET_Timer1MS_Interrupt() sets this value as each HANDSET_HoldDuration 
    * threshold is met, and HANDSET_Task() triggers the event and clears out
    * the value.
    */
@@ -527,7 +527,7 @@ void HANDSET_Task(void) {
   }
 }
 
-void HANDSET_Timer1MS_Tick(void) {
+void HANDSET_Timer1MS_Interrupt(void) {
   // Increment the hold duration of the current button, but not beyond
   // the max duration.
   if (

@@ -332,13 +332,13 @@ void SNAKE_GAME_Task(void) {
   }
 }
 
-void SNAKE_GAME_Timer10MS_Tick(void) {
+void SNAKE_GAME_Timer10MS_Interrupt(void) {
   switch (module.state) {
     case State_VOLUME_ADJUST:
-      VOLUME_ADJUST_Timer10MS_Tick();
+      VOLUME_ADJUST_Timer10MS_Interrupt();
       break;
     default:  
-      INTERVAL_Timer_Tick(&module.stateInterval);
+      INTERVAL_Timer_Interrupt(&module.stateInterval);
       break;
   }
 }

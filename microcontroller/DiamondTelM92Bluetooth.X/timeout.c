@@ -8,7 +8,7 @@
 
 #include "timeout.h"
 
-void TIMEOUT_Timer_Tick(timeout_t* timeout) {
+void TIMEOUT_Timer_Interrupt(timeout_t* timeout) {
   if (!timeout->_timerExpired && timeout->_timer != 0) {
     if (--timeout->_timer == 0) {
       timeout->_timerExpired = true;
@@ -28,7 +28,7 @@ bool TIMEOUT_Task(timeout_t* timeout) {
 
 void TIMEOUT_Start(timeout_t* timeout,  uint16_t duration) {
   // First mark the timer as expired. This guarantees that execution of
-  // TIMEOUT_Timer_event from within a timer interrupt will not interfere 
+  // TIMEOUT_Timer_Interrupt from within a timer interrupt will not interfere 
   // with writing any other variables.
   timeout->_timerExpired = true;
 
@@ -41,7 +41,7 @@ void TIMEOUT_Start(timeout_t* timeout,  uint16_t duration) {
 
 void TIMEOUT_Cancel(timeout_t* timeout) {
   // First mark the timer as expired. This guarantees that execution of
-  // TIMEOUT_Timer_event from within a timer interrupt will not interfere 
+  // TIMEOUT_Timer_Interrupt from within a timer interrupt will not interfere 
   // with writing any other variables.
   timeout->_timerExpired = true;
 

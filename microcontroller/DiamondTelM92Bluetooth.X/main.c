@@ -57,10 +57,10 @@ void main(void)
     INTERRUPT_GlobalInterruptHighEnable();
     INTERRUPT_GlobalInterruptLowEnable();
 
-    TMR2_SetInterruptHandler(APP_Timer10MS_Tick);
+    TMR2_SetInterruptHandler(APP_Timer10MS_Interrupt);
     TMR2_StartTimer();
     
-    TMR4_SetInterruptHandler(APP_Timer1MS_Tick);
+    TMR4_SetInterruptHandler(APP_Timer1MS_Interrupt);
     TMR4_StartTimer();
 
     while (1)

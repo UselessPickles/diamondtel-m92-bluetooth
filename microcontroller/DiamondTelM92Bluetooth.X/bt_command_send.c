@@ -616,7 +616,7 @@ uint8_t BT_UpdateAckStatusWhenReceived(uint8_t command_id, uint8_t ack_status)
 }
 
 /*------------------------------------------------------------*/
-void BT_CommandSend_Timer1MS_Tick(void)
+void BT_CommandSend_Timer1MS_Interrupt(void)
 {
     if( BT_CommandSendTimer/*BT_CommandStartMFBWaitTimer*/)
     {

@@ -26,7 +26,7 @@ extern "C" {
  * -# Perform a one-time initialization of the interval with 
  *    INTERVAL_Initialize() to set its interval duration.
  * -# From within a timer event that triggers at regular intervals, use
- *    INTERVAL_Timer_event() to advance your interval.
+ *    INTERVAL_Timer_Interrupt() to advance your interval.
  * -# From within a main task loop, use INTERVAL_Task() to process completion
  *    of each occurrence of the interval. The function returns true if the 
  *    an occurrence of the interval is completed, and therefore should trigger 
@@ -95,7 +95,7 @@ void INTERVAL_Initialize(interval_t* interval, uint16_t duration);
  * 
  * @param interval - Pointer to an interval.
  */
-void INTERVAL_Timer_Tick(interval_t* interval);
+void INTERVAL_Timer_Interrupt(interval_t* interval);
 
 /**
  * Performs main task loop processing of an interval.

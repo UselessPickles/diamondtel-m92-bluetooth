@@ -742,15 +742,15 @@ void TETRIS_GAME_Task(void) {
   }
 }
 
-void TETRIS_GAME_Timer10MS_Tick(void) {
+void TETRIS_GAME_Timer10MS_Interrupt(void) {
   switch (module.state) {
     case State_VOLUME_ADJUST:
-      VOLUME_ADJUST_Timer10MS_Tick();
+      VOLUME_ADJUST_Timer10MS_Interrupt();
       break;
 
     default:
-      INTERVAL_Timer_Tick(&module.stateInterval);
-      TIMEOUT_Timer_Tick(&module.fcnTimeout);
+      INTERVAL_Timer_Interrupt(&module.stateInterval);
+      TIMEOUT_Timer_Interrupt(&module.fcnTimeout);
       break;
   }
 }

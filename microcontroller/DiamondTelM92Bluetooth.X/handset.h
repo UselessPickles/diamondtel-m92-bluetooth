@@ -591,7 +591,7 @@ void HANDSET_Task(void);
  * 
  * Must be called from a timer interrupt every 1 millisecond.
  */
-void HANDSET_Timer1MS_Tick(void);
+void HANDSET_Timer1MS_Interrupt(void);
 
 /**
  * Get the raw one-dimensional display position that corresponds to a 

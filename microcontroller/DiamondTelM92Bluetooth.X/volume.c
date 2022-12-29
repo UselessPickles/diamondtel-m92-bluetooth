@@ -136,8 +136,8 @@ void VOLUME_Task(void) {
   }
 }
 
-void VOLUME_Timer10MS_Tick(void) {
-  TIMEOUT_Timer_Tick(&module.deferredStoreTimeout);
+void VOLUME_Timer10MS_Interrupt(void) {
+  TIMEOUT_Timer_Interrupt(&module.deferredStoreTimeout);
 }
 
 void VOLUME_Enable(void) {

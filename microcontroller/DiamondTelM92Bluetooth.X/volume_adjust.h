@@ -24,7 +24,7 @@ typedef void (*VOLUME_ADJUST_ReturnCallback)(void);
  * Start volume adjustment.
  * 
  * After calling this function, the parent module is responsible for calling
- * VOLUME_ADJUST_Task(), VOLUME_ADJUST_Timer10MS_event(), and
+ * VOLUME_ADJUST_Task(), VOLUME_ADJUST_Timer10MS_Interrupt(), and
  * VOLUME_ADJUST_HANDSET_EventHandler() appropriately until the
  * `returnCallback` has been called.
  *
@@ -52,7 +52,7 @@ void VOLUME_ADJUST_Task(void);
  * The parent module must call this from its 10 millisecond timer handler while 
  * volume adjustment is "active".
  */
-void VOLUME_ADJUST_Timer10MS_Tick(void);
+void VOLUME_ADJUST_Timer10MS_Interrupt(void);
 
 /**
  * Handset event handler for this module.

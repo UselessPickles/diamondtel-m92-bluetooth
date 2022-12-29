@@ -24,7 +24,7 @@ extern "C" {
  * 
  * The general pattern of usage:
  * -# From within a timer event that triggers at regular intervals, use
- *    TIMEOUT_Timer_event() to advance your timeout.
+ *    TIMEOUT_Timer_Interrupt() to advance your timeout.
  * -# From within a main task loop, use TIMEOUT_Task() to process completion
  *    of the timeout. The function returns true if the timeout is completed,
  *    and therefore should trigger execution of code you want to run on 
@@ -72,7 +72,7 @@ typedef struct timeout_t {
  * 
  * @param timeout - Pointer to a timeout.
  */
-void TIMEOUT_Timer_Tick(timeout_t* timeout);
+void TIMEOUT_Timer_Interrupt(timeout_t* timeout);
 
 /**
  * Performs main task loop processing of a timeout.

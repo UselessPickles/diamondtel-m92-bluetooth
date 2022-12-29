@@ -21,7 +21,7 @@ typedef enum MARQUEE_Row {
   
 void MARQUEE_Initialize(void);
 
-void MARQUEE_Timer10MS_Tick(void);
+void MARQUEE_Timer10MS_Interrupt(void);
 
 void MARQUEE_Task(void);
 
