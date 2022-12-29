@@ -7,7 +7,7 @@
  * This module handles only buttons 1-9.
  * 
  * Pressing a button causes the first associated alpha character to be displayed
- * at display position 0. 
+ * at display position 0 (using "positional" printing). 
  * 
  * Releasing the button quickly causes a placeholder '_' character to be 
  * displayed at display position 0. 
@@ -32,6 +32,9 @@ extern "C" {
  * Return callback function for this module.
  * 
  * Called when the user has selected a character to enter.
+ * 
+ * When called, the specified character will still be printed on the screen at
+ * position 0 (using "positional" printing).
  * 
  * @param c - The alpha character that the user has entered.
  */

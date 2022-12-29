@@ -51,7 +51,7 @@ static enum {
   BT_CALL_ACTIVE_WITH_HOLD
 } BT_CallStatus;
 
-static const char* const BT_CallStatusLabel[] = {
+static char const* const BT_CallStatusLabel[] = {
   "Idle",
   "Voice Dial",
   "Incoming",
@@ -101,7 +101,7 @@ static enum {
 
 static int lastAppState;
 
-static const char* const appStateLabel[] = {
+static char const* const appStateLabel[] = {
   "INIT_START",
   "INIT_SET_LCD_ANGLE",
   "INIT_ALL_DISPLAY_ON",
