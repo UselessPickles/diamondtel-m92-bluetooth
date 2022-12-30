@@ -99,7 +99,13 @@ static void playCurrentTone(void) {
 static void setHandsetAudioOutput(void) {
   SOUND_AudioSource newAudioSource = SOUND_AudioSource_MCU;
   
-  if (!isSoundEffectOnAndNotMuted(backgroundEffectState) && !isSoundEffectOnAndNotMuted(foregroundEffectState)) {
+  if (isSoundEffectOnAndNotMuted(foregroundEffectState)) {
+    currentTarget = foregroundEffectState->target;
+    currentVolumeMode = foregroundEffectState->volumeMode;
+  } else if (isSoundEffectOnAndNotMuted(backgroundEffectState)) {
+    currentTarget = backgroundEffectState->target;
+    currentVolumeMode = backgroundEffectState->volumeMode;
+  } else {
     newAudioSource = defaultAudioSource;
 
     currentTarget = (defaultAudioSource == SOUND_AudioSource_BT) 
@@ -174,7 +180,7 @@ static void finishSetHandsetAudioOutput(void) {
   VOLUME_Enable();
 }
 
-static void soundEffectStateTask(SOUND_Channel channel) {
+static bool soundEffectStateTask(SOUND_Channel channel) {
   SoundEffectState* effectState = &soundEffectState[channel];
   
   if (effectState->on && effectState->noteTimerExpired) {
@@ -206,47 +212,16 @@ static void soundEffectStateTask(SOUND_Channel channel) {
 
     if (effectState->on) {
       effectState->noteTimer = effectState->effect->notes[effectState->noteIndex].duration;
-
-      if (
-          ((channel == SOUND_Channel_FOREGROUND) || !foregroundEffectState->on)
-          ) {
-        if (VOLUME_GetLevel(currentVolumeMode) != VOLUME_Level_OFF) {
-          TONE_PlayDualTone(
-              effectState->effect->notes[effectState->noteIndex].tone1, 
-              effectState->effect->notes[effectState->noteIndex].tone2
-          );
-        } else {
-          TONE_Stop();
-        }
-      }
-    } else if ((channel == SOUND_Channel_FOREGROUND) && backgroundEffectState->on) {
-      currentTarget = backgroundEffectState->target;
-      currentVolumeMode = backgroundEffectState->volumeMode;
+    } else if (channel == SOUND_Channel_FOREGROUND) {
       currentButtonBeep = HANDSET_Button_NONE;
-      setHandsetAudioOutput();
-
-      if (VOLUME_GetLevel(currentVolumeMode) != VOLUME_Level_OFF) {
-        if (backgroundEffectState->effect) { 
-          TONE_PlayDualTone(
-              backgroundEffectState->effect->notes[backgroundEffectState->noteIndex].tone1, 
-              backgroundEffectState->effect->notes[backgroundEffectState->noteIndex].tone2
-           );
-        } else {
-          TONE_PlayDualTone(
-              backgroundEffectState->tone1, 
-              backgroundEffectState->tone2
-          );
-        }
-      } else {
-        TONE_Stop();
-      }
-    } else {
-      TONE_Stop();
-      setHandsetAudioOutput();
     }
-
+    
     effectState->noteTimerExpired = false;
+    
+    return true;
   }  
+  
+  return false;
 }
 
 void SOUND_Initialize(void) {
@@ -326,8 +301,10 @@ void SOUND_Task(void) {
     finishSetHandsetAudioOutputTimerExpired = false;
   } 
   
-  soundEffectStateTask(SOUND_Channel_BACKGROUND);
-  soundEffectStateTask(SOUND_Channel_FOREGROUND);  
+  if (soundEffectStateTask(SOUND_Channel_BACKGROUND) || soundEffectStateTask(SOUND_Channel_FOREGROUND)) {
+    setHandsetAudioOutput();
+    playCurrentTone();
+  }  
 }
 
 void SOUND_HANDSET_EventHandler(HANDSET_Event const* event) {
@@ -363,19 +340,8 @@ void SOUND_PlayEffect(SOUND_Channel channel, SOUND_Target target, VOLUME_Mode vo
   state->target = target;
   state->volumeMode = volumeMode;
 
-  if ((channel == SOUND_Channel_FOREGROUND) || !foregroundEffectState->on) {
-    //TONE_Stop();
-    currentTarget = target;
-    currentVolumeMode = volumeMode;
-    setHandsetAudioOutput();
-    
-    if (VOLUME_GetLevel(volumeMode) != VOLUME_Level_OFF) {
-      TONE_PlayDualTone(
-          state->effect->notes->tone1, 
-          state->effect->notes->tone2
-      );
-    }
-  }
+  setHandsetAudioOutput();
+  playCurrentTone();
   
   if (currentButtonBeep && (channel == SOUND_Channel_FOREGROUND)) {
     currentButtonBeep = HANDSET_Button_NONE;
@@ -403,17 +369,9 @@ void SOUND_PlayDualTone(SOUND_Channel channel, SOUND_Target target, VOLUME_Mode 
   state->target = target;
   state->volumeMode = volumeMode;
   
-  if ((channel == SOUND_Channel_FOREGROUND) || !foregroundEffectState->on) {
-    //TONE_Stop();
-    currentTarget = target;
-    currentVolumeMode = volumeMode;
-    setHandsetAudioOutput();
-    
-    if (VOLUME_GetLevel(volumeMode) != VOLUME_Level_OFF) {
-      TONE_PlayDualTone(state->tone1, state->tone2);
-    }
-  }
-
+  setHandsetAudioOutput();
+  playCurrentTone();
+  
   if (currentButtonBeep && (channel == SOUND_Channel_FOREGROUND)) {
     currentButtonBeep = HANDSET_Button_NONE;
   }
@@ -533,30 +491,10 @@ void SOUND_Stop(SOUND_Channel channel) {
   
   soundEffectState[channel].noteTimerExpired = true;
   soundEffectState[channel].on = false;  
-  
-  if ((channel == SOUND_Channel_FOREGROUND) && backgroundEffectState->on) {
-    //TONE_Stop();
-    currentTarget = backgroundEffectState->target;
-    currentVolumeMode = backgroundEffectState->volumeMode;
-    setHandsetAudioOutput();
 
-    if (backgroundEffectState->effect) {
-      TONE_PlayDualTone(
-          backgroundEffectState->effect->notes[backgroundEffectState->noteIndex].tone1, 
-          backgroundEffectState->effect->notes[backgroundEffectState->noteIndex].tone2
-      );
-    } else {
-      TONE_PlayDualTone(
-          backgroundEffectState->tone1, 
-          backgroundEffectState->tone2
-      );
-    }
-    
-  } else if (!(foregroundEffectState->on || backgroundEffectState->on)) {
-    TONE_Stop();
-    setHandsetAudioOutput();
-  }
-  
+  setHandsetAudioOutput();
+  playCurrentTone();
+
   if (channel == SOUND_Channel_FOREGROUND) {
     currentButtonBeep = HANDSET_Button_NONE;
   }
@@ -565,6 +503,19 @@ void SOUND_Stop(SOUND_Channel channel) {
 void SOUND_StopButtonBeep(void) {
   if (currentButtonBeep) {
     SOUND_Stop(SOUND_Channel_FOREGROUND);
+  }
+}
+
+VOLUME_Level SOUND_GetVolumeLevel(VOLUME_Mode mode) {
+  return VOLUME_GetLevel(mode);
+}
+
+void SOUND_SetVolumeLevel(VOLUME_Mode mode, VOLUME_Level level) {
+  VOLUME_SetLevel(mode, level);
+  
+  if (mode == currentVolumeMode) {
+    setHandsetAudioOutput();
+    playCurrentTone();
   }
 }
 

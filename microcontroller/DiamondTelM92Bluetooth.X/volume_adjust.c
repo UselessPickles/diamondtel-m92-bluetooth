@@ -66,7 +66,7 @@ char const* const volumeModeLabels[] = {
  * Play the volume adjust sound effect for current volume mode.
  */
 static void playVolumeAdjustSound(void) {
-  if (VOLUME_GetLevel(module.volumeAdjustMode) == VOLUME_Level_OFF) {
+  if (SOUND_GetVolumeLevel(module.volumeAdjustMode) == VOLUME_Level_OFF) {
     SOUND_Stop(SOUND_Channel_FOREGROUND);
     return;
   }
@@ -99,7 +99,7 @@ static void playVolumeAdjustSound(void) {
  * @param up - True to adjust volume up. False to adjust volume down.
  */
 static void adjustVolumeLevel(bool up) {
-  VOLUME_Level volumeLevel = VOLUME_GetLevel(module.volumeAdjustMode);
+  VOLUME_Level volumeLevel = SOUND_GetVolumeLevel(module.volumeAdjustMode);
   
   if (up) {
     if (volumeLevel < VOLUME_Level_MAX) {
@@ -113,7 +113,7 @@ static void adjustVolumeLevel(bool up) {
     }
   }
   
-  VOLUME_SetLevel(module.volumeAdjustMode, volumeLevel);
+  SOUND_SetVolumeLevel(module.volumeAdjustMode, volumeLevel);
   playVolumeAdjustSound();
 }
 
@@ -121,7 +121,7 @@ static void adjustVolumeLevel(bool up) {
  * Fully updates the display to show the current volume mode level.
  */
 static void displayVolumeLevel(void) {
-  VOLUME_Level volumeLevel = VOLUME_GetLevel(module.volumeAdjustMode);
+  VOLUME_Level volumeLevel = SOUND_GetVolumeLevel(module.volumeAdjustMode);
   
   HANDSET_DisableTextDisplay();
   HANDSET_ClearText();
@@ -146,7 +146,7 @@ static void displayVolumeLevel(void) {
  *   the display was last updated.
  */
 static void displayVolumeLevelChange(void) {
-  VOLUME_Level volumeLevel = VOLUME_GetLevel(module.volumeAdjustMode);
+  VOLUME_Level volumeLevel = SOUND_GetVolumeLevel(module.volumeAdjustMode);
   
   if (!volumeLevel) {
     HANDSET_PrintStringAt("OFF", 6);

@@ -88,6 +88,9 @@ void SOUND_Stop(SOUND_Channel channel);
 
 void SOUND_StopButtonBeep(void);
 
+VOLUME_Level SOUND_GetVolumeLevel(VOLUME_Mode mode);
+
+void SOUND_SetVolumeLevel(VOLUME_Mode mode, VOLUME_Level level);
 
 
 #ifdef	__cplusplus
