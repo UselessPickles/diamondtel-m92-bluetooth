@@ -11,6 +11,7 @@
 #include "string.h"
 #include "security_code.h"
 #include "level_select.h"
+#include "string_input.h"
 
 typedef enum State {
   State_TITLE,
@@ -18,6 +19,7 @@ typedef enum State {
   State_MENU,
   State_SELECT_LEVEL,
   State_PLAYING,
+  State_ENTER_INITIALS,
   State_GAME_OVER_1,
   State_GAME_OVER_2,
   State_GAME_OVER_3,
@@ -126,6 +128,9 @@ static struct {
   uint16_t score;
   uint16_t totalLinesCleared;
   bool isFastDrop;
+  bool isHighScore;
+  bool isHighScoreInitialsEntered;
+  char highScoreInitialsBuffer[4];
 } module;
 
 static void startMusic(void) {
@@ -165,9 +170,12 @@ static void printHighScore(void) {
   char scoreStr[5];
 
   uint2str(scoreStr, STORAGE_GetTetrisHighScore(), 5, 3);
+  STORAGE_GetTetrisHighScoreInitials(module.highScoreInitialsBuffer);
 
   HANDSET_DisableTextDisplay();
-  HANDSET_PrintString("HiScore");
+  HANDSET_PrintString("#1: ");
+  HANDSET_PrintString(module.highScoreInitialsBuffer);
+  HANDSET_PrintCharN(' ', 3 - strlen(module.highScoreInitialsBuffer));
   HANDSET_PrintStringN(scoreStr, 5);
   HANDSET_PrintCharN(' ', 2);
   HANDSET_EnableTextDisplay();
@@ -180,6 +188,7 @@ static void displayHighScore(void) {
 
 static void resetHighScore(void) {
   STORAGE_SetTetrisHighScore(0);
+  STORAGE_SetTetrisHighScoreInitials("???");
   displayHighScore();
 }
 
@@ -386,6 +395,7 @@ void movePieceX(int8_t amount) {
 }
 
 static void displayGameOver(void);
+static void promptHighScoreInitials(void);
 
 static void spawnPiece(void) {
   module.pieceShape = rand() % SHAPE_COUNT;
@@ -418,8 +428,11 @@ static void spawnPiece(void) {
       !canPositionPiece(module.pieceOrientation, module.pieceX, module.pieceY) ||
       (module.score == MAX_SCORE)
       ) {
-    if (module.score > STORAGE_GetTetrisHighScore()) {
+    // Immediately save the high score with unknown initials, in case initials
+    // entry is never completed.
+    if (module.isHighScore) {
       STORAGE_SetTetrisHighScore(module.score);
+      STORAGE_SetTetrisHighScoreInitials("???");
     }
     
     playSoundEffect(SOUND_Effect_TETRIS_LOSE);
@@ -477,6 +490,8 @@ static void addPieceToBoard(void) {
     } else {
       module.score += points;
     }
+    
+    module.isHighScore = module.score > STORAGE_GetTetrisHighScore();
     
     module.lineFlashCount = 0;
     INTERVAL_Initialize(&module.stateInterval, LINE_FLASH_INTERVAL);
@@ -572,7 +587,6 @@ static void drawFullGameBoard(void) {
   HANDSET_EnableTextDisplay();
 }
 
-
 static void displayGameOver(void) {
   stopMusic();
   
@@ -581,6 +595,30 @@ static void displayGameOver(void) {
   
   module.isGameStarted = false;
   module.state = State_GAME_OVER_1;
+}
+
+static void handleHighScoreInitialsInputResult(STRING_INPUT_Result result, char const* initials) {
+  if (result == STRING_INPUT_Result_APPLY) {
+    STORAGE_SetTetrisHighScoreInitials(initials);
+  }
+  
+  module.isHighScoreInitialsEntered = true;
+  displayGameOver();
+}
+
+static void promptHighScoreInitials(void) {
+  module.highScoreInitialsBuffer[0] = 0;
+  
+  STRING_INPUT_Start(
+      module.highScoreInitialsBuffer,
+      3,
+      "You #1!Name ? ",
+      true,
+      true,
+      handleHighScoreInitialsInputResult
+  );
+  
+  module.state = State_ENTER_INITIALS;
 }
 
 static void resumeGame(void) {
@@ -601,6 +639,8 @@ static void startNewGame(uint8_t level) {
   module.lineClearCount = 0;
   module.totalLinesCleared = 0;
   module.score = 0;
+  module.isHighScore = false;
+  module.isHighScoreInitialsEntered = false;
   spawnPiece();
   resumeGame();
 }
@@ -654,6 +694,7 @@ static VOLUME_ADJUST_ReturnCallback const VOLUME_ADJUST_RETURN_CALLBACKS[] = {
   displayGameOver,
   displayGameOver,
   displayGameOver,
+  displayGameOver,
   displayGameOver
 };
 
@@ -677,11 +718,15 @@ void TETRIS_GAME_Task(void) {
     
     case State_GAME_OVER_1: 
       if (INTERVAL_Task(&module.stateInterval)) {
-        HANDSET_DisableTextDisplay();
-        HANDSET_ClearText();
-        HANDSET_PrintString("Game   Over ");
-        HANDSET_EnableTextDisplay();
-        ++module.state;
+        if (module.isHighScore && !module.isHighScoreInitialsEntered) {
+          promptHighScoreInitials();
+        } else {
+          HANDSET_DisableTextDisplay();
+          HANDSET_ClearText();
+          HANDSET_PrintString("Game   Over ");
+          HANDSET_EnableTextDisplay();
+          ++module.state;
+        }
       }
       break;
 
@@ -780,7 +825,11 @@ void TETRIS_GAME_HANDSET_EventHandler(HANDSET_Event const* event) {
     return;
   }
   
-  if ((module.state != State_VOLUME_ADJUST) && (module.state != State_ENTER_SECURITY_CODE)) {
+  if (
+      (module.state != State_VOLUME_ADJUST) && 
+      (module.state != State_ENTER_SECURITY_CODE) &&
+      (module.state != State_ENTER_INITIALS)
+      ) {
     if (isButtonDown) {
       switch (button) {
         case HANDSET_Button_FCN:
@@ -909,6 +958,10 @@ void TETRIS_GAME_HANDSET_EventHandler(HANDSET_Event const* event) {
           INTERVAL_Start(&module.stateInterval, false);
         }
       }
+      break;
+      
+    case State_ENTER_INITIALS:
+      STRING_INPUT_HANDSET_EventHandler(event);
       break;
       
     case State_GAME_OVER_1:

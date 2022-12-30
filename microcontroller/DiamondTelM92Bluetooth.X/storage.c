@@ -7,7 +7,7 @@
 #include "string.h"
 
 #define MARKER (0b10101100)
-#define VERSION (23)
+#define VERSION (24)
 
 typedef struct {
   uint8_t number[EXTENDED_PHONE_NUMBER_LENGTH >> 1];
@@ -42,6 +42,8 @@ typedef struct {
   uint8_t activeNumberIndex;
   uint8_t programmingCount;
   uint16_t tetrisHighScore;
+  char tetrisHighScoreInitials[3];
+  uint8_t reserved[45];
   char pairedDeviceName[MAX_DEVICE_NAME_LENGTH];
   uint8_t ownNumber[2][STANDARD_PHONE_NUMBER_LENGTH >> 1];
   uint8_t lastDialedNumber[EXTENDED_PHONE_NUMBER_LENGTH >> 1];
@@ -146,7 +148,7 @@ static char uncompressPhoneNumberNibble(uint8_t nibble) {
   }
 }
 
-static void uncompressPhoneNumber(char* dest, uint8_t const* compressedPhoneNumber, uint8_t maxCompressedLength) {
+static char* uncompressPhoneNumber(char* dest, uint8_t const* compressedPhoneNumber, uint8_t maxCompressedLength) {
   uint8_t i = 0;
   
   while (i < maxCompressedLength) {
@@ -157,6 +159,8 @@ static void uncompressPhoneNumber(char* dest, uint8_t const* compressedPhoneNumb
   }
   
   *dest = 0;
+  
+  return dest;
 }
 
 static void initializeDefaultStorageData(void) {
@@ -188,6 +192,7 @@ static void initializeDefaultStorageData(void) {
   storage.activeNumberIndex = 0;
   storage.programmingCount = 0;
   storage.tetrisHighScore = 0;
+  memset(storage.tetrisHighScoreInitials, '?', 3);
   memset(storage.pairedDeviceName, 0, MAX_DEVICE_NAME_LENGTH);
   memset(storage.ownNumber, 0, (STANDARD_PHONE_NUMBER_LENGTH >> 1) * 2);
   memset(storage.lastDialedNumber, 0xFF, EXTENDED_PHONE_NUMBER_LENGTH >> 1);
@@ -195,7 +200,7 @@ static void initializeDefaultStorageData(void) {
   memset(storage.securityCode, 0, (SECURITY_CODE_LENGTH >> 1));
 
   // Store everything except for the directory to EEPROM
-  EEPROM_WriteBytes(0, &storage, offsetof(storage_t, directory));
+  EEPROM_WriteBytes(0, &storage, offsetof(storage_t, reserved));
 
   // Make all directory entries empty in EEPROM
   for (uint16_t i = 0; i < DIRECTORY_SIZE; ++i) {
@@ -313,12 +318,12 @@ void STORAGE_SetVolumeLevel(VOLUME_Mode mode, VOLUME_Level level) {
   EEPROM_AsyncWriteByte(offsetof(storage_t, volumeLevels) + mode, level);
 }
 
-void STORAGE_GetOwnNumber(uint8_t index, char* dest) {
+char* STORAGE_GetOwnNumber(uint8_t index, char* dest) {
   if (index > 1) {
     index = 0;
   }
   
-  uncompressPhoneNumber(dest, storage.ownNumber[index], STANDARD_PHONE_NUMBER_LENGTH >> 1);
+  return uncompressPhoneNumber(dest, storage.ownNumber[index], STANDARD_PHONE_NUMBER_LENGTH >> 1);
 }
 
 void STORAGE_SetOwnNumber(uint8_t index, char const* ownNumber) {
@@ -334,8 +339,8 @@ void STORAGE_SetOwnNumber(uint8_t index, char const* ownNumber) {
   );
 }
 
-void STORAGE_GetLastDialedNumber(char* dest) {
-  uncompressPhoneNumber(dest, storage.lastDialedNumber, EXTENDED_PHONE_NUMBER_LENGTH >> 1);
+char* STORAGE_GetLastDialedNumber(char* dest) {
+  return uncompressPhoneNumber(dest, storage.lastDialedNumber, EXTENDED_PHONE_NUMBER_LENGTH >> 1);
 }
 
 void STORAGE_SetLastDialedNumber(char const* lastDialedNumber) {
@@ -347,13 +352,14 @@ void STORAGE_SetLastDialedNumber(char const* lastDialedNumber) {
   );
 }
 
-void STORAGE_GetSpeedDial(uint8_t index, char* dest) {
+char* STORAGE_GetSpeedDial(uint8_t index, char* dest) {
   if (index >= 3) {
     dest[0] = 0;
-    return;
+  } else {
+    uncompressPhoneNumber(dest, storage.speedDial[index], EXTENDED_PHONE_NUMBER_LENGTH >> 1);
   }
   
-  uncompressPhoneNumber(dest, storage.speedDial[index], EXTENDED_PHONE_NUMBER_LENGTH >> 1);
+  return dest;
 }
 
 void STORAGE_SetSpeedDial(uint8_t index, char const* number) {
@@ -369,27 +375,28 @@ void STORAGE_SetSpeedDial(uint8_t index, char const* number) {
   );
 }
 
-void STORAGE_GetDirectoryNumber(uint8_t index, char* dest) {
+char* STORAGE_GetDirectoryNumber(uint8_t index, char* dest) {
   if (index >= DIRECTORY_SIZE) {
     dest[0] = 0;
-    return;
+  } else {
+    uncompressPhoneNumber(dest, storage.directory[index].number, EXTENDED_PHONE_NUMBER_LENGTH >> 1);
+    dest[EXTENDED_PHONE_NUMBER_LENGTH] = 0;
   }
   
-  uncompressPhoneNumber(dest, storage.directory[index].number, EXTENDED_PHONE_NUMBER_LENGTH >> 1);
-  dest[EXTENDED_PHONE_NUMBER_LENGTH] = 0;
+  return dest;
 }
 
 void STORAGE_SetDirectoryNumber(uint8_t index, char const* number) {
   STORAGE_SetDirectoryEntry(index, number, NULL);
 }
 
-void STORAGE_GetDirectoryName(uint8_t index, char* dest) {
+char* STORAGE_GetDirectoryName(uint8_t index, char* dest) {
   if (index >= DIRECTORY_SIZE) {
     dest[0] = 0;
-    return;
+  } else {
+    strncpy(dest, storage.directory[index].name, MAX_NAME_LENGTH)[MAX_NAME_LENGTH] = 0;
   }
-  
-  strncpy(dest, storage.directory[index].name, MAX_NAME_LENGTH)[MAX_NAME_LENGTH] = 0;
+  return dest;
 }
 
 void STORAGE_SetDirectoryEntry(uint8_t index, char const* number, char const* name) {
@@ -534,13 +541,14 @@ void STORAGE_SetDirectoryIndex(uint8_t index) {
   EEPROM_AsyncWriteByte(offsetof(storage_t, directoryIndex), index);
 }
 
-void STORAGE_GetCreditCardNumber(uint8_t index, char* dest) {
+char* STORAGE_GetCreditCardNumber(uint8_t index, char* dest) {
   if (index >= CREDIT_CARD_COUNT) {
     dest[0] = 0;
-    return;
+  } else {
+    uncompressPhoneNumber(dest, storage.creditCardNumbers[index], CREDIT_CARD_LENGTH >> 1);
   }
   
-  uncompressPhoneNumber(dest, storage.creditCardNumbers[index], CREDIT_CARD_LENGTH >> 1);
+  return dest;
 }
 
 void STORAGE_SetCreditCardNumber(uint8_t index, char const* number) {
@@ -738,11 +746,23 @@ void STORAGE_SetTetrisHighScore(uint16_t score) {
   EEPROM_AsyncWriteBytes(offsetof(storage_t, tetrisHighScore), &storage.tetrisHighScore, sizeof(storage.tetrisHighScore));
 }
 
-void STORAGE_GetPairedDeviceName(char* dest){
+char* STORAGE_GetTetrisHighScoreInitials(char* dest) {
+  strncpy(dest, storage.tetrisHighScoreInitials, 3)[3] = 0;
+  return dest;
+}
+
+void STORAGE_SetTetrisHighScoreInitials(char const* initials) {
+  strncpy(storage.tetrisHighScoreInitials, initials, 3);
+  EEPROM_AsyncWriteBytes(offsetof(storage_t, tetrisHighScoreInitials), storage.tetrisHighScoreInitials, 3);
+}
+
+char* STORAGE_GetPairedDeviceName(char* dest){
   // If using strncpy here, I get this error:
   // C:\Program Files\Microchip\xc8\v2.35\pic\sources\c99\common\strncpy.c:9:: error: (1466) registers unavailable for code generation of this expression
   memcpy(dest, storage.pairedDeviceName, MAX_DEVICE_NAME_LENGTH);
   dest[MAX_DEVICE_NAME_LENGTH] = 0;
+  
+  return dest;
 }
 
 void STORAGE_SetPairedDeviceName(char const* deviceName) {

@@ -35,19 +35,19 @@ void STORAGE_SetLcdViewAngle(uint8_t lcdViewAngle);
 VOLUME_Level STORAGE_GetVolumeLevel(VOLUME_Mode mode);
 void STORAGE_SetVolumeLevel(VOLUME_Mode mode, VOLUME_Level level);
 
-void STORAGE_GetOwnNumber(uint8_t index, char* dest);
+char* STORAGE_GetOwnNumber(uint8_t index, char* dest);
 void STORAGE_SetOwnNumber(uint8_t index, char const* ownNumber);
 
-void STORAGE_GetLastDialedNumber(char* dest);
+char* STORAGE_GetLastDialedNumber(char* dest);
 void STORAGE_SetLastDialedNumber(char const* lastDialedNumber);
 
-void STORAGE_GetSpeedDial(uint8_t index, char* dest);
+char* STORAGE_GetSpeedDial(uint8_t index, char* dest);
 void STORAGE_SetSpeedDial(uint8_t index, char const* number);
 
-void STORAGE_GetDirectoryNumber(uint8_t index, char* dest);
+char* STORAGE_GetDirectoryNumber(uint8_t index, char* dest);
 void STORAGE_SetDirectoryNumber(uint8_t index, char const* number);
 
-void STORAGE_GetDirectoryName(uint8_t index, char* dest);
+char* STORAGE_GetDirectoryName(uint8_t index, char* dest);
 void STORAGE_SetDirectoryEntry(uint8_t index, char const* number, char const* name);
 
 uint8_t STORAGE_GetFirstAvailableDirectoryIndex(void);
@@ -62,7 +62,7 @@ bool STORAGE_IsDirectoryNameEmpty(uint8_t index);
 uint8_t STORAGE_GetDirectoryIndex(void);
 void STORAGE_SetDirectoryIndex(uint8_t index);
 
-void STORAGE_GetCreditCardNumber(uint8_t index, char* dest);
+char* STORAGE_GetCreditCardNumber(uint8_t index, char* dest);
 void STORAGE_SetCreditCardNumber(uint8_t index, char const* number);
 
 RINGTONE_Type STORAGE_GetRingtone(void);
@@ -114,7 +114,10 @@ void STORAGE_SetProgrammingCount(uint8_t count);
 uint16_t STORAGE_GetTetrisHighScore(void);
 void STORAGE_SetTetrisHighScore(uint16_t score);
 
-void STORAGE_GetPairedDeviceName(char* dest);
+char* STORAGE_GetTetrisHighScoreInitials(char* dest);
+void STORAGE_SetTetrisHighScoreInitials(char const* initials);
+
+char* STORAGE_GetPairedDeviceName(char* dest);
 void STORAGE_SetPairedDeviceName(char const* id);
 
 char const* STORAGE_GetSecurityCode(void);
