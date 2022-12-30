@@ -189,6 +189,7 @@ void STRING_INPUT_HANDSET_EventHandler(HANDSET_Event const* event) {
             module.returnCallback(STRING_INPUT_Result_CANCEL, module.buffer);
           } else {
             displayPrompt();
+            startCharInput();
           }
         } else {
           SOUND_PlayButtonBeep(button, false);
