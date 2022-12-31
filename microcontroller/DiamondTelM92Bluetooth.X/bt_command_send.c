@@ -159,94 +159,6 @@ static bool copyCommandToBuffer(uint8_t* data, uint16_t size, uint8_t cmdInfo)
     return buf_result;
 }
 
-static bool checkCopySendingBuffer(uint8_t cmdID, uint16_t size, uint8_t cmdInfo)
-{
-	if(UR_TxBufHead > UR_TxBufTail)
-	{
-		if(UR_TxBufHead - UR_TxBufTail	+ size >= UR_TX_BUF_SIZE)
-		{
-			BT_bufferOverRun++;
-			return false;		
-		}
-	}	
-	else if(UR_TxBufHead < UR_TxBufTail)
-	{
-		if(UR_TxBufHead + size >=  UR_TxBufTail)
-		{
-			BT_bufferOverRun++;
-			return false;
-		}
-	}
-	if(!StartRegisterNewCommand(UR_TxBufHead, size, cmdID, cmdInfo))
-	{
-		return false;
-	}
-	return true;
-}
-
-static bool continueCopySendingCommandToBuffer(uint8_t* data, uint16_t size)
-{
-    bool buf_result = true;
-    uint8_t ur_tx_buf_status_save = UR_TxBufStatus;
-    uint16_t ur_tx_buf_head_save = UR_TxBufHead;
-
-    if(UR_TxBufStatus !=  TXRX_BUF_FULL)
-    {        
-        while(size--)
-        {
-            UR_TxBuf[UR_TxBufHead++] = *data++;
-
-            if(UR_TxBufHead >= UR_TX_BUF_SIZE)
-                UR_TxBufHead = 0;
-
-            if(UR_TxBufHead ==  UR_TxBufTail)
-            {
-                if(size)
-                {
-                    buf_result = false;
-                    UR_TxBufStatus = ur_tx_buf_status_save;		//restore in this case
-                    UR_TxBufHead = ur_tx_buf_head_save;                 //restore in this case
-                }
-                else
-                {
-                    UR_TxBufStatus =  TXRX_BUF_FULL;            //test this code
-                }
-                break;
-            }
-            else
-            {
-                UR_TxBufStatus = TXRX_BUF_OK;
-            }
-        }
-    }
-    else
-    {
-        buf_result = false;
-    }
-    return buf_result;
-}
-
-
-/*------------------------------------------------------------*/
-
-static uint8_t calculateChecksum2(uint8_t checksum, uint8_t* startByte, uint16_t length)
-{
-    while(length)
-    {
-        checksum += *startByte++;
-        length--;
-    }
-    return checksum;
-}
-
-/*------------------------------------------------------------*/
-uint8_t BT_IsCommandSendTaskIdle( void )
-{
-    if(BT_CMD_SendState == BT_CMD_SEND_STATE_IDLE)
-        return true;
-    else
-        return false;
-}
 /*------------------------------------------------------------*/
 
 uint8_t BT_CalculateCmdChecksum(uint8_t const* startByte, uint8_t const* endByte)
@@ -400,22 +312,11 @@ void BT_ExitPairingMode(void) {
   BT_MMI_ActionCommand(EXIT_PAIRING_MODE, 0);
 }
 
-void BT_SendBatteryLevel(uint8_t batteryLevelPercent) {
-  printf("[BT] Reporting battery level: %d\r\n", (uint16_t)batteryLevelPercent);
-  uint8_t command[6];
-  command[0] = 0xAA;                      //header byte 0
-  command[1] = 0x00;                      //header byte 1
-  command[2] = 0x02;                      //length
-  command[3] = REPORT_BATTERY_CAPACITY;        	//command ID
-  command[4] = batteryLevelPercent;                 	//
-  command[5] = BT_CalculateCmdChecksum(&command[2], &command[4]);
-  copySendingCommandToBuffer(command, 6);  
-}
-
 void BT_MMI_ActionCommand(uint8_t MMI_ActionCode, uint8_t link_index)
 {
 	BT_Send_ActionCommand(MMI_ActionCode, link_index, CMD_INFO_MCU);
 }
+
 void BT_Send_ActionCommand(uint8_t MMI_ActionCode, uint8_t link_index, uint8_t cmd_info)
 {
     uint8_t command[8];

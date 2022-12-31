@@ -22,10 +22,6 @@ void CALL_TIMER_Start(bool updateDisplay);
 
 void CALL_TIMER_Stop(void);
 
-bool CALL_TIMER_IsRunning(void);
-
-bool CALL_TIMER_IsDisplayUpdateEnabled(void);
-
 void CALL_TIMER_EnableDisplayUpdate(void);
 
 void CALL_TIMER_DisableDisplayUpdate(void);

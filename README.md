@@ -48,7 +48,7 @@ The DiamondTel Model 92 Portable Cellar Telephone is a hybrid transportable/mobi
 
 ![DiamondTel Model 92 Portable Cellular Telephone](readme/DiamondTel_Model_92.JPG)
 
-The phone used 1G analog cellular technology ([AMPS](https://en.wikipedia.org/wiki/Advanced_Mobile_Phone_System)), which has been discontinued in US since 2008. As such, it is impossible to activate service for this phone. 
+The phone used 1G analog cellular technology ([AMPS](https://en.wikipedia.org/wiki/Advanced_Mobile_Phone_System)), which has been discontinued in the US since 2008. As such, it is impossible to activate service for this phone. 
 
 See the contents and README in the `telephone` directory for more details.
 

@@ -386,16 +386,13 @@ static void rotatePiece(int8_t amount) {
 void movePieceX(int8_t amount) {
   int8_t newX = module.pieceX + amount;
   
-  if (
-      canPositionPiece(module.pieceOrientation, newX, module.pieceY)
-      ) {
+  if (canPositionPiece(module.pieceOrientation, newX, module.pieceY)) {
     updatePiece(module.pieceOrientation, newX, module.pieceY);
     playSoundEffect(SOUND_Effect_TETRIS_USER_MOVE);
   }  
 }
 
 static void displayGameOver(void);
-static void promptHighScoreInitials(void);
 
 static void spawnPiece(void) {
   module.pieceShape = rand() % SHAPE_COUNT;

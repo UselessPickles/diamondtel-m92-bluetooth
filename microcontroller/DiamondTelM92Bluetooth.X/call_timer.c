@@ -148,14 +148,6 @@ void CALL_TIMER_Stop(void) {
   );
 }
 
-bool CALL_TIMER_IsRunning(void) {
-  return isRunning;
-}
-
-bool CALL_TIMER_IsDisplayUpdateEnabled(void) {
-  return isDisplayUpdateEnabled;
-}
-
 void CALL_TIMER_EnableDisplayUpdate(void) {
   if (!isRunning || isDisplayUpdateEnabled) {
     return;

@@ -140,7 +140,6 @@ enum
 #define BT_MAX_DEVICE_NAME_LENGTH (23)
 
 void BT_GiveUpThisCommand( void );
-uint8_t BT_IsCommandSendTaskIdle( void );
 uint8_t BT_CalculateCmdChecksum(uint8_t const* startByte, uint8_t const* endByte);
 void BT_SendBytesAsCompleteCommand(uint8_t const* command, uint8_t command_length);
 
@@ -159,7 +158,6 @@ void BT_SwapHoldOrWaitingCallAndEndActiveCall(void);
 void BT_EndHoldOrWaitingCall(void);
 void BT_EnterPairingMode(void);
 void BT_ExitPairingMode(void);
-void BT_SendBatteryLevel(uint8_t batteryLevelPercent);
 
 void BT_MMI_ActionCommand(uint8_t MMI_ActionCode, uint8_t link_index);
 void BT_SendAckToEvent(uint8_t ack_event);

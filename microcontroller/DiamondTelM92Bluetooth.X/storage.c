@@ -245,7 +245,7 @@ static void initializeDefaultStorageData(void) {
   );
   STORAGE_SetDirectoryEntry(
       15,
-      "18884732963",
+      "8884732963",
       "HP Fax Me"
   );
 

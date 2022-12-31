@@ -24,7 +24,7 @@ static struct {
 } module;
 
 /**
- * Get the view angle number to display to the suer for the current LCD view angle.
+ * Get the view angle number to display to the user for the current LCD view angle.
  * @return the view angle number to display to the suer for the current LCD view angle.
  */
 static char getDisplayViewAngle(void) {
