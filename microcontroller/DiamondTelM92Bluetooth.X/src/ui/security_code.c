@@ -1,3 +1,8 @@
+/** 
+ * @file
+ * @author Jeff Lau
+ */
+
 #include "security_code.h"
 #include "../storage/storage.h"
 #include "../sound/sound.h"

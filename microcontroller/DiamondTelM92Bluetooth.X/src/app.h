@@ -1,8 +1,6 @@
-/* 
- * File:   app.h
- * Author: Jeff
- *
- * Created on January 13, 2022, 12:06 AM
+/** 
+ * @file
+ * @author Jeff Lau
  */
 
 #ifndef APP_H

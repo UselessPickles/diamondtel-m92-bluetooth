@@ -1,9 +1,8 @@
-/* 
- * File:   sound.h
- * Author: Jeff
- *
- * Created on January 22, 2022, 11:54 PM
+/** 
+ * @file
+ * @author Jeff Lau
  */
+
 #ifndef SOUND_H
 #define	SOUND_H
 

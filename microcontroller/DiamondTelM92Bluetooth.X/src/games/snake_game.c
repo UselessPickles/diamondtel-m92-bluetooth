@@ -1,3 +1,8 @@
+/** 
+ * @file
+ * @author Jeff Lau
+ */
+
 #include "snake_game.h"
 #include "level_select.h"
 #include "../sound/sound.h"

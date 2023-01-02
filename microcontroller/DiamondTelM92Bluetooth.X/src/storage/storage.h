@@ -1,8 +1,6 @@
-/* 
- * File:   storage.h
- * Author: Jeff
- *
- * Created on January 27, 2022, 10:12 PM
+/** 
+ * @file
+ * @author Jeff Lau
  */
 
 #ifndef STORAGE_H

@@ -1,8 +1,6 @@
-/* 
- * File:   marquee.h
- * Author: Jeff
- *
- * Created on April 8, 2022, 9:42 PM
+/** 
+ * @file
+ * @author Jeff Lau
  */
 
 #ifndef MARQUEE_H

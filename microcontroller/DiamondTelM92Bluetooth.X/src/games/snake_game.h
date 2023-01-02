@@ -1,8 +1,6 @@
-/* 
- * File:   snake.h
- * Author: Jeff
- *
- * Created on November 26, 2022, 12:34 AM
+/** 
+ * @file
+ * @author Jeff Lau
  */
 
 #ifndef SNAKE_H

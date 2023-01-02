@@ -1,8 +1,6 @@
-/* 
- * File:   clr_codes.h
- * Author: Jeff
- *
- * Created on November 23, 2022, 12:44 AM
+/** 
+ * @file
+ * @author Jeff Lau
  */
 
 #ifndef CLR_CODES_H

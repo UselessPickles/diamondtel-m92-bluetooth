@@ -1,8 +1,6 @@
-/* 
- * File:   ringtone.h
- * Author: Jeff
- *
- * Created on March 6, 2022, 11:46 AM
+/** 
+ * @file
+ * @author Jeff Lau
  */
 
 #ifndef RINGTONE_H

@@ -1,8 +1,6 @@
-/* 
- * File:   call_timer.h
- * Author: Jeff
- *
- * Created on February 28, 2022, 11:36 PM
+/** 
+ * @file
+ * @author Jeff Lau
  */
 
 #ifndef CALL_TIMER_H

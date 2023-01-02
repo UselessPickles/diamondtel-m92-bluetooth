@@ -1,6 +1,6 @@
-/* 
- * File:   volume.h
- * Author: Jeff
+/**
+ * @file
+ * @author Jeff Lau
  *
  * API for controlling the volume level of sound to the phone handset.
  * 

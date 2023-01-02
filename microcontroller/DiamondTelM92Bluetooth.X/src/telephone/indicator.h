@@ -1,8 +1,6 @@
-/* 
- * File:   indicator.h
- * Author: Jeff
- *
- * Created on March 3, 2022, 10:10 PM
+/** 
+ * @file
+ * @author Jeff Lau
  */
 
 #ifndef INDICATOR_H

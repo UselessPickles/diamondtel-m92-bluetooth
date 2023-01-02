@@ -1,3 +1,8 @@
+/** 
+ * @file
+ * @author Jeff Lau
+ */
+
 #include "clr_codes.h"
 #include "../util/timeout.h"
 #include <stdbool.h>

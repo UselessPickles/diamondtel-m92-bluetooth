@@ -1,3 +1,8 @@
+/** 
+ * @file
+ * @author Jeff Lau
+ */
+
 #include "sound.h"
 #include "tone.h"
 #include "volume.h"

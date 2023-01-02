@@ -1,3 +1,8 @@
+/** 
+ * @file
+ * @author Jeff Lau
+ */
+
 #include "marquee.h"
 #include "../util/interval.h"
 #include "../util/timeout.h"

@@ -1,8 +1,6 @@
-/* 
- * File:   programming.h
- * Author: Jeff
- *
- * Created on November 21, 2022, 8:42 PM
+/** 
+ * @file
+ * @author Jeff Lau
  */
 
 #ifndef PROGRAMMING_H

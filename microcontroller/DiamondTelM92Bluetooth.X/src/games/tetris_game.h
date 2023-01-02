@@ -1,8 +1,6 @@
-/* 
- * File:   tetris_game.h
- * Author: Jeff
- *
- * Created on December 3, 2022, 9:08 PM
+/** 
+ * @file
+ * @author Jeff Lau
  */
 
 #ifndef TETRIS_GAME_H

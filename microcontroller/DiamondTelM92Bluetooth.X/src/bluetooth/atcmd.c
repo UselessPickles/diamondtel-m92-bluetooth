@@ -1,3 +1,8 @@
+/** 
+ * @file
+ * @author Jeff Lau
+ */
+
 #include "atcmd.h"
 #include "bt_command_send.h"
 #include "bt_command_decode.h"

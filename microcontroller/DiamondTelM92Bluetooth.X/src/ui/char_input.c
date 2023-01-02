@@ -4,6 +4,7 @@
  *
  * UI module for single alphabetic character input.
  */
+
 #include "char_input.h"
 #include "../sound/sound.h"
 

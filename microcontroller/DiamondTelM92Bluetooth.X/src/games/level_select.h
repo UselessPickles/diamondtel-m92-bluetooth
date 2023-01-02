@@ -1,8 +1,6 @@
-/* 
- * File:   level_select.h
- * Author: Jeff
- *
- * Created on December 9, 2022, 11:45 PM
+/** 
+ * @file
+ * @author Jeff Lau
  */
 
 #ifndef LEVEL_SELECT_H

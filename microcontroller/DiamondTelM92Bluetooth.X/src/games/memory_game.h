@@ -1,8 +1,6 @@
-/* 
- * File:   memory_game.h
- * Author: Jeff
- *
- * Created on November 27, 2022, 2:46 PM
+/** 
+ * @file
+ * @author Jeff Lau
  */
 
 #ifndef MEMORY_GAME_H

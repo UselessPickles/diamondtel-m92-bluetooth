@@ -4,6 +4,7 @@
  *
  * UI module for adjusting the LCD viewing angle
  */
+
 #include "view_adjust.h"
 #include "../storage/storage.h"
 #include "../sound/sound.h"

@@ -1,3 +1,8 @@
+/** 
+ * @file
+ * @author Jeff Lau
+ */
+
 #include "storage.h"
 #include "eeprom.h"
 #include "../util/string.h"

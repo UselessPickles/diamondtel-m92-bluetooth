@@ -1,6 +1,6 @@
 /** 
  * @file
- * @author
+ * @author Jeff Lau
  * 
  * Tools for monitoring the DiamondTel Model 92's Transceiver battery state.
  */

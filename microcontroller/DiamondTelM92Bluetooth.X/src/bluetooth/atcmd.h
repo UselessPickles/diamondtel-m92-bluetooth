@@ -1,8 +1,6 @@
-/* 
- * File:   atcmd.h
- * Author: Jeff
- *
- * Created on May 1, 2022, 12:08 AM
+/** 
+ * @file
+ * @author Jeff Lau
  */
 
 #ifndef ATCMD_H

@@ -1,3 +1,8 @@
+/** 
+ * @file
+ * @author Jeff Lau
+ */
+
 #include "level_select.h"
 #include "../sound/sound.h"
 

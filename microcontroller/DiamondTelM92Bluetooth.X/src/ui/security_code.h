@@ -1,8 +1,6 @@
-/* 
- * File:   security_code.h
- * Author: Jeff
- *
- * Created on December 8, 2022, 9:13 PM
+/** 
+ * @file
+ * @author Jeff Lau
  */
 
 #ifndef SECURITY_CODE_H

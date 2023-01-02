@@ -4,6 +4,7 @@
  *
  * UI module for alphanumeric string input.
  */
+
 #include "string_input.h"
 #include "char_input.h"
 #include "../sound/sound.h"

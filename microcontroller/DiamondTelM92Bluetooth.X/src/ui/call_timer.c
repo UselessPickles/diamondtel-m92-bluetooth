@@ -1,3 +1,8 @@
+/** 
+ * @file
+ * @author Jeff Lau
+ */
+
 #include "call_timer.h"
 #include "../telephone/handset.h"
 #include "../storage/storage.h"
