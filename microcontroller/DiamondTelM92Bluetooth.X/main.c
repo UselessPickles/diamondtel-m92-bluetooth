@@ -42,7 +42,7 @@
 */
 
 #include "mcc_generated_files/mcc.h"
-#include "app.h"
+#include "src/app.h"
 
 /*
                          Main application

@@ -4,6 +4,17 @@
     <logicalFolder name="HeaderFiles"
                    displayName="Header Files"
                    projectFiles="true">
+      <logicalFolder name="f4" displayName="Bluetooth" projectFiles="true">
+        <itemPath>src/bluetooth/bt_command_decode.h</itemPath>
+        <itemPath>src/bluetooth/bt_command_send.h</itemPath>
+        <itemPath>src/bluetooth/atcmd.h</itemPath>
+      </logicalFolder>
+      <logicalFolder name="f3" displayName="Games" projectFiles="true">
+        <itemPath>src/games/tetris_game.h</itemPath>
+        <itemPath>src/games/snake_game.h</itemPath>
+        <itemPath>src/games/memory_game.h</itemPath>
+        <itemPath>src/games/level_select.h</itemPath>
+      </logicalFolder>
       <logicalFolder name="MCC Generated Files"
                      displayName="MCC Generated Files"
                      projectFiles="true">
@@ -23,36 +34,39 @@
         <itemPath>mcc_generated_files/tmr0.h</itemPath>
         <itemPath>mcc_generated_files/fvr.h</itemPath>
       </logicalFolder>
-      <itemPath>app.h</itemPath>
-      <itemPath>handset.h</itemPath>
-      <itemPath>tone.h</itemPath>
-      <itemPath>sound.h</itemPath>
-      <itemPath>storage.h</itemPath>
-      <itemPath>volume.h</itemPath>
-      <itemPath>bt_command_decode.h</itemPath>
-      <itemPath>bt_command_send.h</itemPath>
-      <itemPath>call_timer.h</itemPath>
-      <itemPath>indicator.h</itemPath>
-      <itemPath>ringtone.h</itemPath>
-      <itemPath>timeout.h</itemPath>
-      <itemPath>interval.h</itemPath>
-      <itemPath>marquee.h</itemPath>
-      <itemPath>string.h</itemPath>
-      <itemPath>transceiver.h</itemPath>
-      <itemPath>atcmd.h</itemPath>
-      <itemPath>eeprom.h</itemPath>
-      <itemPath>programming.h</itemPath>
-      <itemPath>clr_codes.h</itemPath>
-      <itemPath>volume_adjust.h</itemPath>
-      <itemPath>security_code.h</itemPath>
-      <itemPath>memory_game.h</itemPath>
-      <itemPath>snake_game.h</itemPath>
-      <itemPath>tetris_game.h</itemPath>
-      <itemPath>level_select.h</itemPath>
-      <itemPath>ringtone_select.h</itemPath>
-      <itemPath>view_adjust.h</itemPath>
-      <itemPath>char_input.h</itemPath>
-      <itemPath>string_input.h</itemPath>
+      <logicalFolder name="f1" displayName="Sound" projectFiles="true">
+        <itemPath>src/sound/sound.h</itemPath>
+        <itemPath>src/sound/volume.h</itemPath>
+        <itemPath>src/sound/tone.h</itemPath>
+        <itemPath>src/sound/ringtone.h</itemPath>
+      </logicalFolder>
+      <logicalFolder name="f2" displayName="Storage" projectFiles="true">
+        <itemPath>src/storage/eeprom.h</itemPath>
+        <itemPath>src/storage/storage.h</itemPath>
+      </logicalFolder>
+      <logicalFolder name="f5" displayName="Telephone" projectFiles="true">
+        <itemPath>src/telephone/transceiver.h</itemPath>
+        <itemPath>src/telephone/indicator.h</itemPath>
+        <itemPath>src/telephone/handset.h</itemPath>
+      </logicalFolder>
+      <logicalFolder name="f6" displayName="UI" projectFiles="true">
+        <itemPath>src/ui/call_timer.h</itemPath>
+        <itemPath>src/ui/char_input.h</itemPath>
+        <itemPath>src/ui/clr_codes.h</itemPath>
+        <itemPath>src/ui/marquee.h</itemPath>
+        <itemPath>src/ui/programming.h</itemPath>
+        <itemPath>src/ui/ringtone_select.h</itemPath>
+        <itemPath>src/ui/security_code.h</itemPath>
+        <itemPath>src/ui/string_input.h</itemPath>
+        <itemPath>src/ui/view_adjust.h</itemPath>
+        <itemPath>src/ui/volume_adjust.h</itemPath>
+      </logicalFolder>
+      <logicalFolder name="f7" displayName="Util" projectFiles="true">
+        <itemPath>src/util/interval.h</itemPath>
+        <itemPath>src/util/string.h</itemPath>
+        <itemPath>src/util/timeout.h</itemPath>
+      </logicalFolder>
+      <itemPath>src/app.h</itemPath>
     </logicalFolder>
     <logicalFolder name="LinkerScript"
                    displayName="Linker Files"
@@ -61,6 +75,17 @@
     <logicalFolder name="SourceFiles"
                    displayName="Source Files"
                    projectFiles="true">
+      <logicalFolder name="f3" displayName="Bluetooth" projectFiles="true">
+        <itemPath>src/bluetooth/bt_command_decode.c</itemPath>
+        <itemPath>src/bluetooth/bt_command_send.c</itemPath>
+        <itemPath>src/bluetooth/atcmd.c</itemPath>
+      </logicalFolder>
+      <logicalFolder name="f4" displayName="Games" projectFiles="true">
+        <itemPath>src/games/level_select.c</itemPath>
+        <itemPath>src/games/snake_game.c</itemPath>
+        <itemPath>src/games/memory_game.c</itemPath>
+        <itemPath>src/games/tetris_game.c</itemPath>
+      </logicalFolder>
       <logicalFolder name="MCC Generated Files"
                      displayName="MCC Generated Files"
                      projectFiles="true">
@@ -80,37 +105,40 @@
         <itemPath>mcc_generated_files/tmr0.c</itemPath>
         <itemPath>mcc_generated_files/fvr.c</itemPath>
       </logicalFolder>
+      <logicalFolder name="f1" displayName="Sound" projectFiles="true">
+        <itemPath>src/sound/sound.c</itemPath>
+        <itemPath>src/sound/ringtone.c</itemPath>
+        <itemPath>src/sound/volume.c</itemPath>
+        <itemPath>src/sound/tone.c</itemPath>
+      </logicalFolder>
+      <logicalFolder name="f5" displayName="Storage" projectFiles="true">
+        <itemPath>src/storage/eeprom.c</itemPath>
+        <itemPath>src/storage/storage.c</itemPath>
+      </logicalFolder>
+      <logicalFolder name="f2" displayName="Telephone" projectFiles="true">
+        <itemPath>src/telephone/transceiver.c</itemPath>
+        <itemPath>src/telephone/handset.c</itemPath>
+        <itemPath>src/telephone/indicator.c</itemPath>
+      </logicalFolder>
+      <logicalFolder name="f6" displayName="UI" projectFiles="true">
+        <itemPath>src/ui/call_timer.c</itemPath>
+        <itemPath>src/ui/char_input.c</itemPath>
+        <itemPath>src/ui/clr_codes.c</itemPath>
+        <itemPath>src/ui/marquee.c</itemPath>
+        <itemPath>src/ui/programming.c</itemPath>
+        <itemPath>src/ui/ringtone_select.c</itemPath>
+        <itemPath>src/ui/security_code.c</itemPath>
+        <itemPath>src/ui/string_input.c</itemPath>
+        <itemPath>src/ui/view_adjust.c</itemPath>
+        <itemPath>src/ui/volume_adjust.c</itemPath>
+      </logicalFolder>
+      <logicalFolder name="f7" displayName="Util" projectFiles="true">
+        <itemPath>src/util/interval.c</itemPath>
+        <itemPath>src/util/string.c</itemPath>
+        <itemPath>src/util/timeout.c</itemPath>
+      </logicalFolder>
       <itemPath>main.c</itemPath>
-      <itemPath>app.c</itemPath>
-      <itemPath>handset.c</itemPath>
-      <itemPath>tone.c</itemPath>
-      <itemPath>sound.c</itemPath>
-      <itemPath>storage.c</itemPath>
-      <itemPath>volume.c</itemPath>
-      <itemPath>bt_command_decode.c</itemPath>
-      <itemPath>bt_command_send.c</itemPath>
-      <itemPath>call_timer.c</itemPath>
-      <itemPath>indicator.c</itemPath>
-      <itemPath>ringtone.c</itemPath>
-      <itemPath>timeout.c</itemPath>
-      <itemPath>interval.c</itemPath>
-      <itemPath>marquee.c</itemPath>
-      <itemPath>string.c</itemPath>
-      <itemPath>transceiver.c</itemPath>
-      <itemPath>atcmd.c</itemPath>
-      <itemPath>eeprom.c</itemPath>
-      <itemPath>programming.c</itemPath>
-      <itemPath>clr_codes.c</itemPath>
-      <itemPath>volume_adjust.c</itemPath>
-      <itemPath>security_code.c</itemPath>
-      <itemPath>memory_game.c</itemPath>
-      <itemPath>snake_game.c</itemPath>
-      <itemPath>tetris_game.c</itemPath>
-      <itemPath>level_select.c</itemPath>
-      <itemPath>ringtone_select.c</itemPath>
-      <itemPath>view_adjust.c</itemPath>
-      <itemPath>char_input.c</itemPath>
-      <itemPath>string_input.c</itemPath>
+      <itemPath>src/app.c</itemPath>
     </logicalFolder>
     <logicalFolder name="ExternalFiles"
                    displayName="Important Files"
