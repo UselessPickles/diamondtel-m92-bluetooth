@@ -363,24 +363,12 @@ int strnicmp(char const* a, char const* b, int len) {
   return 0;
 }
 
-char* strbrk(char* str, char const* chars) {
-  while(*str) {
-    if (strchr(chars, *str)) {
-      return str;
-    }
-    
-    ++str;
-  }
-  
-  return NULL;
-}
-
-char* uint2str(char* buffer, uint16_t num, uint8_t length, uint8_t zeroPadLength) {
+char* uint2str(char* dest, uint16_t num, uint8_t length, uint8_t zeroPadLength) {
   if (zeroPadLength > length) {
     zeroPadLength = length;
   }
   
-  char* p = buffer + length;
+  char* p = dest + length;
   
   *p-- = 0;
   if (length && !num) {
@@ -403,13 +391,13 @@ char* uint2str(char* buffer, uint16_t num, uint8_t length, uint8_t zeroPadLength
   }
   
   if (zeroPadLength) {
-    memset(buffer + length - zeroPadLength, '0', zeroPadLength);
+    memset(dest + length - zeroPadLength, '0', zeroPadLength);
     length -= zeroPadLength;
   }
   
   if (length) {
-    memset(buffer, ' ', length);
+    memset(dest, ' ', length);
   }
   
-  return buffer;
+  return dest;
 }

@@ -69,9 +69,22 @@ bool strstart(char const *str, char const* start);
  */
 int strnicmp(char const* a, char const* b, int len);
 
-char* strbrk(char* str, char const* chars);
-
-char* uint2str(char* buffer, uint16_t num, uint8_t length, uint8_t zeroPadLength);
+/**
+ * Converts an unsigned int to a fixed length null-terminated string, formatted
+ * in base 10.
+ * 
+ * The length of the resulting string will always be exactly the specified 
+ * length. The number will be right-justified with in the output string.
+ * 
+ * @param dest - The destination string buffer. The size of the buffer must be 
+ *        at least length + 1.
+ * @param num - The number to be formatted as a string.
+ * @param length - The length of the resulting string.
+ * @param zeroPadLength - The number will be padded out to this length with 
+ *        leading zeros.
+ * @return A pointer to the destination buffer that was supplied.
+ */
+char* uint2str(char* dest, uint16_t num, uint8_t length, uint8_t zeroPadLength);
 
 #ifdef	__cplusplus
 }

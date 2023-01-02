@@ -470,7 +470,7 @@ static void startCallFailed(void) {
 
 static void NumberInput_SendCurrentNumberAsDtmf(void) {
   strcpy(dialedNumber, numberInput);
-  char* firstPause = strbrk(dialedNumber, "PM");
+  char* firstPause = strpbrk(dialedNumber, "PM");
   
   if (firstPause) {
     if (*firstPause == 'M') {
@@ -490,7 +490,7 @@ static void NumberInput_CallCurrentNumber(void) {
   numberInputIsStale = true;
   
   strcpy(dialedNumber, numberInput);
-  char* firstPause = strbrk(dialedNumber, "PM");
+  char* firstPause = strpbrk(dialedNumber, "PM");
   
   if (firstPause) {
     if (*firstPause == 'M') {
@@ -2285,7 +2285,7 @@ void handle_HANDSET_Event(HANDSET_Event const* event) {
               numberInputIsStale = true;
               isStoInputPending = false;
               appState = APP_State_DISPLAY_DISMISSABLE_TEXT;
-            } else if ((button == HANDSET_Button_ASTERISK) && !strbrk(numberInput, "PM")) {
+            } else if ((button == HANDSET_Button_ASTERISK) && !strpbrk(numberInput, "PM")) {
               SOUND_PlayDTMFButtonBeep(button, false);
               rclOrStoAddr = 0xFF;
               isRclOrSto2ndDigitPending = true;
