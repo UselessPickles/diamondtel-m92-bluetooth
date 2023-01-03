@@ -1129,16 +1129,72 @@ void HANDSET_PrintStringAt(char const* str, uint8_t pos);
  */
 void HANDSET_PrintStringNAt(char const* str, size_t n, uint8_t pos);
 
+/**
+ * Display a flashing cursor a the specified display position.
+ * 
+ * The cursor can only be displayed at one position at a time. Subsequent
+ * calls with this function with different position values will move the 
+ * flashing cursor.
+ * 
+ * The cursor can only be displayed when the text display is enabled.
+ * Disabling the text display will hide the cursor. Blinking text will also
+ * hide the cursor.
+ * 
+ * Use HANDSET_ShowFlashingCursorAt() to hide the cursor.
+ * 
+ * @param pos - The position to display the flashing cursor at.
+ */
 void HANDSET_ShowFlashingCursorAt(uint8_t pos);
 
+/**
+ * Hides the flashing cursor that was displayed by HANDSET_ShowFlashingCursorAt().
+ */
 void HANDSET_HideFlashingCursor(void);
 
+/**
+ * Turns the handset's "master" audio system on or off.
+ * 
+ * The master audio must be enabled in order for any individual audio component 
+ * to be fully enabled.
+ * 
+ * @param on - True for "on". False for "off".
+ */
 void HANDSET_SetMasterAudio(bool on);
 
+/**
+ * Turns the handset's microphone on or off.
+ * 
+ * The "master" audio must also be enabled via HANDSET_SetMasterAudio() for 
+ * the microphone to function.
+ *  
+ * The microphone state is retained while the master audio is off.
+ * 
+ * @param on - True for "on". False for "off".
+ */
 void HANDSET_SetMicrophone(bool on);
 
+/**
+ * Turns the handset's loud speaker on or off.
+ * 
+ * The "master" audio must also be enabled via HANDSET_SetMasterAudio() for 
+ * the loud speaker to function.
+ *  
+ * The loud speaker state is retained while the master audio is off.
+ * 
+ * @param on - True for "on". False for "off".
+ */
 void HANDSET_SetLoudSpeaker(bool on);
 
+/**
+ * Turns the handset's ear speaker on or off.
+ * 
+ * The "master" audio must also be enabled via HANDSET_SetMasterAudio() for 
+ * the ear speaker to function.
+ *  
+ * The ear speaker state is retained while the master audio is off.
+ * 
+ * @param on - True for "on". False for "off".
+ */
 void HANDSET_SetEarSpeaker(bool on);
 
 /**
@@ -1156,8 +1212,33 @@ void HANDSET_SendArbitraryCommand(uint8_t cmd);
  */
 void HANDSET_FlushWriteBuffer(void);
 
+/**
+ * Enables optimization of UART commands to the handset by avoiding sending 
+ * unnecessary commands that would not change the state of the handset.
+ * 
+ * Optimization is disabled by default upon initialization.
+ * 
+ * This HANDSET module maintains the a partial representation of the assumed
+ * state of the handset (based on what commands it has previously sent to the 
+ * handset). The optimization may lead to incorrect behavior if this module's
+ * representation of the handset state diverges from the actual handset state,
+ * so it is important avoid the use of HANDSET_SendArbitraryCommand() in a
+ * way that bypasses any of the more specific HANDSET functions.
+ * 
+ * Before enabling optimization, the application should initialize the handset 
+ * to a complete known state (e.g., the boot sequence of the original phone).
+ */
 void HANDSET_EnableCommandOptimization(void);
 
+/**
+ * Disables optimization of UART commands. When disabled, then all HANDSET
+ * functions will unconditionally send relevant UART commands to the handset 
+ * regardless of whether this module believes it may be a wasteful command.
+ * 
+ * This may be useful if there is a situation where the handset's actual state 
+ * may diverge from this module's representation of the assumed handset stated,
+ * and it is necessary to force some commands to go through to re-synchronize.
+ */
 void HANDSET_DisableCommandOptimization(void);
 
 #ifdef	__cplusplus

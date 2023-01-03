@@ -22,8 +22,6 @@ extern "C" {
   
 /**
  * Types of events that can be triggered by the transceiver.
- * 
- * The APP_TRANSCEIVER_EventHandler() function in app.c handles these events.
  */  
 typedef enum TRANSCEIVER_EventType {
   /**
