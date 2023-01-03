@@ -6,7 +6,7 @@
 #ifndef INDICATOR_H
 #define	INDICATOR_H
 
-#include "handset.h"
+#include "../telephone/handset.h"
 #include <stdbool.h>
 #include <stdint.h>
 

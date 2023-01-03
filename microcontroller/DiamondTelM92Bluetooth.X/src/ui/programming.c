@@ -4,9 +4,9 @@
  */
 
 #include "programming.h"
+#include "indicator.h"
 #include "../storage/storage.h"
 #include "../sound/sound.h"
-#include "../telephone/indicator.h"
 #include "../util/timeout.h"
 #include "../../mcc_generated_files/pin_manager.h"
 #include <string.h>

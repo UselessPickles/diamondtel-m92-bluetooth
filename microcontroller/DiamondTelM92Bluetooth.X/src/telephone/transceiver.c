@@ -17,7 +17,7 @@
 
 #include "transceiver.h"
 #include "handset.h"
-#include "indicator.h"
+#include "../ui/indicator.h"
 #include "../../mcc_generated_files/uart4.h"
 #include "../util/timeout.h"
 #include "../util/interval.h"

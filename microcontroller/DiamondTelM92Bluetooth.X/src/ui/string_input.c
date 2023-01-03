@@ -7,8 +7,8 @@
 
 #include "string_input.h"
 #include "char_input.h"
+#include "indicator.h"
 #include "../sound/sound.h"
-#include "../telephone/indicator.h"
 #include <string.h>
 
 /**

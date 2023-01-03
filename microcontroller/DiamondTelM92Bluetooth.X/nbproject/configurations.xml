@@ -46,7 +46,6 @@
       </logicalFolder>
       <logicalFolder name="f5" displayName="Telephone" projectFiles="true">
         <itemPath>src/telephone/transceiver.h</itemPath>
-        <itemPath>src/telephone/indicator.h</itemPath>
         <itemPath>src/telephone/handset.h</itemPath>
       </logicalFolder>
       <logicalFolder name="f6" displayName="UI" projectFiles="true">
@@ -60,6 +59,7 @@
         <itemPath>src/ui/string_input.h</itemPath>
         <itemPath>src/ui/view_adjust.h</itemPath>
         <itemPath>src/ui/volume_adjust.h</itemPath>
+        <itemPath>src/ui/indicator.h</itemPath>
       </logicalFolder>
       <logicalFolder name="f7" displayName="Util" projectFiles="true">
         <itemPath>src/util/interval.h</itemPath>
@@ -118,7 +118,6 @@
       <logicalFolder name="f2" displayName="Telephone" projectFiles="true">
         <itemPath>src/telephone/transceiver.c</itemPath>
         <itemPath>src/telephone/handset.c</itemPath>
-        <itemPath>src/telephone/indicator.c</itemPath>
       </logicalFolder>
       <logicalFolder name="f6" displayName="UI" projectFiles="true">
         <itemPath>src/ui/call_timer.c</itemPath>
@@ -131,6 +130,7 @@
         <itemPath>src/ui/string_input.c</itemPath>
         <itemPath>src/ui/view_adjust.c</itemPath>
         <itemPath>src/ui/volume_adjust.c</itemPath>
+        <itemPath>src/ui/indicator.c</itemPath>
       </logicalFolder>
       <logicalFolder name="f7" displayName="Util" projectFiles="true">
         <itemPath>src/util/interval.c</itemPath>
