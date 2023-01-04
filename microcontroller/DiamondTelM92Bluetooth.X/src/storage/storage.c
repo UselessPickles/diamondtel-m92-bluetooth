@@ -16,7 +16,7 @@
 
 typedef struct {
   uint8_t number[EXTENDED_PHONE_NUMBER_LENGTH >> 1];
-  char name[MAX_NAME_LENGTH];
+  char name[MAX_DIRECTORY_NAME_LENGTH];
 } directory_entry_t;
   
 typedef struct {
@@ -63,13 +63,11 @@ static storage_t storage;
 static uint8_t sortedNameIndexes[DIRECTORY_SIZE];
 static uint8_t sortedNameSize;
 
-static char securityCode[SECURITY_CODE_LENGTH + 1];
-
 static int compareNameIndexes(void const* a, void const* b) {
   int result = strnicmp(
     storage.directory[*((uint8_t const*)a)].name,
     storage.directory[*((uint8_t const*)b)].name,
-    MAX_NAME_LENGTH  
+    MAX_DIRECTORY_NAME_LENGTH  
   );
   
   return result ? result : (*((int8_t const*)a) - *((int8_t const*)b));
@@ -399,7 +397,7 @@ char* STORAGE_GetDirectoryName(uint8_t index, char* dest) {
   if (index >= DIRECTORY_SIZE) {
     dest[0] = 0;
   } else {
-    strncpy(dest, storage.directory[index].name, MAX_NAME_LENGTH)[MAX_NAME_LENGTH] = 0;
+    strncpy(dest, storage.directory[index].name, MAX_DIRECTORY_NAME_LENGTH)[MAX_DIRECTORY_NAME_LENGTH] = 0;
   }
   return dest;
 }
@@ -416,7 +414,7 @@ void STORAGE_SetDirectoryEntry(uint8_t index, char const* number, char const* na
   }
   
   if (name) {
-    strncpy(storage.directory[index].name, name, MAX_NAME_LENGTH);
+    strncpy(storage.directory[index].name, name, MAX_DIRECTORY_NAME_LENGTH);
   } else {
     storage.directory[index].name[0] = 0;
   }
@@ -430,7 +428,7 @@ void STORAGE_SetDirectoryEntry(uint8_t index, char const* number, char const* na
   EEPROM_AsyncWriteBytes(
       offsetof(storage_t, directory) + sizeof(directory_entry_t) * index + offsetof(directory_entry_t, name), 
       name, 
-      MAX_NAME_LENGTH
+      MAX_DIRECTORY_NAME_LENGTH
   );
   
   initializeSortedNameIndexes();
@@ -775,9 +773,9 @@ void STORAGE_SetPairedDeviceName(char const* deviceName) {
   EEPROM_AsyncWriteBytes(offsetof(storage_t, pairedDeviceName), storage.pairedDeviceName, MAX_DEVICE_NAME_LENGTH);
 }
 
-char const* STORAGE_GetSecurityCode(void) {
-  uncompressPhoneNumber(securityCode, storage.securityCode, SECURITY_CODE_LENGTH >> 1);
-  return securityCode;
+char* STORAGE_GetSecurityCode(char* dest) {
+  uncompressPhoneNumber(dest, storage.securityCode, SECURITY_CODE_LENGTH >> 1);
+  return dest;
 }
 
 void STORAGE_SetSecurityCode(char const* code) {

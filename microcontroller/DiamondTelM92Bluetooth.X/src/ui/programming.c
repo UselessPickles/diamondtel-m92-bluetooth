@@ -69,7 +69,7 @@ static void initState(State newState) {
       
     case State_SET_SECURITY_CODE:
       HANDSET_PrintString("SEC       ");
-      HANDSET_PrintString(STORAGE_GetSecurityCode());
+      HANDSET_PrintString(STORAGE_GetSecurityCode(buffer));
       break;
       
     case State_DISABLE_CUMULATIVE_RESET:  

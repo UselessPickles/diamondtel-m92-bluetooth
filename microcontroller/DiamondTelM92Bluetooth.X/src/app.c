@@ -617,7 +617,7 @@ static void startAlphaStoreNameInput(bool reset) {
 
   STRING_INPUT_Start(
       alphaInput,
-      MAX_NAME_LENGTH,
+      MAX_DIRECTORY_NAME_LENGTH,
       "NAME ?        ",
       true,
       false,
@@ -1076,7 +1076,7 @@ static void startVolumeAdjust(VOLUME_Mode volumeMode, bool up) {
   appState = APP_State_ADJUST_VOLUME;
 }
 
-static char nameInput[MAX_NAME_LENGTH + 1] = {0};
+static char nameInput[MAX_DIRECTORY_NAME_LENGTH + 1] = {0};
 static char nameInputLength = 0;
 
 

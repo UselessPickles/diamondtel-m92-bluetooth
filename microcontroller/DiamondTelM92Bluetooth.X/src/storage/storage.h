@@ -1,6 +1,8 @@
 /** 
  * @file
  * @author Jeff Lau
+ * 
+ * This module provides access to all persistent storage for this application.
  */
 
 #ifndef STORAGE_H
@@ -17,12 +19,16 @@ extern "C" {
 
 #define CREDIT_CARD_LENGTH (16)
 #define CREDIT_CARD_COUNT (6)
+  
 #define EXTENDED_PHONE_NUMBER_LENGTH (24)
 #define STANDARD_PHONE_NUMBER_LENGTH (10)
 #define SHORT_PHONE_NUMBER_LENGTH (7)
-#define MAX_NAME_LENGTH (16)
+  
+#define MAX_DIRECTORY_NAME_LENGTH (16)
 #define DIRECTORY_SIZE (29)
+  
 #define SECURITY_CODE_LENGTH (4)
+  
 #define MAX_DEVICE_NAME_LENGTH (32)
   
 void STORAGE_Initialize(void);
@@ -118,7 +124,7 @@ void STORAGE_SetTetrisHighScoreInitials(char const* initials);
 char* STORAGE_GetPairedDeviceName(char* dest);
 void STORAGE_SetPairedDeviceName(char const* id);
 
-char const* STORAGE_GetSecurityCode(void);
+char* STORAGE_GetSecurityCode(char* dest);
 void STORAGE_SetSecurityCode(char const* code);
 
 #ifdef	__cplusplus

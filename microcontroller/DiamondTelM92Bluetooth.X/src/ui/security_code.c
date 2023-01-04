@@ -10,7 +10,7 @@
 static struct {
   SECURITY_CODE_Callback successCallback;
   SECURITY_CODE_Callback failureCallback;
-  char const* securityCode;
+  char securityCode[SECURITY_CODE_LENGTH + 1];
   bool isPrompt;
   uint8_t nextDigitIndex;
   uint8_t totalDigitCount;
@@ -22,7 +22,7 @@ static void init(bool isPrompt, SECURITY_CODE_Callback successCallback, SECURITY
   module.failureCallback = failureCallback;
   module.nextDigitIndex = 0;
   module.totalDigitCount = 0;
-  module.securityCode = STORAGE_GetSecurityCode();
+  STORAGE_GetSecurityCode(module.securityCode);
 
   if (isPrompt) {
     HANDSET_DisableTextDisplay();
