@@ -609,7 +609,7 @@ void HANDSET_Timer1MS_Interrupt(void);
  * @return The display position of the specified coordinate, or 0xFF if the 
  *         coordinate is out of bounds.
  */
-uint8_t HANDSET_GetDisplayPos(int8_t x, int8_t y);
+uint8_t HANDSET_GetDisplayPos(int8_t col, int8_t row);
 
 /**
  * Sends a command to the Handset to force it to report its current

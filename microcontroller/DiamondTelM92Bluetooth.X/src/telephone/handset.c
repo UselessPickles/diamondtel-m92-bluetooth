@@ -556,18 +556,18 @@ void HANDSET_Timer1MS_Interrupt(void) {
   }
 }
 
-uint8_t HANDSET_GetDisplayPos(int8_t x, int8_t y) {
-  if (x < 0 || x >= HANDSET_TEXT_DISPLAY_COLUMNS) {
+uint8_t HANDSET_GetDisplayPos(int8_t col, int8_t row) {
+  if (col < 0 || col >= HANDSET_TEXT_DISPLAY_COLUMNS) {
     return 0xFF;
   }
   
-  if (y < 0 || y >= HANDSET_TEXT_DISPLAY_ROWS) {
+  if (row < 0 || row >= HANDSET_TEXT_DISPLAY_ROWS) {
     return 0xFF;
   }
   
   return (uint8_t)(
-      (((HANDSET_TEXT_DISPLAY_ROWS - 1) - y) * HANDSET_TEXT_DISPLAY_COLUMNS) + 
-      ((HANDSET_TEXT_DISPLAY_COLUMNS - 1) - x)
+      (((HANDSET_TEXT_DISPLAY_ROWS - 1) - row) * HANDSET_TEXT_DISPLAY_COLUMNS) + 
+      ((HANDSET_TEXT_DISPLAY_COLUMNS - 1) - col)
       );
 }
 
