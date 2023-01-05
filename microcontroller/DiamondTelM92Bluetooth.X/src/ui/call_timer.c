@@ -110,8 +110,8 @@ void CALL_TIMER_Task(void) {
     if (playWarningBeep) {
       SOUND_PlaySingleTone(
           SOUND_Channel_FOREGROUND, 
-          SOUND_Target_EAR, 
-          HANDSET_IsOnHook() ? VOLUME_Mode_HANDS_FREE : VOLUME_Mode_HANDSET, 
+          SOUND_Target_SPEAKER, 
+          VOLUME_Mode_TONE, 
           TONE_HIGH, 
           250);
     }
