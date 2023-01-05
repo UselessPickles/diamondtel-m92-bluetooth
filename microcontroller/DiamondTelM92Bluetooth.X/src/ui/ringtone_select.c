@@ -98,7 +98,7 @@ void RINGTONE_SELECT_HANDSET_EventHandler(HANDSET_Event const *event) {
     }
   } else if ((button == HANDSET_Button_UP) || (button == HANDSET_Button_DOWN)) {
     module.isAdjustingVolume = true;
-    VOLUME_ADJUST_Start(VOLUME_Mode_ALERT, (button == HANDSET_Button_UP), displayRingtoneName);
+    VOLUME_ADJUST_Start(VOLUME_Mode_ALERT, module.isPreviewOn, (button == HANDSET_Button_UP), displayRingtoneName);
   } else if ((button >= '1') && (button - '1' < RINGTONE_COUNT)) {
     module.currentRingtone = button - '1';
     

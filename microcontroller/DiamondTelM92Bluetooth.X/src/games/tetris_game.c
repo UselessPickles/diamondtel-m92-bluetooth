@@ -847,6 +847,7 @@ void TETRIS_GAME_HANDSET_EventHandler(HANDSET_Event const* event) {
         case HANDSET_Button_DOWN:  
           VOLUME_ADJUST_Start(
               isFcn ? VOLUME_Mode_SPEAKER : VOLUME_Mode_GAME_MUSIC, 
+              !isFcn && module.isMusicPlaying,
               button == HANDSET_Button_UP, 
               VOLUME_ADJUST_RETURN_CALLBACKS[module.state]
               );

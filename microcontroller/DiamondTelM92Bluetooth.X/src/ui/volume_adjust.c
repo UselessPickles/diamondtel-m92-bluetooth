@@ -35,6 +35,10 @@ static struct {
    * The volume mode that is being adjusted.
    */
   VOLUME_Mode volumeAdjustMode;
+  /**
+   * True if the volume adjustment itself should not produce any sound.
+   */
+  bool isSilent;
 } module;
 
 /**
@@ -66,8 +70,7 @@ char const* const volumeModeLabels[] = {
  * Play the volume adjust sound effect for current volume mode.
  */
 static void playVolumeAdjustSound(void) {
-  if (SOUND_GetVolumeLevel(module.volumeAdjustMode) == VOLUME_Level_OFF) {
-    SOUND_Stop(SOUND_Channel_FOREGROUND);
+  if (module.isSilent) {
     return;
   }
   
@@ -171,9 +174,10 @@ static void continueVolumeAdjust(bool up) {
 }
 
 
-void VOLUME_ADJUST_Start(VOLUME_Mode volumeMode, bool isInitialAdjustUp, VOLUME_ADJUST_ReturnCallback returnCallback) {
+void VOLUME_ADJUST_Start(VOLUME_Mode volumeMode,  bool isSilent, bool isInitialAdjustUp,VOLUME_ADJUST_ReturnCallback returnCallback) {
   module.volumeAdjustMode = volumeMode;
   module.returnCallback = returnCallback;
+  module.isSilent = isSilent;
   adjustVolumeLevel(isInitialAdjustUp);
   displayVolumeLevel();
   TIMEOUT_Start(&module.stateTimeout, VOLUME_ADJUST_REPEAT_DELAY);
@@ -227,7 +231,10 @@ void VOLUME_ADJUST_HANDSET_EventHandler(HANDSET_Event const* event) {
       if (isButtonDown) {
         continueVolumeAdjust(button == HANDSET_Button_UP);
       } else {
-        SOUND_Stop(SOUND_Channel_FOREGROUND);
+        if (!module.isSilent) {
+          SOUND_Stop(SOUND_Channel_FOREGROUND);
+        }
+        
         TIMEOUT_Start(&module.stateTimeout, VOLUME_ADJUST_IDLE_TIMEOUT);
         module.state = State_IDLE;
       }

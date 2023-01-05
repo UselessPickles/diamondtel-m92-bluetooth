@@ -333,7 +333,7 @@ void MEMORY_GAME_HANDSET_EventHandler(HANDSET_Event const* event) {
             
           case HANDSET_Button_UP:  
           case HANDSET_Button_DOWN:  
-            VOLUME_ADJUST_Start(VOLUME_Mode_SPEAKER, button == HANDSET_Button_UP, displayTitle);
+            VOLUME_ADJUST_Start(VOLUME_Mode_SPEAKER, false, button == HANDSET_Button_UP, displayTitle);
             module.state = State_VOLUME_ADJUST;
             break;
         }
@@ -360,7 +360,7 @@ void MEMORY_GAME_HANDSET_EventHandler(HANDSET_Event const* event) {
             
           case HANDSET_Button_UP:  
           case HANDSET_Button_DOWN:  
-            VOLUME_ADJUST_Start(VOLUME_Mode_SPEAKER, button == HANDSET_Button_UP, displayMenu);
+            VOLUME_ADJUST_Start(VOLUME_Mode_SPEAKER, false, button == HANDSET_Button_UP, displayMenu);
             module.state = State_VOLUME_ADJUST;
             break;
         }
@@ -443,7 +443,7 @@ void MEMORY_GAME_HANDSET_EventHandler(HANDSET_Event const* event) {
             
           case HANDSET_Button_UP:  
           case HANDSET_Button_DOWN:  
-            VOLUME_ADJUST_Start(VOLUME_Mode_SPEAKER, button == HANDSET_Button_UP, resumeGame);
+            VOLUME_ADJUST_Start(VOLUME_Mode_SPEAKER, false, button == HANDSET_Button_UP, resumeGame);
             module.state = State_VOLUME_ADJUST;
             break;
         }
@@ -481,7 +481,7 @@ void MEMORY_GAME_HANDSET_EventHandler(HANDSET_Event const* event) {
 
           case HANDSET_Button_UP:  
           case HANDSET_Button_DOWN:  
-            VOLUME_ADJUST_Start(VOLUME_Mode_SPEAKER, button == HANDSET_Button_UP, displayGameOver);
+            VOLUME_ADJUST_Start(VOLUME_Mode_SPEAKER, false, button == HANDSET_Button_UP, displayGameOver);
             module.state = State_VOLUME_ADJUST;
             break;
         }

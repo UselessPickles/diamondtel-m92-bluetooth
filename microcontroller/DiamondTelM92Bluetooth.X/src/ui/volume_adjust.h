@@ -32,11 +32,12 @@ typedef void (*VOLUME_ADJUST_ReturnCallback)(void);
  * display as desired.
  * 
  * @param volumeMode - The volume mode to adjust.
+ * @param isSilent - True if the volume adjustment itself should not produce any sound.
  * @param isInitialAdjustUp - True if the initial adjustment is up. 
  *                            False if the initial adjustment is down. 
  * @param returnCallback - Callback that is called when volume adjustment is complete.
  */
-void VOLUME_ADJUST_Start(VOLUME_Mode volumeMode, bool isInitialAdjustUp, VOLUME_ADJUST_ReturnCallback returnCallback);
+void VOLUME_ADJUST_Start(VOLUME_Mode volumeMode,  bool isSilent, bool isInitialAdjustUp, VOLUME_ADJUST_ReturnCallback returnCallback);
 
 /**
  * Main task loop handler for this module.

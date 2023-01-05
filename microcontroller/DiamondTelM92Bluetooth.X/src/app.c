@@ -1072,7 +1072,12 @@ static void startVolumeAdjust(VOLUME_Mode volumeMode, bool up) {
   HANDSET_SetTextBlink(false);
   MARQUEE_Stop();
   CALL_TIMER_DisableDisplayUpdate();
-  VOLUME_ADJUST_Start(volumeMode, up, handleReturnFromSubModule);
+  
+  bool const isSilent = ((volumeMode == VOLUME_Mode_TONE) && callFailedTimer) ||
+      (volumeMode == VOLUME_Mode_HANDSET) ||
+      (volumeMode == VOLUME_Mode_HANDS_FREE);
+  
+  VOLUME_ADJUST_Start(volumeMode, isSilent, up, handleReturnFromSubModule);
   appState = APP_State_ADJUST_VOLUME;
 }
 
