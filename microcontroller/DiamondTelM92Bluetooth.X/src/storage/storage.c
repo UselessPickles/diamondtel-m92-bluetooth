@@ -12,7 +12,7 @@
 #include <ctype.h>
 
 #define MARKER (0b10101100)
-#define VERSION (24)
+#define VERSION (25)
 
 typedef struct {
   uint8_t number[EXTENDED_PHONE_NUMBER_LENGTH >> 1];
@@ -48,12 +48,12 @@ typedef struct {
   uint8_t programmingCount;
   uint16_t tetrisHighScore;
   char tetrisHighScoreInitials[3];
-  uint8_t reserved[45];
   char pairedDeviceName[MAX_DEVICE_NAME_LENGTH];
   uint8_t ownNumber[2][STANDARD_PHONE_NUMBER_LENGTH >> 1];
   uint8_t lastDialedNumber[EXTENDED_PHONE_NUMBER_LENGTH >> 1];
   uint8_t speedDial[3][EXTENDED_PHONE_NUMBER_LENGTH >> 1];
   uint8_t securityCode[SECURITY_CODE_LENGTH >> 1];
+  uint8_t reserved[45];
   directory_entry_t directory[DIRECTORY_SIZE];
   uint8_t creditCardNumbers[CREDIT_CARD_COUNT][CREDIT_CARD_LENGTH >> 1];
 } storage_t;
