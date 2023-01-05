@@ -564,7 +564,7 @@ static Note const CALL_DISCONNECT_NOTES[] = {
 static Note const STANDARD_RINGTONE_NOTES[] = {
   { TONE_HIGH, TONE_OFF, 25 },
   { TONE_LOW, TONE_OFF, 25 },    
-  { TONE_OFF, TONE_OFF, 3500 },    
+  { TONE_OFF, TONE_OFF, 3000 },    
 };
 
 
@@ -1068,7 +1068,7 @@ SoundEffect const effects[] = {
     STANDARD_RINGTONE_NOTES,
     sizeof(STANDARD_RINGTONE_NOTES) / sizeof(Note),
     {
-      29,
+      19,
       1
     }
   },
