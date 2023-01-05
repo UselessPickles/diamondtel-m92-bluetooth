@@ -839,7 +839,7 @@ void TETRIS_GAME_HANDSET_EventHandler(HANDSET_Event const* event) {
 
           if (!isFcn) {
             TIMEOUT_Start(&module.fcnTimeout, FCN_TIMEOUT);
-            HANDSET_SetIndicator(HANDSET_Indicator_FCN, false);
+            HANDSET_SetIndicator(HANDSET_Indicator_FCN, true);
           }
           return;
           
