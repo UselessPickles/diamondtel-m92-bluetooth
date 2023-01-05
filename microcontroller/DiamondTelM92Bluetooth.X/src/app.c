@@ -1236,7 +1236,7 @@ static void handleCallStatusChange(int newCallStatus) {
         RINGTONE_Start(STORAGE_GetRingtone());
         
         if (STORAGE_GetAutoAnswerEnabled()) {
-          TIMEOUT_Start(&autoAnswerTimeout, 1200);
+          TIMEOUT_Start(&autoAnswerTimeout, 900);
         }
       }
 
