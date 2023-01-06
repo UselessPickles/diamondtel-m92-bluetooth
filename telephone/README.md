@@ -535,7 +535,6 @@ There are several different kinds of sounds the phone makes with these 2 tones:
 | Button Beep     | X   |      | Except for DTMF tones in certain situations |
 | Power Off       |     | X    | |
 | Status Indicator|     | X    | (If enabled) Beeps when service status changes (NO SVC, ROAM)|
-| Alert (Smooth)  | X   | X    | Ringtone variant on some revisions of the phone. Alternates evenly between high and low, repeating at 20 Hz |
-| Alert (Harsh)   | X   | X    | Ringtone variant on some revisions of the phone. Alternates evenly between both tones on simultaneously, and silence, repeating at 20 Hz |
+| Alert (Ringer)  | X   | X    | Alternates evenly between both tones on simultaneously, and silence, repeating at 20 Hz |
 | Low Battery     |     | X    | Beeps for 1 second, every 20 seconds, while battery level is low. |
 | Call Failed     | X   | X    | Alternates between high and low, repeating at 1 Hz |
