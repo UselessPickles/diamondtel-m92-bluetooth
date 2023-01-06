@@ -537,8 +537,8 @@ static Note const TONE_DUAL_CONTINUOUS_NOTES[] = {
 };
 
 static Note const ALERT_NOTES[] = {
-  { TONE_HIGH, TONE_OFF, 25 },
-  { TONE_LOW, TONE_OFF, 25 }    
+  { TONE_HIGH, TONE_LOW, 25 },
+  { TONE_OFF, TONE_OFF, 25 }    
 };
 
 static Note const REORDER_TONE_NOTES[] = {
@@ -561,7 +561,7 @@ static Note const CALL_DISCONNECT_NOTES[] = {
   { TONE_OFF, TONE_OFF, 250 },    
 };
 
-static Note const HARSH_RINGTONE_NOTES[] = {
+static Note const CLASSIC_RINGTONE_NOTES[] = {
   { TONE_HIGH, TONE_LOW, 25 },
   { TONE_OFF, TONE_OFF, 25 },    
   { TONE_OFF, TONE_OFF, 3000 },    
@@ -1071,8 +1071,8 @@ SoundEffect const effects[] = {
     }
   },
   {
-    HARSH_RINGTONE_NOTES,
-    sizeof(HARSH_RINGTONE_NOTES) / sizeof(Note),
+    CLASSIC_RINGTONE_NOTES,
+    sizeof(CLASSIC_RINGTONE_NOTES) / sizeof(Note),
     {
       19,
       1

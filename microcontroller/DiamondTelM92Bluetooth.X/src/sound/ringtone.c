@@ -10,7 +10,7 @@ static const struct {
   char name[8];
   SOUND_Effect effect;
 } ringtones[RINGTONE_COUNT] = {
-  { "HARSH  ", SOUND_Effect_HARSH_RINGTONE },
+  { "CLASSIC", SOUND_Effect_CLASSIC_RINGTONE },
   { "SMOOTH ", SOUND_Effect_SMOOTH_RINGTONE },
   { "NOKIA  ", SOUND_Effect_NOKIA },
   { "AXEL F ", SOUND_Effect_AXEL_F },

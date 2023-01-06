@@ -41,7 +41,7 @@ typedef enum SOUND_Effect {
   SOUND_Effect_BT_CONNECT,    
   SOUND_Effect_BT_DISCONNECT,    
   SOUND_Effect_CALL_DISCONNECT,    
-  SOUND_Effect_HARSH_RINGTONE,  
+  SOUND_Effect_CLASSIC_RINGTONE,  
   SOUND_Effect_SMOOTH_RINGTONE,  
   SOUND_Effect_AXEL_F,  
   SOUND_Effect_NOKIA,  
