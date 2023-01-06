@@ -561,7 +561,13 @@ static Note const CALL_DISCONNECT_NOTES[] = {
   { TONE_OFF, TONE_OFF, 250 },    
 };
 
-static Note const STANDARD_RINGTONE_NOTES[] = {
+static Note const HARSH_RINGTONE_NOTES[] = {
+  { TONE_HIGH, TONE_LOW, 25 },
+  { TONE_OFF, TONE_OFF, 25 },    
+  { TONE_OFF, TONE_OFF, 3000 },    
+};
+
+static Note const SMOOTH_RINGTONE_NOTES[] = {
   { TONE_HIGH, TONE_OFF, 25 },
   { TONE_LOW, TONE_OFF, 25 },    
   { TONE_OFF, TONE_OFF, 3000 },    
@@ -1065,8 +1071,16 @@ SoundEffect const effects[] = {
     }
   },
   {
-    STANDARD_RINGTONE_NOTES,
-    sizeof(STANDARD_RINGTONE_NOTES) / sizeof(Note),
+    HARSH_RINGTONE_NOTES,
+    sizeof(HARSH_RINGTONE_NOTES) / sizeof(Note),
+    {
+      19,
+      1
+    }
+  },
+  {
+    SMOOTH_RINGTONE_NOTES,
+    sizeof(SMOOTH_RINGTONE_NOTES) / sizeof(Note),
     {
       19,
       1

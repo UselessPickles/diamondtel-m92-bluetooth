@@ -11,7 +11,8 @@ extern "C" {
 #endif
  
 typedef enum RINGTONE_Type {
-  RINGTONE_Type_CLASSIC,
+  RINGTONE_Type_HARSH,
+  RINGTONE_Type_SMOOTH,
   RINGTONE_Type_NOKIA,
   RINGTONE_Type_AXEL_F,
   RINGTONE_Type_MEGALOMANIA,
@@ -19,7 +20,7 @@ typedef enum RINGTONE_Type {
   RINGTONE_Type_TETRIS,
 } RINGTONE_Type;
 
-#define RINGTONE_COUNT (6)
+#define RINGTONE_COUNT (7)
 
 char const* RINGTONE_GetName(RINGTONE_Type ringtone);
 
