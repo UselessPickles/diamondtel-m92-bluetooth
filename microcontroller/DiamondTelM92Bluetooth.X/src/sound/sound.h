@@ -84,9 +84,11 @@ void SOUND_PlayButtonBeep(HANDSET_Button button, bool limitDuration);
 
 void SOUND_PlayDTMFButtonBeep(HANDSET_Button button, bool limitDuration);
 
-void SOUND_Stop(SOUND_Channel channel);
-
 void SOUND_StopButtonBeep(void);
+
+void SOUND_PlayStatusBeep(void);
+
+void SOUND_Stop(SOUND_Channel channel);
 
 VOLUME_Level SOUND_GetVolumeLevel(VOLUME_Mode mode);
 

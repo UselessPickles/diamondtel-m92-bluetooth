@@ -311,6 +311,55 @@ static void wakeUpHandset(bool backlight) {
   }
 }
 
+#define STATUS_BEEP_COOLDOWN_TIMEOUT (100)
+static timeout_t statusBeepCooldownTimeout;
+
+/**
+ * Play a basic status beep, but only if status beeps are enabled and no other
+ * status beep has been recently played.
+ */
+static void playStatusBeep(void) {
+  if (
+      // Don't play status beeps while the cell phone is not fully connected to 
+      // Bluetooth HFP. This prevents status beeps before HFP connection and
+      // after HFP disconnection.
+      !cellPhoneState.isConnected || 
+      !STORAGE_GetStatusBeepEnabled() || 
+      TIMEOUT_IsPending(&statusBeepCooldownTimeout)
+      ) {
+    return;
+  }
+  
+  TIMEOUT_Start(&statusBeepCooldownTimeout, STATUS_BEEP_COOLDOWN_TIMEOUT);
+
+  wakeUpHandset(false);
+  SOUND_PlayStatusBeep();
+}
+
+/**
+ * Play a Bluetooth connect/disconnect status status beep, but only if status 
+ * beeps are enabled.
+ * 
+ * @param isConnected - true if Bluetooth is now connected.
+ */
+static void playBluetoothConnectionStatusBeep(bool isConnected) {
+  if (!STORAGE_GetStatusBeepEnabled()) {
+    return;
+  }
+  
+  TIMEOUT_Start(&statusBeepCooldownTimeout, STATUS_BEEP_COOLDOWN_TIMEOUT);
+
+  wakeUpHandset(false);
+
+  SOUND_PlayEffect(
+        SOUND_Channel_FOREGROUND, 
+        SOUND_Target_SPEAKER, 
+        VOLUME_Mode_TONE, 
+        isConnected ? SOUND_Effect_BT_CONNECT : SOUND_Effect_BT_DISCONNECT, 
+        false
+      );
+}
+
 #define CALL_FAILED_TIMEOUT (3000)
 static volatile uint16_t callFailedTimer;
 static volatile bool callFailedTimerExpired;
@@ -1375,6 +1424,7 @@ void APP_Task(void) {
   CLR_CODES_Task();
   
   TIMEOUT_Task(&appStateTimeout);
+  TIMEOUT_Task(&statusBeepCooldownTimeout);
   
   if (
       TIMEOUT_Task(&idleTimeout) && 
@@ -1673,6 +1723,7 @@ void APP_Timer10MS_Interrupt(void) {
   }
 
   TIMEOUT_Timer_Interrupt(&appStateTimeout);
+  TIMEOUT_Timer_Interrupt(&statusBeepCooldownTimeout);
 
   switch (appState) {
     case APP_State_REBOOT_AFTER_DELAY:
@@ -2970,10 +3021,7 @@ void APP_BT_EventHandler(uint8_t event, uint16_t para, uint8_t* para_full) {
       BT_CancelLinkback();
       BT_ReadLinkedDeviceName();
       
-      if (STORAGE_GetStatusBeepEnabled()) {
-        wakeUpHandset(false);
-        SOUND_PlayEffect(SOUND_Channel_FOREGROUND, SOUND_Target_SPEAKER, VOLUME_Mode_TONE, SOUND_Effect_BT_CONNECT, false);
-      }
+      playBluetoothConnectionStatusBeep(true);
       
       INDICATOR_StopFlashing(HANDSET_Indicator_NO_SVC, !cellPhoneState.hasService);
       INDICATOR_StopSignalStrengthSweep(cellPhoneState.signalStrength);
@@ -2992,11 +3040,8 @@ void APP_BT_EventHandler(uint8_t event, uint16_t para, uint8_t* para_full) {
 
     case BT_EVENT_HFP_DISCONNECTED:
       printf("[HFP] Disconnected\r\n");
-      if (STORAGE_GetStatusBeepEnabled()) {
-        wakeUpHandset(false);
-        SOUND_PlayEffect(SOUND_Channel_FOREGROUND, SOUND_Target_SPEAKER, VOLUME_Mode_TONE, SOUND_Effect_BT_DISCONNECT, false);
-      }
-      
+      playBluetoothConnectionStatusBeep(false);
+     
       INDICATOR_StartFlashing(HANDSET_Indicator_NO_SVC);
       HANDSET_SetIndicator(HANDSET_Indicator_ROAM, false);
       HANDSET_SetSignalStrength(0);
@@ -3024,6 +3069,7 @@ void APP_BT_EventHandler(uint8_t event, uint16_t para, uint8_t* para_full) {
       
     case BT_EVENT_PHONE_SERVICE_STATUS:
       printf("[PHONE] %s\r\n", para ? "Has Service" : "No Service");
+      playStatusBeep();
       cellPhoneState.hasService = (bool)para;
       INDICATOR_StopFlashing(HANDSET_Indicator_NO_SVC, !cellPhoneState.hasService);
       
@@ -3037,6 +3083,7 @@ void APP_BT_EventHandler(uint8_t event, uint16_t para, uint8_t* para_full) {
       
     case BT_EVENT_PHONE_ROAMING_STATUS:  
       printf("[PHONE] %s\r\n", para ? "Roaming" : "Not Roaming");
+      playStatusBeep();
       HANDSET_SetIndicator(HANDSET_Indicator_ROAM, para);
       break;
       

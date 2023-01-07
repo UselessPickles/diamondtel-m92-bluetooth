@@ -489,6 +489,22 @@ void SOUND_PlayDTMFButtonBeep(HANDSET_Button button, bool limitDuration) {
   currentButtonBeep = button;
 }
 
+void SOUND_StopButtonBeep(void) {
+  if (currentButtonBeep) {
+    SOUND_Stop(SOUND_Channel_FOREGROUND);
+  }
+}
+
+void SOUND_PlayStatusBeep(void) {
+  SOUND_PlaySingleTone(
+          SOUND_Channel_FOREGROUND, 
+          SOUND_Target_SPEAKER, 
+          VOLUME_Mode_TONE, 
+          TONE_HIGH, 
+          500
+      );
+}
+
 void SOUND_Stop(SOUND_Channel channel) {
   if (!soundEffectState[channel].on) {
     return;
@@ -502,12 +518,6 @@ void SOUND_Stop(SOUND_Channel channel) {
 
   if (channel == SOUND_Channel_FOREGROUND) {
     currentButtonBeep = HANDSET_Button_NONE;
-  }
-}
-
-void SOUND_StopButtonBeep(void) {
-  if (currentButtonBeep) {
-    SOUND_Stop(SOUND_Channel_FOREGROUND);
   }
 }
 
