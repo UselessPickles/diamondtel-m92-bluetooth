@@ -4,6 +4,7 @@
  */
 
 #include "security_code.h"
+#include "../constants.h"
 #include "../storage/storage.h"
 #include "../sound/sound.h"
 

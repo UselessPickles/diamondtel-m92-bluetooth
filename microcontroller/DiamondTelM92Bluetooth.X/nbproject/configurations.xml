@@ -67,6 +67,7 @@
         <itemPath>src/util/timeout.h</itemPath>
       </logicalFolder>
       <itemPath>src/app.h</itemPath>
+      <itemPath>src/constants.h</itemPath>
     </logicalFolder>
     <logicalFolder name="LinkerScript"
                    displayName="Linker Files"

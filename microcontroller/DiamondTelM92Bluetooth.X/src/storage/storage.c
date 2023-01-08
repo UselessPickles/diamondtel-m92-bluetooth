@@ -1,10 +1,14 @@
 /** 
  * @file
  * @author Jeff Lau
+ * 
+ * See header file for module description.
  */
 
 #include "storage.h"
 #include "eeprom.h"
+#include "../constants.h"
+#include "../telephone/handset.h"
 #include "../util/string.h"
 #include <string.h>
 #include <stddef.h>
@@ -15,13 +19,13 @@
 #define VERSION (25)
 
 typedef struct {
-  uint8_t number[EXTENDED_PHONE_NUMBER_LENGTH >> 1];
-  char name[MAX_DIRECTORY_NAME_LENGTH];
+  uint8_t number[MAX_EXTENDED_PHONE_NUMBER_LENGTH >> 1];
+  char name[STORAGE_MAX_DIRECTORY_NAME_LENGTH];
 } directory_entry_t;
   
 typedef struct {
   bool statusBeepEnabled: 1;
-  bool announceBeepEnabled: 1;
+  bool oneMinuteBeepEnabled: 1;
   bool vehicleModeEnabled: 1;
   bool showOwnNumberEnabled: 1;
   bool callerIdEnabled: 1;
@@ -31,43 +35,47 @@ typedef struct {
 } toggles_t;
 
 typedef struct {
-  uint8_t marker;
-  uint8_t version;
-  uint8_t lcdViewAngle;
-  uint8_t volumeLevels[VOLUME_MODE_COUNT];
-  uint8_t directoryIndex;
-  uint8_t ringtone;
   uint8_t lastCallMinutes;
   uint8_t lastCallSeconds;
   uint16_t accumulatedCallMinutes;
   uint8_t accumulatedCallSeconds;
   uint16_t totalCallMinutes;
   uint8_t totalCallSeconds;
+} call_time_t;
+
+typedef struct {
+  uint8_t marker;
+  uint8_t version;
+  uint8_t lcdViewAngle;
+  uint8_t volumeLevels[VOLUME_MODE_COUNT];
+  uint8_t directoryIndex;
+  uint8_t ringtone;
+  call_time_t callTime;
   toggles_t toggles;
-  uint8_t activeNumberIndex;
+  uint8_t activeOwnNumberIndex;
   uint8_t programmingCount;
   uint16_t tetrisHighScore;
   char tetrisHighScoreInitials[3];
-  char pairedDeviceName[MAX_DEVICE_NAME_LENGTH];
+  char pairedDeviceName[STORAGE_MAX_DEVICE_NAME_LENGTH];
   uint8_t ownNumber[2][STANDARD_PHONE_NUMBER_LENGTH >> 1];
-  uint8_t lastDialedNumber[EXTENDED_PHONE_NUMBER_LENGTH >> 1];
-  uint8_t speedDial[3][EXTENDED_PHONE_NUMBER_LENGTH >> 1];
+  uint8_t lastDialedNumber[MAX_EXTENDED_PHONE_NUMBER_LENGTH >> 1];
+  uint8_t speedDial[3][MAX_EXTENDED_PHONE_NUMBER_LENGTH >> 1];
   uint8_t securityCode[SECURITY_CODE_LENGTH >> 1];
   uint8_t reserved[45];
-  directory_entry_t directory[DIRECTORY_SIZE];
-  uint8_t creditCardNumbers[CREDIT_CARD_COUNT][CREDIT_CARD_LENGTH >> 1];
+  directory_entry_t directory[STORAGE_DIRECTORY_SIZE];
+  uint8_t creditCardNumbers[STORAGE_CREDIT_CARD_COUNT][CREDIT_CARD_NUMBER_LENGTH >> 1];
 } storage_t;
 
 static storage_t storage;
 
-static uint8_t sortedNameIndexes[DIRECTORY_SIZE];
+static uint8_t sortedNameIndexes[STORAGE_DIRECTORY_SIZE];
 static uint8_t sortedNameSize;
 
 static int compareNameIndexes(void const* a, void const* b) {
   int result = strnicmp(
     storage.directory[*((uint8_t const*)a)].name,
     storage.directory[*((uint8_t const*)b)].name,
-    MAX_DIRECTORY_NAME_LENGTH  
+    STORAGE_MAX_DIRECTORY_NAME_LENGTH  
   );
   
   return result ? result : (*((int8_t const*)a) - *((int8_t const*)b));
@@ -76,7 +84,7 @@ static int compareNameIndexes(void const* a, void const* b) {
 static void initializeSortedNameIndexes(void) {
   sortedNameSize = 0;
   
-  for (uint8_t i = 0; i < DIRECTORY_SIZE; ++i) {
+  for (uint8_t i = 0; i < STORAGE_DIRECTORY_SIZE; ++i) {
     if (!STORAGE_IsDirectoryEntryEmpty(i) && storage.directory[i].name[0]) {
       sortedNameIndexes[sortedNameSize++] = i;
     }
@@ -92,6 +100,11 @@ static void initializeSortedNameIndexes(void) {
 #define COMPRESSED_TERMINATOR (0x0F)
 
 static void compressPhoneNumber(uint8_t* dest, char const* phoneNumber, uint8_t maxLength) {
+  if (phoneNumber == NULL) {
+    memset(dest, 0xFF, maxLength >> 1);
+    return;
+  }
+  
   size_t len = strlen(phoneNumber);
   
   if (len > maxLength) {
@@ -178,35 +191,35 @@ static void initializeDefaultStorageData(void) {
   storage.volumeLevels[VOLUME_Mode_GAME_MUSIC] = VOLUME_Level_MID;
   storage.directoryIndex = 0;
   storage.ringtone = 0;
-  storage.lastCallMinutes = 0;
-  storage.lastCallSeconds = 0;
-  storage.accumulatedCallMinutes = 0;
-  storage.accumulatedCallSeconds = 0;
-  storage.totalCallMinutes = 0;
-  storage.totalCallSeconds = 0;
+  storage.callTime.lastCallMinutes = 0;
+  storage.callTime.lastCallSeconds = 0;
+  storage.callTime.accumulatedCallMinutes = 0;
+  storage.callTime.accumulatedCallSeconds = 0;
+  storage.callTime.totalCallMinutes = 0;
+  storage.callTime.totalCallSeconds = 0;
   storage.toggles.statusBeepEnabled = true;
-  storage.toggles.announceBeepEnabled = false;
+  storage.toggles.oneMinuteBeepEnabled = false;
   storage.toggles.vehicleModeEnabled = false;
   storage.toggles.callerIdEnabled = false;
   storage.toggles.showOwnNumberEnabled = true;
   storage.toggles.dualNumbersEnabled = false;
   storage.toggles.cumulativeTimerResetEnabled = true;
   storage.toggles.autoAnswerEnabled = false;
-  storage.activeNumberIndex = 0;
+  storage.activeOwnNumberIndex = 0;
   storage.programmingCount = 0;
   storage.tetrisHighScore = 0;
   memset(storage.tetrisHighScoreInitials, '?', 3);
-  memset(storage.pairedDeviceName, 0, MAX_DEVICE_NAME_LENGTH);
+  memset(storage.pairedDeviceName, 0, STORAGE_MAX_DEVICE_NAME_LENGTH);
   memset(storage.ownNumber, 0, (STANDARD_PHONE_NUMBER_LENGTH >> 1) * 2);
-  memset(storage.lastDialedNumber, 0xFF, EXTENDED_PHONE_NUMBER_LENGTH >> 1);
-  memset(storage.speedDial, 0xFF, (EXTENDED_PHONE_NUMBER_LENGTH >> 1) * 3);
+  memset(storage.lastDialedNumber, 0xFF, MAX_EXTENDED_PHONE_NUMBER_LENGTH >> 1);
+  memset(storage.speedDial, 0xFF, (MAX_EXTENDED_PHONE_NUMBER_LENGTH >> 1) * 3);
   memset(storage.securityCode, 0, (SECURITY_CODE_LENGTH >> 1));
 
   // Store everything except for the directory to EEPROM
   EEPROM_WriteBytes(0, &storage, offsetof(storage_t, reserved));
 
   // Make all directory entries empty in EEPROM
-  for (uint16_t i = 0; i < DIRECTORY_SIZE; ++i) {
+  for (uint16_t i = 0; i < STORAGE_DIRECTORY_SIZE; ++i) {
     // Set first character of phone number to null
     storage.directory[i].number[0] = 0xFF;
     EEPROM_WriteByte(
@@ -253,11 +266,11 @@ static void initializeDefaultStorageData(void) {
   );
 
   // Make all credit card entries empty in EEPROM
-  for (uint16_t i = 0; i < CREDIT_CARD_COUNT; ++i) {
+  for (uint16_t i = 0; i < STORAGE_CREDIT_CARD_COUNT; ++i) {
     // Set first character of phone number to null
     storage.creditCardNumbers[i][0] = 0xFF;
     EEPROM_WriteByte(
-        offsetof(storage_t, creditCardNumbers) + (CREDIT_CARD_LENGTH >> 1) * i,
+        offsetof(storage_t, creditCardNumbers) + (CREDIT_CARD_NUMBER_LENGTH >> 1) * i,
         0xFF
     );
   }
@@ -284,7 +297,7 @@ uint8_t STORAGE_GetLcdViewAngle(void) {
 }
 
 void STORAGE_SetLcdViewAngle(uint8_t lcdViewAngle) {
-  if (lcdViewAngle > 7) {
+  if (lcdViewAngle > HANDSET_MAX_LCD_VIEW_ANGLE) {
     return;
   }
   
@@ -343,15 +356,15 @@ void STORAGE_SetOwnNumber(uint8_t index, char const* ownNumber) {
 }
 
 char* STORAGE_GetLastDialedNumber(char* dest) {
-  return uncompressPhoneNumber(dest, storage.lastDialedNumber, EXTENDED_PHONE_NUMBER_LENGTH >> 1);
+  return uncompressPhoneNumber(dest, storage.lastDialedNumber, MAX_EXTENDED_PHONE_NUMBER_LENGTH >> 1);
 }
 
 void STORAGE_SetLastDialedNumber(char const* lastDialedNumber) {
-  compressPhoneNumber(storage.lastDialedNumber, lastDialedNumber, EXTENDED_PHONE_NUMBER_LENGTH);
+  compressPhoneNumber(storage.lastDialedNumber, lastDialedNumber, MAX_EXTENDED_PHONE_NUMBER_LENGTH);
   EEPROM_AsyncWriteBytes(
       offsetof(storage_t, lastDialedNumber), 
       storage.lastDialedNumber, 
-      EXTENDED_PHONE_NUMBER_LENGTH >> 1
+      MAX_EXTENDED_PHONE_NUMBER_LENGTH >> 1
   );
 }
 
@@ -359,7 +372,7 @@ char* STORAGE_GetSpeedDial(uint8_t index, char* dest) {
   if (index >= 3) {
     dest[0] = 0;
   } else {
-    uncompressPhoneNumber(dest, storage.speedDial[index], EXTENDED_PHONE_NUMBER_LENGTH >> 1);
+    uncompressPhoneNumber(dest, storage.speedDial[index], MAX_EXTENDED_PHONE_NUMBER_LENGTH >> 1);
   }
   
   return dest;
@@ -370,20 +383,20 @@ void STORAGE_SetSpeedDial(uint8_t index, char const* number) {
     return;
   }
 
-  compressPhoneNumber(storage.speedDial[index], number, EXTENDED_PHONE_NUMBER_LENGTH);
+  compressPhoneNumber(storage.speedDial[index], number, MAX_EXTENDED_PHONE_NUMBER_LENGTH);
   EEPROM_AsyncWriteBytes(
-      offsetof(storage_t, speedDial) + (EXTENDED_PHONE_NUMBER_LENGTH >> 1) * index, 
+      offsetof(storage_t, speedDial) + (MAX_EXTENDED_PHONE_NUMBER_LENGTH >> 1) * index, 
       storage.speedDial[index], 
-      EXTENDED_PHONE_NUMBER_LENGTH >> 1
+      MAX_EXTENDED_PHONE_NUMBER_LENGTH >> 1
   );
 }
 
 char* STORAGE_GetDirectoryNumber(uint8_t index, char* dest) {
-  if (index >= DIRECTORY_SIZE) {
+  if (index >= STORAGE_DIRECTORY_SIZE) {
     dest[0] = 0;
   } else {
-    uncompressPhoneNumber(dest, storage.directory[index].number, EXTENDED_PHONE_NUMBER_LENGTH >> 1);
-    dest[EXTENDED_PHONE_NUMBER_LENGTH] = 0;
+    uncompressPhoneNumber(dest, storage.directory[index].number, MAX_EXTENDED_PHONE_NUMBER_LENGTH >> 1);
+    dest[MAX_EXTENDED_PHONE_NUMBER_LENGTH] = 0;
   }
   
   return dest;
@@ -394,48 +407,45 @@ void STORAGE_SetDirectoryNumber(uint8_t index, char const* number) {
 }
 
 char* STORAGE_GetDirectoryName(uint8_t index, char* dest) {
-  if (index >= DIRECTORY_SIZE) {
+  if (index >= STORAGE_DIRECTORY_SIZE) {
     dest[0] = 0;
   } else {
-    strncpy(dest, storage.directory[index].name, MAX_DIRECTORY_NAME_LENGTH)[MAX_DIRECTORY_NAME_LENGTH] = 0;
+    strncpy(dest, storage.directory[index].name, STORAGE_MAX_DIRECTORY_NAME_LENGTH)[STORAGE_MAX_DIRECTORY_NAME_LENGTH] = 0;
   }
+  
   return dest;
 }
 
 void STORAGE_SetDirectoryEntry(uint8_t index, char const* number, char const* name) {
-  if (index >= DIRECTORY_SIZE) {
+  if (index >= STORAGE_DIRECTORY_SIZE) {
     return;
   }
 
   if (number) {
-    compressPhoneNumber(storage.directory[index].number, number, EXTENDED_PHONE_NUMBER_LENGTH);
+    compressPhoneNumber(storage.directory[index].number, number, MAX_EXTENDED_PHONE_NUMBER_LENGTH);
   } else {
-    storage.directory[index].number[0] = 0xFF;
+    memset(storage.directory[index].number, 0xFF, MAX_EXTENDED_PHONE_NUMBER_LENGTH >> 1);
   }
   
-  if (name) {
-    strncpy(storage.directory[index].name, name, MAX_DIRECTORY_NAME_LENGTH);
+  memset(storage.directory[index].name, 0xFF, STORAGE_MAX_DIRECTORY_NAME_LENGTH);
+  
+  if (name && number && number[0]) {
+    strncpy(storage.directory[index].name, name, STORAGE_MAX_DIRECTORY_NAME_LENGTH);
   } else {
     storage.directory[index].name[0] = 0;
   }
 
   EEPROM_AsyncWriteBytes(
-      offsetof(storage_t, directory) + sizeof(directory_entry_t) * index + offsetof(directory_entry_t, number), 
-      storage.directory[index].number, 
-      EXTENDED_PHONE_NUMBER_LENGTH >> 1
-  );
-  
-  EEPROM_AsyncWriteBytes(
-      offsetof(storage_t, directory) + sizeof(directory_entry_t) * index + offsetof(directory_entry_t, name), 
-      name, 
-      MAX_DIRECTORY_NAME_LENGTH
+      offsetof(storage_t, directory) + sizeof(directory_entry_t) * index, 
+      storage.directory + index, 
+      sizeof(directory_entry_t)
   );
   
   initializeSortedNameIndexes();
 }
 
-uint8_t STORAGE_GetFirstAvailableDirectoryIndex(void) {
-  for (uint8_t i = 0; i < DIRECTORY_SIZE; ++i) {
+uint8_t STORAGE_GetFirstEmptyDirectoryIndex(void) {
+  for (uint8_t i = 0; i < STORAGE_DIRECTORY_SIZE; ++i) {
     if (STORAGE_IsDirectoryEntryEmpty(i)) {
       return i;
     }
@@ -454,10 +464,10 @@ uint8_t STORAGE_GetNextPopulatedDirectoryIndex(uint8_t startIndex, bool forward)
       --i;
     }
     
-    if (i == DIRECTORY_SIZE) {
+    if (i >= STORAGE_DIRECTORY_SIZE) {
       i = 0;
-    } else if (i == 255) {
-      i = DIRECTORY_SIZE - 1;
+    } else if (i == 0xFF) {
+      i = STORAGE_DIRECTORY_SIZE - 1;
     }
   } while((i != startIndex) && STORAGE_IsDirectoryEntryEmpty(i));
   
@@ -512,7 +522,7 @@ uint8_t STORAGE_GetFirstNamedDirectoryIndexForLetter(char letter) {
 }
 
 bool STORAGE_IsDirectoryEntryEmpty(uint8_t index) {
-  if (index >= DIRECTORY_SIZE) {
+  if (index >= STORAGE_DIRECTORY_SIZE) {
     return true;
   }
   
@@ -520,7 +530,7 @@ bool STORAGE_IsDirectoryEntryEmpty(uint8_t index) {
 }
 
 bool STORAGE_IsDirectoryNameEmpty(uint8_t index) {
-  if (index >= DIRECTORY_SIZE) {
+  if (index >= STORAGE_DIRECTORY_SIZE) {
     return true;
   }
   
@@ -528,7 +538,7 @@ bool STORAGE_IsDirectoryNameEmpty(uint8_t index) {
 }
 
 uint8_t STORAGE_GetDirectoryIndex(void) {
-  if (storage.directoryIndex >= DIRECTORY_SIZE) {
+  if (storage.directoryIndex >= STORAGE_DIRECTORY_SIZE) {
     return 0;
   }
   
@@ -536,7 +546,7 @@ uint8_t STORAGE_GetDirectoryIndex(void) {
 }
 
 void STORAGE_SetDirectoryIndex(uint8_t index) {
-  if ((index == storage.directoryIndex) || (index >= DIRECTORY_SIZE)) {
+  if ((index == storage.directoryIndex) || (index >= STORAGE_DIRECTORY_SIZE)) {
     return;
   }
   
@@ -545,26 +555,26 @@ void STORAGE_SetDirectoryIndex(uint8_t index) {
 }
 
 char* STORAGE_GetCreditCardNumber(uint8_t index, char* dest) {
-  if (index >= CREDIT_CARD_COUNT) {
+  if (index >= STORAGE_CREDIT_CARD_COUNT) {
     dest[0] = 0;
   } else {
-    uncompressPhoneNumber(dest, storage.creditCardNumbers[index], CREDIT_CARD_LENGTH >> 1);
+    uncompressPhoneNumber(dest, storage.creditCardNumbers[index], CREDIT_CARD_NUMBER_LENGTH >> 1);
   }
   
   return dest;
 }
 
 void STORAGE_SetCreditCardNumber(uint8_t index, char const* number) {
-  if (index >= CREDIT_CARD_COUNT) {
+  if (index >= STORAGE_CREDIT_CARD_COUNT) {
     return;
   }
 
-  compressPhoneNumber(storage.creditCardNumbers[index], number, CREDIT_CARD_LENGTH);
+  compressPhoneNumber(storage.creditCardNumbers[index], number, CREDIT_CARD_NUMBER_LENGTH);
   
   EEPROM_AsyncWriteBytes(
-      offsetof(storage_t, creditCardNumbers) + (CREDIT_CARD_LENGTH >> 1) * index, 
+      offsetof(storage_t, creditCardNumbers) + (CREDIT_CARD_NUMBER_LENGTH >> 1) * index, 
       storage.creditCardNumbers[index], 
-      CREDIT_CARD_LENGTH >> 1
+      CREDIT_CARD_NUMBER_LENGTH >> 1
   );
 }
 
@@ -586,60 +596,60 @@ void STORAGE_SetRingtone(RINGTONE_Type ringtone) {
 }
 
 uint8_t STORAGE_GetLastCallMinutes(void) {
-  return storage.lastCallMinutes;
+  return storage.callTime.lastCallMinutes;
 }
 
 uint8_t STORAGE_GetLastCallSeconds(void) {
-  return storage.lastCallSeconds;
+  return storage.callTime.lastCallSeconds;
 }
 
 
 void STORAGE_SetLastCallTime(uint8_t minutes, uint8_t seconds) {
-  storage.lastCallMinutes = minutes;
-  storage.lastCallSeconds = seconds;
+  storage.callTime.lastCallMinutes = minutes;
+  storage.callTime.lastCallSeconds = seconds;
 
-  storage.accumulatedCallMinutes += minutes;
-  storage.accumulatedCallSeconds += seconds;
+  storage.callTime.accumulatedCallMinutes += minutes;
+  storage.callTime.accumulatedCallSeconds += seconds;
   
-  if (storage.accumulatedCallSeconds >= 60) {
-    storage.accumulatedCallSeconds -= 60;
-    ++storage.accumulatedCallMinutes;
+  if (storage.callTime.accumulatedCallSeconds >= 60) {
+    storage.callTime.accumulatedCallSeconds -= 60;
+    ++storage.callTime.accumulatedCallMinutes;
   }
 
-  storage.totalCallMinutes += minutes;
-  storage.totalCallSeconds += seconds;
+  storage.callTime.totalCallMinutes += minutes;
+  storage.callTime.totalCallSeconds += seconds;
   
-  if (storage.totalCallSeconds >= 60) {
-    storage.totalCallSeconds -= 60;
-    ++storage.totalCallMinutes;
+  if (storage.callTime.totalCallSeconds >= 60) {
+    storage.callTime.totalCallSeconds -= 60;
+    ++storage.callTime.totalCallMinutes;
   }
 
-  EEPROM_AsyncWriteBytes(offsetof(storage_t, lastCallMinutes), &storage.lastCallMinutes, 8);
+  EEPROM_AsyncWriteBytes(offsetof(storage_t, callTime), &storage.callTime, sizeof(storage.callTime));
 }
 
 uint16_t STORAGE_GetAccumulatedCallMinutes(void) {
-  return storage.accumulatedCallMinutes;
+  return storage.callTime.accumulatedCallMinutes;
 }
 
 uint8_t STORAGE_GetAccumulatedCallSeconds(void) {
-  return storage.accumulatedCallSeconds;
+  return storage.callTime.accumulatedCallSeconds;
 }
 
 uint16_t STORAGE_GetTotalCallMinutes(void) {
-  return storage.totalCallMinutes;
+  return storage.callTime.totalCallMinutes;
 }
 
 uint8_t STORAGE_GetTotalCallSeconds(void) {
-  return storage.totalCallSeconds;
+  return storage.callTime.totalCallSeconds;
 }
 
 void STORAGE_ResetCallTime(void) {
-  storage.lastCallMinutes = 0;
-  storage.lastCallSeconds = 0;
-  storage.accumulatedCallMinutes = 0;
-  storage.accumulatedCallSeconds = 0;
+  storage.callTime.lastCallMinutes = 0;
+  storage.callTime.lastCallSeconds = 0;
+  storage.callTime.accumulatedCallMinutes = 0;
+  storage.callTime.accumulatedCallSeconds = 0;
 
-  EEPROM_AsyncWriteBytes(offsetof(storage_t, lastCallMinutes), &storage.lastCallMinutes, 5);
+  EEPROM_AsyncWriteBytes(offsetof(storage_t, callTime), &storage.callTime, sizeof(storage.callTime));
 }
 
 bool STORAGE_GetStatusBeepEnabled(void) {
@@ -651,12 +661,12 @@ void STORAGE_SetStatusBeepEnabled(bool enabled) {
   EEPROM_AsyncWriteBytes(offsetof(storage_t, toggles), &storage.toggles, sizeof(toggles_t));
 }
 
-bool STORAGE_GetAnnounceBeepEnabled(void) {
-  return storage.toggles.announceBeepEnabled;
+bool STORAGE_GetOneMinuteBeepEnabled(void) {
+  return storage.toggles.oneMinuteBeepEnabled;
 }
 
-void STORAGE_SetAnnounceBeepEnabled(bool enabled) {
-  storage.toggles.announceBeepEnabled = enabled;
+void STORAGE_SetOneMinuteBeepEnabled(bool enabled) {
+  storage.toggles.oneMinuteBeepEnabled = enabled;
   EEPROM_AsyncWriteBytes(offsetof(storage_t, toggles), &storage.toggles, sizeof(toggles_t));
 }
 
@@ -693,7 +703,7 @@ bool STORAGE_GetDualNumberEnabled(void) {
 
 void STORAGE_SetDualNumberEnabled(bool enabled) {
   if (!enabled) {
-    STORAGE_SetActiveNumberIndex(0);
+    STORAGE_SetActiveOwnNumberIndex(0);
   }
   
   storage.toggles.dualNumbersEnabled = enabled;
@@ -718,17 +728,17 @@ void STORAGE_SetAutoAnswerEnabled(bool enabled) {
   EEPROM_AsyncWriteBytes(offsetof(storage_t, toggles), &storage.toggles, sizeof(toggles_t));
 }
 
-uint8_t STORAGE_GetActiveNumberIndex(void) {
-  return storage.activeNumberIndex;
+uint8_t STORAGE_GetActiveOwnNumberIndex(void) {
+  return storage.activeOwnNumberIndex;
 }
 
-void STORAGE_SetActiveNumberIndex(uint8_t index) {
+void STORAGE_SetActiveOwnNumberIndex(uint8_t index) {
   if (index > 1) {
     return;
   }
   
-  storage.activeNumberIndex = index;
-  EEPROM_AsyncWriteByte(offsetof(storage_t, activeNumberIndex), index);
+  storage.activeOwnNumberIndex = index;
+  EEPROM_AsyncWriteByte(offsetof(storage_t, activeOwnNumberIndex), index);
 }
 
 uint8_t STORAGE_GetProgrammingCount(void) {
@@ -750,27 +760,23 @@ void STORAGE_SetTetrisHighScore(uint16_t score) {
 }
 
 char* STORAGE_GetTetrisHighScoreInitials(char* dest) {
-  strncpy(dest, storage.tetrisHighScoreInitials, 3)[3] = 0;
+  strncpy(dest, storage.tetrisHighScoreInitials, MAX_PLAYER_INITIALS_LENGTH)[MAX_PLAYER_INITIALS_LENGTH] = 0;
   return dest;
 }
 
 void STORAGE_SetTetrisHighScoreInitials(char const* initials) {
-  strncpy(storage.tetrisHighScoreInitials, initials, 3);
-  EEPROM_AsyncWriteBytes(offsetof(storage_t, tetrisHighScoreInitials), storage.tetrisHighScoreInitials, 3);
+  strncpy(storage.tetrisHighScoreInitials, initials, MAX_PLAYER_INITIALS_LENGTH);
+  EEPROM_AsyncWriteBytes(offsetof(storage_t, tetrisHighScoreInitials), storage.tetrisHighScoreInitials, MAX_PLAYER_INITIALS_LENGTH);
 }
 
 char* STORAGE_GetPairedDeviceName(char* dest){
-  // If using strncpy here, I get this error:
-  // C:\Program Files\Microchip\xc8\v2.35\pic\sources\c99\common\strncpy.c:9:: error: (1466) registers unavailable for code generation of this expression
-  memcpy(dest, storage.pairedDeviceName, MAX_DEVICE_NAME_LENGTH);
-  dest[MAX_DEVICE_NAME_LENGTH] = 0;
-  
+  strncpy(dest, storage.pairedDeviceName, STORAGE_MAX_DEVICE_NAME_LENGTH)[STORAGE_MAX_DEVICE_NAME_LENGTH] = 0;
   return dest;
 }
 
 void STORAGE_SetPairedDeviceName(char const* deviceName) {
-  strncpy(storage.pairedDeviceName, deviceName, MAX_DEVICE_NAME_LENGTH);
-  EEPROM_AsyncWriteBytes(offsetof(storage_t, pairedDeviceName), storage.pairedDeviceName, MAX_DEVICE_NAME_LENGTH);
+  strncpy(storage.pairedDeviceName, deviceName, STORAGE_MAX_DEVICE_NAME_LENGTH);
+  EEPROM_AsyncWriteBytes(offsetof(storage_t, pairedDeviceName), storage.pairedDeviceName, STORAGE_MAX_DEVICE_NAME_LENGTH);
 }
 
 char* STORAGE_GetSecurityCode(char* dest) {

@@ -98,7 +98,7 @@ void CALL_TIMER_Task(void) {
         HANDSET_PrintCharAt(callTime.secondTens + '0', 1);
       }
 
-      if ((callTime.secondTens == 5) && STORAGE_GetAnnounceBeepEnabled()) {
+      if ((callTime.secondTens == 5) && STORAGE_GetOneMinuteBeepEnabled()) {
         playWarningBeep = true;
       }
     }

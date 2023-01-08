@@ -8,6 +8,7 @@
 #include <string.h>
 #include <ctype.h>
 #include "app.h"
+#include "constants.h"
 #include "../mcc_generated_files/pin_manager.h"
 #include "telephone/handset.h"
 #include "telephone/transceiver.h"
@@ -226,7 +227,7 @@ static volatile bool isHandsetIdle;
 
 static struct {
   bool isSending;
-  char buffer[EXTENDED_PHONE_NUMBER_LENGTH];
+  char buffer[MAX_EXTENDED_PHONE_NUMBER_LENGTH];
   uint8_t head;
   uint8_t tail;
   uint8_t bufferSize;
@@ -255,7 +256,7 @@ static void sendNextDtmfDigit(void) {
     dtmfState.isSending = true;
 
     --dtmfState.bufferSize;
-    if (++dtmfState.tail == EXTENDED_PHONE_NUMBER_LENGTH) {
+    if (++dtmfState.tail == MAX_EXTENDED_PHONE_NUMBER_LENGTH) {
       dtmfState.tail = 0;
     }
   } else {
@@ -276,12 +277,12 @@ static bool sendDtmfDigit(char digit) {
     return false;
   }
 
-  if (dtmfState.bufferSize == EXTENDED_PHONE_NUMBER_LENGTH) {
+  if (dtmfState.bufferSize == MAX_EXTENDED_PHONE_NUMBER_LENGTH) {
     return false;
   }
   
   dtmfState.buffer[dtmfState.head] = digit;
-  if (++dtmfState.head == EXTENDED_PHONE_NUMBER_LENGTH) {
+  if (++dtmfState.head == MAX_EXTENDED_PHONE_NUMBER_LENGTH) {
     dtmfState.head = 0;
   }
   
@@ -370,7 +371,7 @@ interval_t lowBatteryBeepInterval;
 #define BROWSE_DIRECTORY_SCAN_INTERVAL (100)
 static bool isDirectoryScanNameMode;
 
-#define NUMBER_INPUT_MAX_LENGTH (EXTENDED_PHONE_NUMBER_LENGTH)
+#define NUMBER_INPUT_MAX_LENGTH (MAX_EXTENDED_PHONE_NUMBER_LENGTH)
 static char numberInput[NUMBER_INPUT_MAX_LENGTH + 1];
 static char dialedNumber[NUMBER_INPUT_MAX_LENGTH + 1];
 static char* dialedNumberNextDigitsToDial;
@@ -379,7 +380,7 @@ static volatile bool numberInputIsStale;
 
 static char tempNumberBuffer[NUMBER_INPUT_MAX_LENGTH + 1];
 
-static char alphaInput[MAX_DEVICE_NAME_LENGTH + 1];
+static char alphaInput[STORAGE_MAX_DEVICE_NAME_LENGTH + 1];
 static bool isAlphaPromptDisplayed;
 static bool isFcnInputPendingForAlphaSto;
 
@@ -491,7 +492,7 @@ static uint8_t NumberInput_GetMemoryIndex(void) {
  
   result -= 1;
   
-  return (result < DIRECTORY_SIZE) ? result : 0xFF;
+  return (result < STORAGE_DIRECTORY_SIZE) ? result : 0xFF;
 }
 
 static void returnToNumberInput(bool withRecalledNumber);
@@ -666,7 +667,7 @@ static void startAlphaStoreNameInput(bool reset) {
 
   STRING_INPUT_Start(
       alphaInput,
-      MAX_DIRECTORY_NAME_LENGTH,
+      STORAGE_MAX_DIRECTORY_NAME_LENGTH,
       "NAME ?        ",
       true,
       false,
@@ -821,7 +822,7 @@ static void recallNumber(char const* number) {
 }
 
 static void recallAddress(uint8_t addr, bool isNameMode) {
-  if (addr > DIRECTORY_SIZE) {
+  if (addr > STORAGE_DIRECTORY_SIZE) {
     displayEmptyMessage();
     return;
   }
@@ -956,7 +957,7 @@ static void recallPairedDeviceName(bool requestDeviceName) {
   if (requestDeviceName) {
     BT_ReadLinkedDeviceName();
   } else {
-    char deviceName[MAX_DEVICE_NAME_LENGTH + 1];
+    char deviceName[STORAGE_MAX_DEVICE_NAME_LENGTH + 1];
     STORAGE_GetPairedDeviceName(deviceName);
     MARQUEE_Start(deviceName[0] ? deviceName : "[none]", MARQUEE_Row_BOTTOM);
   }
@@ -1064,7 +1065,7 @@ static void handle_SECURITY_CODE_Success_SET_BT_DEVICE_NAME(void) {
   
   STRING_INPUT_Start(
       alphaInput, 
-      MAX_DEVICE_NAME_LENGTH, 
+      STORAGE_MAX_DEVICE_NAME_LENGTH, 
       "BT     NAME ? ",
       true,
       true,
@@ -1075,7 +1076,7 @@ static void handle_SECURITY_CODE_Success_SET_BT_DEVICE_NAME(void) {
 }
 
 static void handle_SECURITY_CODE_Success_TOGGLE_DUAL_NUMBER(void) {
-  STORAGE_SetActiveNumberIndex(!STORAGE_GetActiveNumberIndex());
+  STORAGE_SetActiveOwnNumberIndex(!STORAGE_GetActiveOwnNumberIndex());
   reboot();
 }
 
@@ -1130,7 +1131,7 @@ static void startVolumeAdjust(VOLUME_Mode volumeMode, bool up) {
   appState = APP_State_ADJUST_VOLUME;
 }
 
-static char nameInput[MAX_DIRECTORY_NAME_LENGTH + 1] = {0};
+static char nameInput[STORAGE_MAX_DIRECTORY_NAME_LENGTH + 1] = {0};
 static char nameInputLength = 0;
 
 
@@ -1372,7 +1373,7 @@ static void handle_CLR_CODES_Event(CLR_CODES_EventType event) {
 }
 
 static bool isValidCreditCardMemoryButton(HANDSET_Button button) {
-  return (button >= '1') && (button < '1' + CREDIT_CARD_COUNT);
+  return (button >= '1') && (button < '1' + STORAGE_CREDIT_CARD_COUNT);
 }
 
 static uint8_t getCreditCardMemoryIndexFromButton(HANDSET_Button button) {
@@ -1552,7 +1553,7 @@ void APP_Task(void) {
 
         if (STORAGE_GetShowOwnNumberEnabled()) {
           TIMEOUT_Start(&appStateTimeout, 150);
-          STORAGE_GetOwnNumber(STORAGE_GetActiveNumberIndex(), tempNumberBuffer);
+          STORAGE_GetOwnNumber(STORAGE_GetActiveOwnNumberIndex(), tempNumberBuffer);
           HANDSET_DisableTextDisplay();
           HANDSET_PrintString(tempNumberBuffer);
           HANDSET_EnableTextDisplay();
@@ -2098,14 +2099,14 @@ void handle_HANDSET_Event(HANDSET_Event const* event) {
               if (button == HANDSET_Button_1) {
                 SOUND_PlayDTMFButtonBeep(button, false);
                 
-                bool isAnnounceBeepEnabled = !STORAGE_GetAnnounceBeepEnabled();
-                STORAGE_SetAnnounceBeepEnabled(isAnnounceBeepEnabled);
+                bool isOneMinuteBeepEnabled = !STORAGE_GetOneMinuteBeepEnabled();
+                STORAGE_SetOneMinuteBeepEnabled(isOneMinuteBeepEnabled);
                 
                 CALL_TIMER_DisableDisplayUpdate();
                 HANDSET_DisableTextDisplay();
                 HANDSET_ClearText();
                 HANDSET_PrintString("ONE MINBEEP O");
-                HANDSET_PrintChar(isAnnounceBeepEnabled ? 'N' : 'F');
+                HANDSET_PrintChar(isOneMinuteBeepEnabled ? 'N' : 'F');
                 HANDSET_EnableTextDisplay();
                 
                 appState = APP_State_DISPLAY_DISMISSABLE_TEXT;
@@ -2182,7 +2183,7 @@ void handle_HANDSET_Event(HANDSET_Event const* event) {
                 if (numberInput[0]) {
                   SOUND_PlayButtonBeep(button, false);
 
-                  uint8_t index = STORAGE_GetFirstAvailableDirectoryIndex();
+                  uint8_t index = STORAGE_GetFirstEmptyDirectoryIndex();
 
                   if (index == 0xFF) {
                     displayMemoryFullMessage();
@@ -2315,7 +2316,7 @@ void handle_HANDSET_Event(HANDSET_Event const* event) {
               } else {
                 rclOrStoAddr = rclOrStoAddr * 10 + button - '0' - 1;
 
-                if (rclOrStoAddr < DIRECTORY_SIZE) {
+                if (rclOrStoAddr < STORAGE_DIRECTORY_SIZE) {
                   SOUND_PlayDTMFButtonBeep(button, false);
                   STORAGE_SetDirectoryNumber(rclOrStoAddr, numberInput);
                   displayAddressUpdatedMessage(rclOrStoAddr, numberInput[0]);
@@ -2363,7 +2364,7 @@ void handle_HANDSET_Event(HANDSET_Event const* event) {
               } else {
                 rclOrStoAddr = (rclOrStoAddr * 10 + button - '0') - 1;
 
-                if (rclOrStoAddr < DIRECTORY_SIZE) {
+                if (rclOrStoAddr < STORAGE_DIRECTORY_SIZE) {
                   SOUND_PlayDTMFButtonBeep(button, false);
                   recallAddress(rclOrStoAddr, false);
                 }
@@ -2384,7 +2385,7 @@ void handle_HANDSET_Event(HANDSET_Event const* event) {
               SOUND_PlayDTMFButtonBeep(button, false);
 
               char ownNumber[STANDARD_PHONE_NUMBER_LENGTH + 1];
-              STORAGE_GetOwnNumber(STORAGE_GetActiveNumberIndex(), ownNumber);
+              STORAGE_GetOwnNumber(STORAGE_GetActiveOwnNumberIndex(), ownNumber);
               
               numberInputIsStale = true;
               CALL_TIMER_DisableDisplayUpdate();
@@ -2481,7 +2482,7 @@ void handle_HANDSET_Event(HANDSET_Event const* event) {
                     isCreditCardRecall = true;
                     ++dialedNumberNextDigitsToDial;
                   } else if (isCreditCardRecall) {
-                    char creditCardNumber[CREDIT_CARD_LENGTH + 1];
+                    char creditCardNumber[CREDIT_CARD_NUMBER_LENGTH + 1];
                     STORAGE_GetCreditCardNumber(*dialedNumberNextDigitsToDial++ - '1', creditCardNumber);
                     sendDtmfString(creditCardNumber);
                     isCreditCardRecall = false;
@@ -2664,7 +2665,7 @@ void handle_HANDSET_Event(HANDSET_Event const* event) {
           } else if (button == HANDSET_Button_STO) {
             SOUND_PlayButtonBeep(button, false);
 
-            uint8_t index = STORAGE_GetFirstAvailableDirectoryIndex();
+            uint8_t index = STORAGE_GetFirstEmptyDirectoryIndex();
 
             if (index == 0xFF) {
               displayMemoryFullMessage();
@@ -2679,7 +2680,7 @@ void handle_HANDSET_Event(HANDSET_Event const* event) {
             if (isRclOrSto2ndDigitPending) {
               rclOrStoAddr = rclOrStoAddr * 10 + button - '0' - 1;
 
-              if (rclOrStoAddr < DIRECTORY_SIZE) {
+              if (rclOrStoAddr < STORAGE_DIRECTORY_SIZE) {
                 SOUND_PlayDTMFButtonBeep(button, false);
                 STORAGE_SetDirectoryEntry(rclOrStoAddr, numberInput, alphaInput);
                 displayAddressUpdatedMessage(rclOrStoAddr, true);

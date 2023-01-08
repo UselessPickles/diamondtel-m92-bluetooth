@@ -5,6 +5,7 @@
 
 #include "programming.h"
 #include "indicator.h"
+#include "../constants.h"
 #include "../storage/storage.h"
 #include "../sound/sound.h"
 #include "../util/timeout.h"
