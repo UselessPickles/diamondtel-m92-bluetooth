@@ -43,7 +43,9 @@ static enum {
   APP_CALL_SENDING,
   APP_CALL_ACCEPTING,
   APP_CALL_REJECTING,
-  APP_CALL_ENDING
+  APP_CALL_ENDING,
+  APP_CALL_VOICE_COMMAND,
+  APP_CALL_CANCEL_VOICE_COMMAND
 } APP_CallAction;
 
 #define CALL_ACTION_TIMEOUT (150)
@@ -51,7 +53,7 @@ static timeout_t callActionTimeout;
 
 static enum {
   BT_CALL_IDLE,
-  BT_CALL_VOICE_DIAL,
+  BT_CALL_VOICE_COMMAND,
   BT_CALL_INCOMING,
   BT_CALL_OUTGOING,
   BT_CALL_ACTIVE,
@@ -78,6 +80,7 @@ static enum {
   APP_State_NUMBER_INPUT,
   APP_State_PAIRING,    
   APP_State_INCOMING_CALL,
+  APP_State_VOICE_COMMAND,
   APP_State_SELECT_RINGTONE,    
   APP_State_SELECT_SYSTEM_MODE,    
   APP_State_ADJUST_VIEW_ANGLE,
@@ -118,6 +121,7 @@ static char const* const appStateLabel[] = {
   "NUMBER_INPUT",
   "PAIRING",    
   "INCOMING_CALL",
+  "VOICE_COMMAND",
   "SELECT_RINGTONE",    
   "SELECT_SYSTEM_MODE",    
   "ADJUST_VIEW_ANGLE",
@@ -1107,11 +1111,21 @@ static void startEnterSecurityCode(SecurityAction action, bool prompt) {
   appState = APP_State_ENTER_SECURITY_CODE;
 }
 
+static void displayVoiceCommand(void) {
+  HANDSET_DisableTextDisplay();
+  HANDSET_ClearText();
+  HANDSET_PrintString("VOICE  COMMAND");
+  HANDSET_EnableTextDisplay();
+  appState = APP_State_VOICE_COMMAND;
+}
+
 static void handleReturnFromSubModule(void) {
   HANDSET_CancelCurrentButtonHoldEvents();
 
   if (BT_CallStatus == BT_CALL_INCOMING) {
     showIncomingCall(false);
+  } else if ((BT_CallStatus == BT_CALL_VOICE_COMMAND) || (APP_CallAction == APP_CALL_VOICE_COMMAND)) {
+    displayVoiceCommand();
   } else {
     returnToNumberInput(false);
   }  
@@ -1211,8 +1225,8 @@ static void handleCallStatusChange(int newCallStatus) {
       if ((appState == APP_State_INCOMING_CALL) && (APP_CallAction != APP_CALL_REJECTING)) {
         numberInputIsStale = true;
         showIncomingCall(true);
-      } else { 
-        if ((APP_CallAction != APP_CALL_ENDING) && (APP_CallAction != APP_CALL_REJECTING)) {
+      } else {
+        if ((APP_CallAction != APP_CALL_ENDING) && (APP_CallAction != APP_CALL_REJECTING) && (APP_CallAction != APP_CALL_CANCEL_VOICE_COMMAND)) {
           SOUND_PlayEffect(
             SOUND_Channel_FOREGROUND, 
             SOUND_Target_EAR,
@@ -1222,7 +1236,7 @@ static void handleCallStatusChange(int newCallStatus) {
           );
         }
 
-        if ((appState == APP_State_NUMBER_INPUT) || (appState == APP_State_INCOMING_CALL)) {
+        if ((appState == APP_State_VOICE_COMMAND) || (appState == APP_State_NUMBER_INPUT) || (appState == APP_State_INCOMING_CALL)) {
           numberInputIsStale = true;
           returnToNumberInput(false);
         }
@@ -1270,7 +1284,7 @@ static void handleCallStatusChange(int newCallStatus) {
 
       if (appState == APP_State_NUMBER_INPUT) {
         NumberInput_PrintToHandset();
-      } else if (appState == APP_State_INCOMING_CALL) {
+      } else if ((appState == APP_State_INCOMING_CALL) || (appState == APP_State_VOICE_COMMAND)) {
         returnToNumberInput(false);
       }
       break;
@@ -1301,7 +1315,15 @@ static void handleCallStatusChange(int newCallStatus) {
       }
       break;
 
-    case BT_CALL_VOICE_DIAL:
+    case BT_CALL_VOICE_COMMAND:
+      HANDSET_SetIndicator(HANDSET_Indicator_IN_USE, true);
+      wakeUpHandset(true);
+      BT_SetHFPGain(0x0F);
+      SOUND_SetDefaultAudioSource(SOUND_AudioSource_BT);
+      
+      if (appState != APP_State_VOICE_COMMAND) {
+        displayVoiceCommand();
+      }
       break;
   }
 
@@ -1446,7 +1468,7 @@ void APP_Task(void) {
   }
   
   if (TIMEOUT_Task(&callActionTimeout)) {
-    if (APP_CallAction == APP_CALL_SENDING) {
+    if ((APP_CallAction == APP_CALL_SENDING) || (APP_CallAction == APP_CALL_VOICE_COMMAND)) {
       startCallFailed();
     }
     
@@ -1464,6 +1486,7 @@ void APP_Task(void) {
     // "SEND" button manually to answer the call.
     SOUND_PlayButtonBeep(HANDSET_Button_NONE, true);
     APP_CallAction = APP_CALL_ACCEPTING;
+    TIMEOUT_Start(&callActionTimeout, CALL_ACTION_TIMEOUT);
   }
   
   if (TIMEOUT_Task(&pendingCallStatusTimeout)) {
@@ -2005,6 +2028,7 @@ void handle_HANDSET_Event(HANDSET_Event const* event) {
       case APP_State_RECALL_BT_DEVICE_NAME:  
       case APP_State_RECALL_PAIRED_DEVICE_NAME:  
       case APP_State_INCOMING_CALL:
+      case APP_State_VOICE_COMMAND:  
       {
         VOLUME_Mode volumeMode;
 
@@ -2219,6 +2243,7 @@ void handle_HANDSET_Event(HANDSET_Event const* event) {
                   SOUND_PlayButtonBeep(button, false);
                   BT_EndHoldOrWaitingCall();
                   APP_CallAction = APP_CALL_ENDING;
+                  TIMEOUT_Start(&callActionTimeout, CALL_ACTION_TIMEOUT);
                 }
               } else if (button == HANDSET_Button_1) {
                 SOUND_PlayDTMFButtonBeep(button, false);
@@ -2590,6 +2615,7 @@ void handle_HANDSET_Event(HANDSET_Event const* event) {
             BT_SwapHoldOrWaitingCall();
           }
           APP_CallAction = APP_CALL_ACCEPTING;
+          TIMEOUT_Start(&callActionTimeout, CALL_ACTION_TIMEOUT);
           return;
         } else if ((button == HANDSET_Button_END) && (APP_CallAction == APP_CALL_IDLE)) {
           if (isFcn) {
@@ -2597,6 +2623,7 @@ void handle_HANDSET_Event(HANDSET_Event const* event) {
               SOUND_PlayButtonBeep(button, false);
               BT_EndHoldOrWaitingCall();
               APP_CallAction = APP_CALL_REJECTING;
+              TIMEOUT_Start(&callActionTimeout, CALL_ACTION_TIMEOUT);
             }
           } else {
             SOUND_PlayButtonBeep(button, false);
@@ -2608,6 +2635,7 @@ void handle_HANDSET_Event(HANDSET_Event const* event) {
               BT_SwapHoldOrWaitingCallAndEndActiveCall();
             }
             APP_CallAction = APP_CALL_REJECTING;
+            TIMEOUT_Start(&callActionTimeout, CALL_ACTION_TIMEOUT);
           }
           return;
         }
@@ -2615,6 +2643,17 @@ void handle_HANDSET_Event(HANDSET_Event const* event) {
         TIMEOUT_Cancel(&autoAnswerTimeout);
         BT_AcceptCall();
         APP_CallAction = APP_CALL_ACCEPTING;
+        TIMEOUT_Start(&callActionTimeout, CALL_ACTION_TIMEOUT);
+      }
+      break;
+      
+    case APP_State_VOICE_COMMAND:  
+      if (isButtonDown && (button == HANDSET_Button_END)) {
+        SOUND_PlayButtonBeep(button, false);
+        APP_CallAction = APP_CALL_CANCEL_VOICE_COMMAND;
+        TIMEOUT_Start(&callActionTimeout, CALL_ACTION_TIMEOUT);
+        BT_CancelVoiceCommand();
+        return;
       }
       break;
       
@@ -2858,6 +2897,7 @@ void handle_HANDSET_Event(HANDSET_Event const* event) {
         BT_EndCall();
       }
       APP_CallAction = APP_CALL_ENDING;
+      TIMEOUT_Start(&callActionTimeout, CALL_ACTION_TIMEOUT);
     }
   }
   
@@ -2865,6 +2905,24 @@ void handle_HANDSET_Event(HANDSET_Event const* event) {
     if ((BT_CallStatus >= BT_CALL_ACTIVE) && (APP_CallAction == APP_CALL_IDLE)) {
       SOUND_PlayButtonBeep(button, false);
       BT_SwapHoldOrWaitingCall();
+    }
+  }
+  
+  if (
+      (button == HANDSET_Button_SEND) && 
+      (event->type == HANDSET_EventType_BUTTON_HOLD) &&
+      (event->holdDuration == HANDSET_HoldDuration_SHORT) &&
+      (BT_CallStatus == BT_CALL_IDLE) &&
+      (APP_CallAction == APP_CALL_IDLE)
+      ) {
+    if (!cellPhoneState.isConnected) {
+      startCallFailed();
+    } else {
+      SOUND_PlayButtonBeep(button, false);
+      APP_CallAction = APP_CALL_VOICE_COMMAND;
+      TIMEOUT_Start(&callActionTimeout, CALL_ACTION_TIMEOUT);
+      BT_StartVoiceCommand();
+      displayVoiceCommand();
     }
   }
 }
@@ -3122,7 +3180,7 @@ void APP_BT_EventHandler(uint8_t event, uint16_t para, uint8_t* para_full) {
       
     case BT_EVENT_HFP_VOLUME_CHANGED:
       printf("[PHONE] Volume changed: %d\r\n", para);
-      if (BT_CallStatus >= BT_CALL_OUTGOING) {
+      if (BT_CallStatus != BT_CALL_IDLE) {
         BT_SetHFPGain(0x0F);
       }
       break;

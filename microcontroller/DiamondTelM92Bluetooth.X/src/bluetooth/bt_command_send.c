@@ -246,6 +246,14 @@ bool BT_SetDeviceName(char const* name) {
 	return copySendingCommandToBuffer(command, len + 8); 
 }
 
+void BT_StartVoiceCommand(void) {
+  BT_MMI_ActionCommand(VOICE_DIAL, BT_linkIndex);
+}
+
+void BT_CancelVoiceCommand(void) {
+  BT_MMI_ActionCommand(CANCEL_VOICE_DIAL, BT_linkIndex);
+}
+
 bool BT_MakeCall(char const* number) {
   printf("[CALL] Make Call: %s\r\n", number);
   
@@ -274,7 +282,6 @@ void BT_SetMicrohponeMuted(bool isMuted) {
 
 void BT_EndCall(void) {
   printf("[CALL] End Call\r\n");
-  //BT_MMI_ActionCommand(ENDCALL_OR_TRANSFER_TO_HEADSET, 0);
   BT_MMI_ActionCommand(FORCE_END_CALL, BT_linkIndex);
 }
 
@@ -388,19 +395,28 @@ void BT_DisconnectAllProfile(void)
 /*------------------------------------------------------------*/
 void BT_SetHFPGain(uint8_t gain)
 {
-    uint8_t command[11];
+    uint8_t command[7];
     command[0] = 0xAA;                      //header byte 0
     command[1] = 0x00;                      //header byte 1
-    command[2] = 0x07;                    //length
-    command[3] = SET_OVERALL_GAIN;                //command ID
+    command[2] = 0x03;                    //length
+    command[3] = SET_HF_GAIN_LEVEL;                //command ID
     command[4] = BT_linkIndex;                      //link index
-    command[5] = 0x02;                      //mask bits
-    command[6] = 0x03;                      //type
-    command[7] = 0;
-    command[8] = gain & 0x0f;
-    command[9] = 0;
-    command[10] = BT_CalculateCmdChecksum(&command[2], &command[9]);
-  	copyCommandToBuffer(&command[0], 11, CMD_INFO_MCU);
+    command[5] = gain & 0x0f;
+    command[6] = BT_CalculateCmdChecksum(&command[2], &command[5]);
+  	copyCommandToBuffer(&command[0], 7, CMD_INFO_MCU);
+//    uint8_t command[11];
+//    command[0] = 0xAA;                      //header byte 0
+//    command[1] = 0x00;                      //header byte 1
+//    command[2] = 0x07;                    //length
+//    command[3] = SET_OVERALL_GAIN;                //command ID
+//    command[4] = BT_linkIndex;                      //link index
+//    command[5] = 0x02;                      //mask bits
+//    command[6] = 0x03;                      //type
+//    command[7] = 0;
+//    command[8] = gain & 0x0f;
+//    command[9] = 0;
+//    command[10] = BT_CalculateCmdChecksum(&command[2], &command[9]);
+//  	copyCommandToBuffer(&command[0], 11, CMD_INFO_MCU);
 }
 
 /*------------------------------------------------------------*/

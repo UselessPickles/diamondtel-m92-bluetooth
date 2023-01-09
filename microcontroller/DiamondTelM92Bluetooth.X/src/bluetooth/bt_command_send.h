@@ -85,7 +85,7 @@ enum
   MUTE_MIC = 0x08,
   UNMUTE_MIC  = 0x09,
   VOICE_DIAL  = 0x0A,
-  CANCLE_VOICE_DAIL = 0x0B,
+  CANCEL_VOICE_DIAL = 0x0B,
   LAST_NUMBER_REDIAL = 0x0C,
   ACTIVE_CALL_HOLD_ACCEPT_HELD_CALL = 0x0D,
   VOICE_TRANSFER = 0x0E,
@@ -148,6 +148,8 @@ void BT_SetEventMask(void);
 void BT_ReadLinkedDeviceName(void);
 void BT_ReadDeviceName(void);
 bool BT_SetDeviceName(char const* name);
+void BT_StartVoiceCommand(void);
+void BT_CancelVoiceCommand(void);
 bool BT_MakeCall(char const* number);
 void BT_SetMicrohponeMuted(bool isMuted);
 void BT_EndCall(void);
