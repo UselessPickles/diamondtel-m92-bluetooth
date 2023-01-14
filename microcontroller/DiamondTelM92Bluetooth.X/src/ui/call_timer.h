@@ -24,6 +24,8 @@ void CALL_TIMER_EnableDisplayUpdate(void);
 
 void CALL_TIMER_DisableDisplayUpdate(void);
 
+bool CALL_TIMER_IsDisplayEnabled(void);
+
 #ifdef	__cplusplus
 }
 #endif

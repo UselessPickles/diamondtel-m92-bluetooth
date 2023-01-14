@@ -380,7 +380,7 @@ static char numberInput[NUMBER_INPUT_MAX_LENGTH + 1];
 static char dialedNumber[NUMBER_INPUT_MAX_LENGTH + 1];
 static char* dialedNumberNextDigitsToDial;
 static size_t numberInputLength;
-static volatile bool numberInputIsStale;
+static bool numberInputIsStale;
 
 static char tempNumberBuffer[NUMBER_INPUT_MAX_LENGTH + 1];
 
@@ -433,17 +433,10 @@ static void NumberInput_PopDigit(void) {
 }
 
 static void NumberInput_PrintToHandset(void)  {
+  CALL_TIMER_DisableDisplayUpdate();
+
   if (numberInputLength == 0) {
-    if (BT_CallStatus != BT_CALL_IDLE) {
-      if (BT_CallStatus == BT_CALL_OUTGOING) {
-        HANDSET_DisableTextDisplay();
-        HANDSET_ClearText();
-        HANDSET_PrintString("CALLING");
-        HANDSET_EnableTextDisplay();
-      } else {
-        CALL_TIMER_EnableDisplayUpdate();
-      }
-    } else if (TRANSCEIVER_IsBatteryLevelLow()) {
+    if (TRANSCEIVER_IsBatteryLevelLow()) {
       HANDSET_DisableTextDisplay();
       HANDSET_ClearText();
       HANDSET_PrintString("  LOW  BATTERY");
@@ -452,16 +445,9 @@ static void NumberInput_PrintToHandset(void)  {
       HANDSET_ClearText();
     }
   } else {
-    CALL_TIMER_DisableDisplayUpdate();
     HANDSET_DisableTextDisplay();
     HANDSET_ClearText();
-
-    if (numberInputLength > 14) {
-      HANDSET_PrintString(numberInput + numberInputLength - 14);
-    } else {
-      HANDSET_PrintString(numberInput);
-    }
-
+    HANDSET_PrintString(numberInput);
     HANDSET_EnableTextDisplay();
   }
 }
@@ -559,9 +545,11 @@ static void NumberInput_CallCurrentNumber(void) {
   if (!cellPhoneState.hasService || !BT_MakeCall(dialedNumber)) {
     startCallFailed();
   } else {
-    if (appState != APP_State_NUMBER_INPUT) {
-      NumberInput_PrintToHandset();
-      appState = APP_State_NUMBER_INPUT;
+    if (
+        (appState != APP_State_NUMBER_INPUT) && 
+        (appState != APP_State_DISPLAY_NUMBER_OVERFLOW)
+        ) {
+      returnToNumberInput(false);
     }
 
     APP_CallAction = APP_CALL_SENDING;
@@ -975,11 +963,18 @@ static void returnToNumberInput(bool withRecalledNumber) {
   HANDSET_SetTextBlink(false);
   MARQUEE_Stop();
   
-  if (numberInputLength > 14) {
-    recallNumberInputOverflow(withRecalledNumber ? RECALL_FROM_MEMORY : RECALL_FROM_INPUT_AUTOMATIC);
-  } else {
-    NumberInput_PrintToHandset();
+  if ((BT_CallStatus >= BT_CALL_ACTIVE) && !CALL_TIMER_IsDisplayEnabled()) {
+    CALL_TIMER_EnableDisplayUpdate();
     appState = APP_State_NUMBER_INPUT;
+  } else {
+    CALL_TIMER_DisableDisplayUpdate();
+    
+    if (numberInputLength > 14) {
+      recallNumberInputOverflow(withRecalledNumber ? RECALL_FROM_MEMORY : RECALL_FROM_INPUT_AUTOMATIC);
+    } else {
+      NumberInput_PrintToHandset();
+      appState = APP_State_NUMBER_INPUT;
+    }
   }
 }
 
@@ -1122,7 +1117,7 @@ static void displayVoiceCommand(void) {
 static void handleReturnFromSubModule(void) {
   HANDSET_CancelCurrentButtonHoldEvents();
 
-  if (BT_CallStatus == BT_CALL_INCOMING) {
+  if ((BT_CallStatus == BT_CALL_INCOMING) || (BT_CallStatus == BT_CALL_ACTIVE_WITH_CALL_WAITING)) {
     showIncomingCall(false);
   } else if ((BT_CallStatus == BT_CALL_VOICE_COMMAND) || (APP_CallAction == APP_CALL_VOICE_COMMAND)) {
     displayVoiceCommand();
@@ -1278,13 +1273,7 @@ static void handleCallStatusChange(int newCallStatus) {
         INDICATOR_StopFlashing(HANDSET_Indicator_IN_USE, true);
       }
 
-      if (APP_CallAction == APP_CALL_SENDING) {
-        NumberInput_Clear();
-      }
-
-      if (appState == APP_State_NUMBER_INPUT) {
-        NumberInput_PrintToHandset();
-      } else if ((appState == APP_State_INCOMING_CALL) || (appState == APP_State_VOICE_COMMAND)) {
+      if ((appState == APP_State_INCOMING_CALL) || (appState == APP_State_VOICE_COMMAND) || (BT_CallStatus != BT_CALL_OUTGOING)) {
         returnToNumberInput(false);
       }
       break;
@@ -1862,6 +1851,20 @@ void handle_HANDSET_Event(HANDSET_Event const* event) {
     HANDSET_SetMicrophone(!event->isOnHook);
   }
 
+  if (
+      ((APP_CallAction == APP_CALL_SENDING) || (BT_CallStatus == BT_CALL_OUTGOING)) && 
+      (button != HANDSET_Button_END) && 
+      (button != HANDSET_Button_UP) && 
+      (button != HANDSET_Button_DOWN)
+      ) {
+    
+    // Most button handling is disabled while an outgoing call is pending,
+    // except for the button handling above and button handling below for:
+    // - END to end the call
+    // - UP/DOWN to adjust volume
+    return;
+  }
+  
   if (event->button != HANDSET_Button_PWR) {
     switch (appState) {
       case APP_State_PROGRAMMING: 
@@ -2451,11 +2454,22 @@ void handle_HANDSET_Event(HANDSET_Event const* event) {
               BT_SetMicrohponeMuted(isMuted);
               HANDSET_SetIndicator(HANDSET_Indicator_MUTE, isMuted);
             }
-          } else if ((button == HANDSET_Button_CLR) && isNumberInput && numberInputLength) {
-            SOUND_PlayButtonBeep(button, false);
-            NumberInput_PopDigit();
-            NumberInput_PrintToHandset();
+          } else if ((button == HANDSET_Button_CLR)) {
             isRclInputPending = false;
+
+            if (CALL_TIMER_IsDisplayEnabled()) {
+              SOUND_PlayButtonBeep(button, false);
+              HANDSET_CancelCurrentButtonHoldEvents();
+              returnToNumberInput(false);
+            } else if (isNumberInput && !numberInputLength && (BT_CallStatus >= BT_CALL_ACTIVE)) {
+              SOUND_PlayButtonBeep(button, false);
+              HANDSET_CancelCurrentButtonHoldEvents();
+              CALL_TIMER_EnableDisplayUpdate();
+            } else if (isNumberInput && numberInputLength) {
+              SOUND_PlayButtonBeep(button, false);
+              NumberInput_PopDigit();
+              NumberInput_PrintToHandset();
+            }
           } else if (canType && HANDSET_IsButtonPrintable(button)) {
             if (NumberInput_HasIncompleteCreditCardMemorySymbol()) {
               if (!isValidCreditCardMemoryButton(button)) {
@@ -2476,21 +2490,19 @@ void handle_HANDSET_Event(HANDSET_Event const* event) {
               appState = APP_State_NUMBER_INPUT;
             }
             
+            bool const redraw = numberInputIsStale || wasDisplayingNonNumberInput || CALL_TIMER_IsDisplayEnabled();
+            
             if (numberInputIsStale) {
               NumberInput_Clear();
-              HANDSET_ClearText();
             }
             
             NumberInput_PushDigit(button);
             
-            if (numberInputLength == 1) {
-              CALL_TIMER_DisableDisplayUpdate();
-              HANDSET_ClearText();
-            } else if (wasDisplayingNonNumberInput) {
+            if (redraw) {
               NumberInput_PrintToHandset();
+            } else {
+              HANDSET_PrintChar(button);
             }
-            
-            HANDSET_PrintChar(button);
           } else if (button == HANDSET_Button_SEND) {
             if ((BT_CallStatus >= BT_CALL_ACTIVE) && (APP_CallAction == APP_CALL_IDLE)) {
               if (dialedNumberNextDigitsToDial) {
@@ -2951,7 +2963,7 @@ void handle_TRANSCEIVER_Event(TRANSCEIVER_EventType event) {
       INTERVAL_Cancel(&lowBatteryBeepInterval);
 
       if ((appState == APP_State_NUMBER_INPUT) && (numberInputLength == 0)) {
-        NumberInput_PrintToHandset();
+        returnToNumberInput(false);
       }
       reportBatteryLevelToBT();
       break;

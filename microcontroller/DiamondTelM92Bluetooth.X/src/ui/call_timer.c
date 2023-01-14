@@ -138,6 +138,10 @@ void CALL_TIMER_Start(bool updateDisplay) {
 }
 
 void CALL_TIMER_Stop(void) {
+  if (!isRunning) {
+    return;
+  }
+  
   TMR0_StopTimer();
   isRunning = false;
   isDisplayUpdateEnabled = false;
@@ -159,6 +163,10 @@ void CALL_TIMER_EnableDisplayUpdate(void) {
 
 void CALL_TIMER_DisableDisplayUpdate(void) {
   isDisplayUpdateEnabled = false;
+}
+
+bool CALL_TIMER_IsDisplayEnabled(void) {
+  return isDisplayUpdateEnabled;
 }
 
 
