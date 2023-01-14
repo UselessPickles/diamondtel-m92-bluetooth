@@ -11,13 +11,13 @@
 #include <string.h>
 #include <stdio.h>
 
-/* 
+/** 
  * Number of indicators defined by HANDSET_Indicator 
  * (not including the special HANDSET_Indicator_NO_SVC)
  */ 
 #define INDICATOR_COUNT (14)
 
-/*
+/**
  * Lookup table of HANDSET_Indicator -> UART command for turning the 
  * indicator on.
  * (not including the special HANDSET_Indicator_NO_SVC)

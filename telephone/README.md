@@ -67,7 +67,7 @@ Most indicators are simply turned on/of via single UART commands. Special cases 
 - `NO SVC`: This is actually two separate indicators, `NO` and `SVC`, although they are alays turned on/off togetehr in practice.
 - Signal Strength: Each of the 6 singal strenght bars is an individual indicator that can be turned on/off, but there are also special UART commands for setting them to represent a numeric signal strength in the range 0-6.
 
-See the UART command reference for more details.
+See [Indicators On/Off](#indicators-onoff) and [Set Signal Strength](#set-signal-strength) for more details.
 
 #### Text
 
@@ -75,17 +75,17 @@ The text portion of the display can display most standard ASCII characters, and 
 
 There is no known way to control individual pixels, or define custom characters.
 
-Each character position on the display can be mapped to a position index, starting with 0 at the bottom right to 6 at the bottm left, then wrapping around to 7 at the top right and continuing to 13 at the top left (the image of the display above shows this with hexadecimal index characters displayed in corresponding positions).
+Each character position on the display can be mapped to a position index, starting with 0 at the bottom right to 6 at the bottom left, then wrapping around to 7 at the top right and continuing to 13 at the top left (the image of the display above shows this with hexadecimal index characters displayed in corresponding positions).
 
 This order of the position indexes is also the natural flow of characters as they are "pushed" onto the display.
 
-See the UART command reference for more details.
+See [Print Text](#print-text) and [Delete Text](#delete-text) for more details.
 
 #### Adjustable View Angle
 
 The contrast between the "on" and "off" pixels within the text area is only ideal from a narrow viewing angle. Through some black magic I don't understand, the handset supports adjusting this ideal viewing angle (via UART commands, of course).
 
-See the UART command reference for more details.
+See [LCD Display Angle](#lcd-display-angle) for more details.
 
 ### Buttons
 
@@ -95,13 +95,15 @@ In addition to the obvious buttons on the face of the handset, there are also 2 
 
 The [power button (PWR)](#pwr-button-pin-8) is unique in that it is the only directly-wired hardware button. All other buttons cause UART events when pressed/released.
 
+See [Handset UART Events](#handset-uart-events) for more details.
+
 ### Backlight
 
 Both the LCD display and the buttons on the front face of the handset have backlighting.
 
 The backlight can be turned on/off via UART commands.
 
-See the UART command reference for more details.
+See [Backlight On/Off](#backlight-onoff) details.
 
 ### Audio
 
@@ -114,6 +116,8 @@ The loud speaker is used for hands-free conversation, as well as general sound e
 The phone does not have a built-in microphone for hands-free mode. Instead, the transceiver has a microphone jack for use with an external microphone.
 
 See the RJ45 pinout sections about the [audio input](#analog-audio-input-pins-1-and-2) and [microphone output](#analog-microphone-output-pin-3) for more technical details.
+
+Also see [Audio On/Off](#audio-onoff) for related UART commands.
 
 ## Handset Cord RJ45 Pinout
 
@@ -264,6 +268,8 @@ For all buttons except `FCN` and `CLR`, the handset cannot keep track of more th
 | 3 | Release 1 | 0x32: Press 2 |
 | 4 | Release 2 | 0x04: Release |
 
+The above example shows that rushed 2-finger/thumb typing of number sequences still produces overall correct results, but changing the order in which the 2 buttons are released will produce the following strange results:
+
 | # | Action    | Event |
 |---|-----------|-------|
 | 1 | Press 1   | 0x31: Press 1 |
@@ -271,7 +277,7 @@ For all buttons except `FCN` and `CLR`, the handset cannot keep track of more th
 | 3 | Release 2 | 0x31: Press 1 |
 | 4 | Release 1 | 0x04: Release |
 
-When `FCN` or `CLR` are involved, then the sequence of events makes more sense, but there's still ambiguity in the release events:
+When `FCN` or `CLR` are involved, then the sequence of events makes more sense, but there's still ambiguity in the release events. The same exact sequence of events occurs regardless of the order in which the 2 buttons are released.
 
 | # | Action      | Event |
 |---|-------------|-------|
@@ -284,8 +290,8 @@ When `FCN` or `CLR` are involved, then the sequence of events makes more sense, 
 |---|-------------|-------|
 | 1 | Press CLR   | 0x80: Press CLR |
 | 2 | Press 1     | 0x91: Press CLR + 1 |
+| 4 | Release CLR | 0x04: Release |
 | 3 | Release 1   | 0x04: Release |
-| 4 | Release FCN | 0x04: Release |
 
 As a result of these confusing event sequences, it's best to avoid any UX design that relies on multiple overlapping button presses, except for handling the special `CLR`-modified button presses.
 
@@ -339,7 +345,7 @@ There are two ways to print text to the display:
 | 0xC4        | Large up arrow (solid) |
 | 0xC5        | Large down arrow (solid) |
 | 0xC6        | Solid rectangle (all pixles of the character) |
-| 0xC7        | Horizontally striped rectangle, or upside-down "T" symbole, depending on age of handset |
+| 0xC7        | Horizontally striped rectangle, or upside-down "T" symbol, depending on age of handset |
 
 #### Positioned Printing
 
@@ -357,9 +363,9 @@ NOTE: The positioning command only affects the immediately next character printi
 
 #### Interaction between Standard and Positioned Printing
 
-If a position print places a character in a position currently occupied by a standard printed character, then the positioned character overwrites that the character at that position, but retains the behavior of standard printing. It will be pushed to the next higher position next time standard printing pushes a character onto the display.
+If a position print places a character in a position currently occupied by a standard printed character, then the positioned character overwrites the character at that position, but retains the behavior of standard printing. It will be pushed to the next higher position next time standard printing pushes a character onto the display.
 
-However, if a position print places a character in a position that has NOT yet been reached by standard printing, then the positioned character will remain in its initial position until standard printing "overtakes" and overwrites it.
+However, if a positioned print places a character in a position that has NOT yet been reached by standard printing, then the positioned character will remain in its initial position until standard printing "overtakes" and overwrites it.
 
 ### Text Display On/Off
 
@@ -394,7 +400,7 @@ There are commands for turning all text display pixels on/off.
 | All Pixels ON  | 0xBA |
 | All Pixels OFF | 0xBB |
 
-The interaction between this and the current state of characters printed to the display is unknown. It is recommended to use the [delete command](#delete-text) to clear the text display instead.
+The interaction between this and the current state of characters printed to the display is unknown. It is recommended to use the [delete command](#delete-text) to clear the text display instead, because the original transceiver was observed to always use the delete command for clearing the display.
 
 ### Flashing Cursor
 
@@ -491,9 +497,9 @@ Each of the [audio components](#audio) of the handset (ear speaker, loud speaker
 
 NOTE: There's a common pattern of `[off command] = [on command] + 1` for each pair of on/off commands.
 
-In order for an audio component to be fully ON, the "Master" ausio must also be ON.
+In order for an audio component to be fully ON, the "Master" audio must also be ON.
 
-The on/off state of individual components is retained and cane bechanged while Master audoio is off.
+The on/off state of individual components is retained and can be changed while Master audio is off.
 
 Turning master audio off likely conserves power better than simply turning the individual components off, but be aware that it takes longer for the Master audio to turn on/off (which can cause a delay in producing sound), and it can cause a "pop" in the audio.
 
