@@ -194,6 +194,7 @@ static bool isMuted;
 
 static bool isFcn;
 static bool isExtendedFcn;
+static bool isCallTimerDisplayedByDefault;
 
 #define FCN_TIMEOUT (400)
 static timeout_t fcnTimeout;
@@ -401,6 +402,7 @@ static void NumberInput_Overwrite(char const* str) {
   numberInputLength = strlen(str);
   memcpy(numberInput, str, numberInputLength + 1);
   numberInputIsStale = false;
+  isCallTimerDisplayedByDefault = false;
 }
 
 static void NumberInput_PushDigit(char digit) {
@@ -412,6 +414,7 @@ static void NumberInput_PushDigit(char digit) {
     numberInput[NUMBER_INPUT_MAX_LENGTH - 1] = digit;
   }
   numberInputIsStale = false;
+  isCallTimerDisplayedByDefault = false;
 }
 
 static bool NumberInput_HasIncompleteCreditCardMemorySymbol(void) {
@@ -963,12 +966,16 @@ static void returnToNumberInput(bool withRecalledNumber) {
   HANDSET_SetTextBlink(false);
   MARQUEE_Stop();
   
-  if ((BT_CallStatus >= BT_CALL_ACTIVE) && !CALL_TIMER_IsDisplayEnabled()) {
+  if ((BT_CallStatus >= BT_CALL_ACTIVE) && !numberInputLength) {
+    isCallTimerDisplayedByDefault = true;
+  }
+  
+  if (isCallTimerDisplayedByDefault) {
     CALL_TIMER_EnableDisplayUpdate();
     appState = APP_State_NUMBER_INPUT;
   } else {
     CALL_TIMER_DisableDisplayUpdate();
-    
+
     if (numberInputLength > 14) {
       recallNumberInputOverflow(withRecalledNumber ? RECALL_FROM_MEMORY : RECALL_FROM_INPUT_AUTOMATIC);
     } else {
@@ -976,6 +983,13 @@ static void returnToNumberInput(bool withRecalledNumber) {
       appState = APP_State_NUMBER_INPUT;
     }
   }
+}
+
+static void setExternallyInitiatedOutgoingCallNumber(char const* number) {
+  NumberInput_Overwrite(number);
+  numberInputIsStale = true;
+  returnToNumberInput(false);
+  STORAGE_SetLastDialedNumber(number);
 }
 
 static void selectSystemMode(bool isVehicleMode) {
@@ -1153,32 +1167,42 @@ void handleCallListAtResponse(ATCMD_Response response, char const* result) {
     char const* nextField = parseNextCsvField(buffer, result + 7);
     // dir
     nextField = parseNextCsvField(buffer, nextField);
+    // stat
+    nextField = parseNextCsvField(buffer, nextField);
+    char const stat = *buffer;
+    // mode
+    nextField = parseNextCsvField(buffer, nextField);
+    // mpty
+    nextField = parseNextCsvField(buffer, nextField);
+    // number
+    nextField = parseNextCsvField(phoneNumber, nextField);
+    // type
+    nextField = parseNextCsvField(buffer, nextField);
+    // alpha
+    nextField = parseNextCsvField(buffer, nextField);
 
-    // If is MT (incoming)...
-    if (*buffer == '1') {
-      // stat
-      nextField = parseNextCsvField(buffer, nextField);
-
-      // If is Incoming Call or Call Waiting...
-      if ((*buffer == '4') || (*buffer == '5')) {
-        // mode
-        nextField = parseNextCsvField(buffer, nextField);
-        // mpty
-        nextField = parseNextCsvField(buffer, nextField);
-        // number
-        nextField = parseNextCsvField(phoneNumber, nextField);
-        // type
-        nextField = parseNextCsvField(buffer, nextField);
-        // alpha
-        nextField = parseNextCsvField(buffer, nextField);
-
-        // If "alpha" is populated, then use it as Caller ID
-        if (*buffer) {
-          setCallerId(buffer, strlen(buffer));
-        } else {
-          setCallerId(phoneNumber, strlen(phoneNumber));
+    switch (BT_CallStatus) {
+      case BT_CALL_INCOMING:
+      case BT_CALL_ACTIVE_WITH_CALL_WAITING:
+        // Process incoming or call waiting result to get caller ID
+        if ((stat == '4') || (stat == '5')) {
+          // If "alpha" is populated, then use it as Caller ID
+          if (*buffer) {
+            setCallerId(buffer, strlen(buffer));
+          } else {
+            setCallerId(phoneNumber, strlen(phoneNumber));
+          }
         }
-      }
+        break;
+        
+      case BT_CALL_OUTGOING:
+        // Process outgoing call result to get the called number.
+        // ASSUMPTION: We only request this for outgoing calls that were
+        //             initiated externally.
+        if (stat == '2') {
+          setExternallyInitiatedOutgoingCallNumber(phoneNumber);
+        }
+        break;
     }
   }
 }
@@ -1216,12 +1240,17 @@ static void handleCallStatusChange(int newCallStatus) {
       dialedNumberNextDigitsToDial = NULL;
       CALL_TIMER_Stop();
       SOUND_SetDefaultAudioSource(SOUND_AudioSource_MCU);
+      isCallTimerDisplayedByDefault = false;
 
       if ((appState == APP_State_INCOMING_CALL) && (APP_CallAction != APP_CALL_REJECTING)) {
         numberInputIsStale = true;
         showIncomingCall(true);
       } else {
-        if ((APP_CallAction != APP_CALL_ENDING) && (APP_CallAction != APP_CALL_REJECTING) && (APP_CallAction != APP_CALL_CANCEL_VOICE_COMMAND)) {
+        if (
+            (APP_CallAction != APP_CALL_ENDING) && 
+            (APP_CallAction != APP_CALL_REJECTING) && 
+            (APP_CallAction != APP_CALL_CANCEL_VOICE_COMMAND
+            )) {
           SOUND_PlayEffect(
             SOUND_Channel_FOREGROUND, 
             SOUND_Target_EAR,
@@ -1231,7 +1260,11 @@ static void handleCallStatusChange(int newCallStatus) {
           );
         }
 
-        if ((appState == APP_State_VOICE_COMMAND) || (appState == APP_State_NUMBER_INPUT) || (appState == APP_State_INCOMING_CALL)) {
+        if (
+            (appState == APP_State_VOICE_COMMAND) || 
+            (appState == APP_State_NUMBER_INPUT) ||
+            (appState == APP_State_INCOMING_CALL)
+            ) {
           numberInputIsStale = true;
           returnToNumberInput(false);
         }
@@ -1245,7 +1278,12 @@ static void handleCallStatusChange(int newCallStatus) {
       break;
 
     case BT_CALL_ACTIVE:
-      if ((prevCallStatus == BT_CALL_ACTIVE_WITH_HOLD) && (APP_CallAction != APP_CALL_ENDING) && (APP_CallAction != APP_CALL_REJECTING)) {
+      if (
+          (prevCallStatus == BT_CALL_ACTIVE_WITH_HOLD) && 
+          (APP_CallAction != APP_CALL_ENDING)
+          ) {
+        // A second call was ended externally, so play the "call disconnect"
+        // sound.
         SOUND_PlayEffect(
           SOUND_Channel_FOREGROUND, 
           SOUND_Target_EAR,
@@ -1253,6 +1291,10 @@ static void handleCallStatusChange(int newCallStatus) {
           SOUND_Effect_CALL_DISCONNECT, 
           false
         );
+      }
+      
+      if (prevCallStatus < BT_CALL_ACTIVE) {
+        isCallTimerDisplayedByDefault = true;
       }
       // Look out below!
       
@@ -1273,7 +1315,20 @@ static void handleCallStatusChange(int newCallStatus) {
         INDICATOR_StopFlashing(HANDSET_Indicator_IN_USE, true);
       }
 
-      if ((appState == APP_State_INCOMING_CALL) || (appState == APP_State_VOICE_COMMAND) || (BT_CallStatus != BT_CALL_OUTGOING)) {
+      if ((BT_CallStatus == BT_CALL_OUTGOING) && (APP_CallAction != APP_CALL_SENDING)) {
+        // This is an outgoing call that was initiated externally, so we don't 
+        // have the called number available. Request the list of calls to get
+        // the called number.
+        //
+        // NOTE: Specifically NOT returning to number input in this case
+        //       to continue displaying whatever is currently on the display 
+        //       briefly until the called number is received and ready to be 
+        //       displayed.
+        ATCMD_Send("+CLCC", handleCallListAtResponse);
+      } else if (
+          (appState == APP_State_INCOMING_CALL) || 
+          ((BT_CallStatus == BT_CALL_ACTIVE) && (prevCallStatus < BT_CALL_ACTIVE))
+          ) {
         returnToNumberInput(false);
       }
       break;
@@ -1309,6 +1364,7 @@ static void handleCallStatusChange(int newCallStatus) {
       wakeUpHandset(true);
       BT_SetHFPGain(0x0F);
       SOUND_SetDefaultAudioSource(SOUND_AudioSource_BT);
+      isCallTimerDisplayedByDefault = false;
       
       if (appState != APP_State_VOICE_COMMAND) {
         displayVoiceCommand();
@@ -2454,21 +2510,34 @@ void handle_HANDSET_Event(HANDSET_Event const* event) {
               BT_SetMicrohponeMuted(isMuted);
               HANDSET_SetIndicator(HANDSET_Indicator_MUTE, isMuted);
             }
-          } else if ((button == HANDSET_Button_CLR)) {
+          } else if (button == HANDSET_Button_CLR) {
             isRclInputPending = false;
 
             if (CALL_TIMER_IsDisplayEnabled()) {
               SOUND_PlayButtonBeep(button, false);
               HANDSET_CancelCurrentButtonHoldEvents();
-              returnToNumberInput(false);
+              isCallTimerDisplayedByDefault = false;
+              
+              if (numberInputLength) {
+                returnToNumberInput(false);
+              } else {
+                NumberInput_PrintToHandset();
+              }
             } else if (isNumberInput && !numberInputLength && (BT_CallStatus >= BT_CALL_ACTIVE)) {
               SOUND_PlayButtonBeep(button, false);
               HANDSET_CancelCurrentButtonHoldEvents();
+              isCallTimerDisplayedByDefault = true;
               CALL_TIMER_EnableDisplayUpdate();
             } else if (isNumberInput && numberInputLength) {
               SOUND_PlayButtonBeep(button, false);
               NumberInput_PopDigit();
-              NumberInput_PrintToHandset();
+              
+              if (!numberInputLength && (BT_CallStatus >= BT_CALL_ACTIVE)) {
+                isCallTimerDisplayedByDefault = true;
+                CALL_TIMER_EnableDisplayUpdate();
+              } else {
+                NumberInput_PrintToHandset();
+              }
             }
           } else if (canType && HANDSET_IsButtonPrintable(button)) {
             if (NumberInput_HasIncompleteCreditCardMemorySymbol()) {
@@ -2559,7 +2628,13 @@ void handle_HANDSET_Event(HANDSET_Event const* event) {
           if ((button == HANDSET_Button_CLR) && (event->holdDuration == HANDSET_HoldDuration_SHORT) && canType && numberInputLength) {
             SOUND_StopButtonBeep();
             NumberInput_Clear();
-            NumberInput_PrintToHandset();
+            
+            if (BT_CallStatus >= BT_CALL_ACTIVE) {
+              isCallTimerDisplayedByDefault = true;
+              CALL_TIMER_EnableDisplayUpdate();
+            } else {
+              NumberInput_PrintToHandset();
+            }
           } else if((button == HANDSET_Button_RCL) && (event->holdDuration == HANDSET_HoldDuration_LONG) && isRclInputPending) {
             isRclInputPending = false;
             recallNumberInputOverflow(RECALL_FROM_INPUT_MANUAL);
