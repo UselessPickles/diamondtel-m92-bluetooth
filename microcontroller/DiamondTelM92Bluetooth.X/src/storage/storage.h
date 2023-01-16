@@ -26,6 +26,7 @@ extern "C" {
 #include <stdbool.h>
 #include "../sound/volume.h"  
 #include "../sound/ringtone.h"  
+#include "../constants.h"
 
 /**
  * Number of credit cards that can be stored.
@@ -485,15 +486,15 @@ bool STORAGE_GetVehicleModeEnabled(void);
 void STORAGE_SetVehicleModeEnabled(bool enabled);
 
 /**
- * Get the stored setting of whether caller ID is enabled.
- * @return True if caller ID is enabled.
+ * Get the stored setting of the Caller ID mode.
+ * @return The stored Caller ID mode.
  */
-bool STORAGE_GetCallerIdEnabled(void);
+CALLER_ID_Mode STORAGE_GetCallerIdMode(void);
 /**
- * Set the stored setting of whether caller ID is enabled.
- * @param enabled - True if caller ID is enabled.
+ * Set the stored setting of the Caller ID mode.
+ * @param mode - A Caller ID mode.
  */
-void STORAGE_SetCallerIdEnabled(bool enabled);
+void STORAGE_SetCallerIdMode(CALLER_ID_Mode mode);
 
 /**
  * Get the stored setting of whether the phone's simulated "own phone number" 

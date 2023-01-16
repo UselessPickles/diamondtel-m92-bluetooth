@@ -177,7 +177,6 @@ uint8_t BT_CalculateCmdChecksum(uint8_t const* startByte, uint8_t const* endByte
 void BT_SendBytesAsCompleteCommand(uint8_t const* command, uint8_t command_length)
 {
     copySendingCommandToBuffer(command, command_length);
-   // BT_UpdateAckStatusWhenSent(command[3]);
 }
 
 /*------------------------------------------------------------*/
@@ -192,9 +191,9 @@ void BT_SetEventMask(void) {
   command[1] = 0x00;                      //header byte 1
   command[2] = 5;                      //length
   command[3] = REPORT_MASK;        	//command ID
-  command[4] = 0b00011011;
+  command[4] = 0b00111011;
   command[5] = 0b01110000;     
-  command[6] = 0b11100101;     
+  command[6] = 0b11110101;     
   command[7] = 0b11111111;     
   command[8] = BT_CalculateCmdChecksum(&command[2], &command[7]);
   copySendingCommandToBuffer(command, 9);  
@@ -404,19 +403,6 @@ void BT_SetHFPGain(uint8_t gain)
     command[5] = gain & 0x0f;
     command[6] = BT_CalculateCmdChecksum(&command[2], &command[5]);
   	copyCommandToBuffer(&command[0], 7, CMD_INFO_MCU);
-//    uint8_t command[11];
-//    command[0] = 0xAA;                      //header byte 0
-//    command[1] = 0x00;                      //header byte 1
-//    command[2] = 0x07;                    //length
-//    command[3] = SET_OVERALL_GAIN;                //command ID
-//    command[4] = BT_linkIndex;                      //link index
-//    command[5] = 0x02;                      //mask bits
-//    command[6] = 0x03;                      //type
-//    command[7] = 0;
-//    command[8] = gain & 0x0f;
-//    command[9] = 0;
-//    command[10] = BT_CalculateCmdChecksum(&command[2], &command[9]);
-//  	copyCommandToBuffer(&command[0], 11, CMD_INFO_MCU);
 }
 
 /*------------------------------------------------------------*/

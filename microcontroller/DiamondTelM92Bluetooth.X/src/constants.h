@@ -50,6 +50,31 @@ extern "C" {
  */  
 #define MAX_PLAYER_INITIALS_LENGTH (3)
 
+/**
+ * Caller ID modes
+ */
+typedef enum CALLER_ID_Mode {
+  /**
+   * Caller ID is off/disabled.
+   */
+  CALLER_ID_Mode_OFF,
+  /**
+   * Caller ID is enabled, with preference to display name.
+   * (displays phone number if name is not available).
+   */
+  CALLER_ID_Mode_NAME,
+  /**
+   * Caller ID is enabled, with preference to display phone number.
+   * (displays name if phone number is not available).
+   */    
+  CALLER_ID_Mode_NUMBER
+} CALLER_ID_Mode;  
+
+/**
+ * Number of Caller ID modes.
+ */
+#define CALLER_ID_MODE_COUNT (3)
+  
 #ifdef	__cplusplus
 }
 #endif

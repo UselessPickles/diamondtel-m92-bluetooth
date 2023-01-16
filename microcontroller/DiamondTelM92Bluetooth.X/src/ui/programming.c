@@ -21,7 +21,7 @@ typedef enum State {
   State_SET_SECURITY_CODE,
   State_DISABLE_CUMULATIVE_RESET,
   State_DISABLE_OWN_TEL,
-  State_ENABLE_CALLER_ID,
+  State_CALLER_ID_MODE,
   State_INPUT
 } State;
 
@@ -83,9 +83,9 @@ static void initState(State newState) {
       HANDSET_PrintChar('0' + !STORAGE_GetShowOwnNumberEnabled());
       break;
       
-    case State_ENABLE_CALLER_ID:  
+    case State_CALLER_ID_MODE:  
       HANDSET_PrintString("CALL ID      ");
-      HANDSET_PrintChar('0' + STORAGE_GetCallerIdEnabled());
+      HANDSET_PrintChar('0' + STORAGE_GetCallerIdMode());
       break;
   }
   
@@ -113,8 +113,7 @@ static bool storeInput(void) {
   switch (module.inputReason) {
     case State_ENABLE_DUAL_NUMBER:
     case State_DISABLE_CUMULATIVE_RESET:
-    case State_DISABLE_OWN_TEL:
-    case State_ENABLE_CALLER_ID: {
+    case State_DISABLE_OWN_TEL: {
       char firstDigit = module.input[0];
       bool isOnOffInput = (module.inputLength == 1) && ((firstDigit == '0') || (firstDigit == '1'));
       
@@ -139,16 +138,23 @@ static bool storeInput(void) {
           printf("[PROG] Store DIS OWN TEL: %d\r\n", isOn);
           STORAGE_SetShowOwnNumberEnabled(!isOn);
           break;
-          
-        case State_ENABLE_CALLER_ID: 
-          printf("[PROG] Store CALL ID: %d\r\n", isOn);
-          STORAGE_SetCallerIdEnabled(isOn);
-          break;
       }
       
       break;
     }
       
+    case State_CALLER_ID_MODE: {
+      uint8_t value = module.input[0] - '0';
+      
+      if ((module.inputLength != 1) || (value >= CALLER_ID_MODE_COUNT)) {
+        return false;
+      }
+      
+      printf("[PROG] Store CALL ID: %d\r\n", value);
+      STORAGE_SetCallerIdMode(value);
+      break;
+    }
+    
     case State_SET_TEL_NUMBER1:
     case State_SET_TEL_NUMBER2: {
       if (

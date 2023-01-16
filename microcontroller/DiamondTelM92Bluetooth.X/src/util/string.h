@@ -86,6 +86,43 @@ int strnicmp(char const* a, char const* b, int len);
  */
 char* uint2str(char* dest, uint16_t num, uint8_t length, uint8_t zeroPadLength);
 
+/**
+ * Simplifies a phone number to be a valid phone number that could be entered
+ * into the DiamondTel Model 92 handset, and with unnecessary US country code
+ * removed if present.
+ * 
+ * If the number starts with a "+", then it is replaced with the numeric
+ * international dialing code for dialing out of the US ("011").
+ * 
+ * If the number is formatted as international calling from the US and to the US
+ * ("+1XXXXXXXXXX" or "0111XXXXXXXXXX") then the phone number is stripped down
+ * to the simple 10-digit US phone number.
+ * 
+ * @param dest - Destination buffer for the simplified phone number.
+ * @param number - A phone number.
+ * @return A pointer to the destination buffer.
+ */
+char* simplifyPhoneNumber(char* dest, char const* number);
+
+/**
+ * Formats a phone number for display.
+ * 
+ * First, the provided phone number is simplified via simplifyPhoneNumber().
+ * 
+ * If the simplified number is 10 digits long, then it is formatted like
+ * "(XXX) XXX-XXXX".
+ * 
+ * If the simplified number is 7 digits long, then it is formatted like
+ * "XXX-XXXX".
+ * 
+ * Otherwise, the simplified is copied as-is. 
+ * 
+ * @param dest - Destination buffer for the formatted phone number.
+ * @param number - A phone number.
+ * @return A pointer to the destination buffer.
+ */
+char* formatPhoneNumber(char* dest, char const* number);
+
 #ifdef	__cplusplus
 }
 #endif

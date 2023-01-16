@@ -13,6 +13,7 @@
 #include <string.h>
 #include "string.h"
 #include "../telephone/handset.h"
+#include "../constants.h"
 
 /**
  * Default ASCII character to use for UTF8 -> ASCII conversions when no
@@ -397,6 +398,62 @@ char* uint2str(char* dest, uint16_t num, uint8_t length, uint8_t zeroPadLength) 
   
   if (length) {
     memset(dest, ' ', length);
+  }
+  
+  return dest;
+}
+
+char* simplifyPhoneNumber(char* dest, char const* number) {
+  size_t const len = strlen(number);
+  
+  if (number[0] == '+') {
+    if ((number[1] == '1') && (len == 12)) {
+      return strcpy(dest, number + 2);
+    }
+
+    strcpy(dest, "011");
+    strcpy(dest + 3, number + 2);
+    return dest;
+  } else if ((len == 14) && (strncmp(number, "0111", 4) == 0)) {
+    return strcpy(dest, number + 4);
+  } else {
+    return strcpy(dest, number);
+  }
+}
+
+char* formatPhoneNumber(char* const dest, char const* number) {
+  char simplifiedNumber[MAX_EXTENDED_PHONE_NUMBER_LENGTH + 1];
+  char const* srcPtr = simplifiedNumber;
+  char* destPtr = dest;
+  simplifyPhoneNumber(simplifiedNumber, number);
+  
+  size_t len = strlen(simplifiedNumber);
+  
+  switch (len) {
+    case 10:
+      *destPtr++ = '(';
+
+      strncpy(destPtr, srcPtr, 3);
+      destPtr += 3;
+      srcPtr += 3;
+
+      *destPtr++ = ')';
+      *destPtr++ = ' ';
+      // look out below!
+      
+    case 7:
+      strncpy(destPtr, srcPtr, 3);
+      destPtr += 3;
+      srcPtr += 3;
+
+      *destPtr++ = '-';
+
+      strcpy(destPtr, srcPtr);
+      break;
+      
+    default:
+      strcpy(dest, simplifiedNumber);
+      break;
   }
   
   return dest;

@@ -7,7 +7,6 @@
 
 #include "storage.h"
 #include "eeprom.h"
-#include "../constants.h"
 #include "../telephone/handset.h"
 #include "../util/string.h"
 #include <string.h>
@@ -28,7 +27,7 @@ typedef struct {
   bool oneMinuteBeepEnabled: 1;
   bool vehicleModeEnabled: 1;
   bool showOwnNumberEnabled: 1;
-  bool callerIdEnabled: 1;
+  bool reserved: 1;
   bool dualNumbersEnabled: 1;
   bool cumulativeTimerResetEnabled: 1;
   bool autoAnswerEnabled: 1;
@@ -61,7 +60,8 @@ typedef struct {
   uint8_t lastDialedNumber[MAX_EXTENDED_PHONE_NUMBER_LENGTH >> 1];
   uint8_t speedDial[3][MAX_EXTENDED_PHONE_NUMBER_LENGTH >> 1];
   uint8_t securityCode[SECURITY_CODE_LENGTH >> 1];
-  uint8_t reserved[45];
+  uint8_t callerIdMode;
+  uint8_t reserved[44];
   directory_entry_t directory[STORAGE_DIRECTORY_SIZE];
   uint8_t creditCardNumbers[STORAGE_CREDIT_CARD_COUNT][CREDIT_CARD_NUMBER_LENGTH >> 1];
 } storage_t;
@@ -200,7 +200,6 @@ static void initializeDefaultStorageData(void) {
   storage.toggles.statusBeepEnabled = true;
   storage.toggles.oneMinuteBeepEnabled = false;
   storage.toggles.vehicleModeEnabled = false;
-  storage.toggles.callerIdEnabled = false;
   storage.toggles.showOwnNumberEnabled = true;
   storage.toggles.dualNumbersEnabled = false;
   storage.toggles.cumulativeTimerResetEnabled = true;
@@ -208,6 +207,7 @@ static void initializeDefaultStorageData(void) {
   storage.activeOwnNumberIndex = 0;
   storage.programmingCount = 0;
   storage.tetrisHighScore = 0;
+  storage.callerIdMode = 0;
   memset(storage.tetrisHighScoreInitials, '?', 3);
   memset(storage.pairedDeviceName, 0, STORAGE_MAX_DEVICE_NAME_LENGTH);
   memset(storage.ownNumber, 0, (STANDARD_PHONE_NUMBER_LENGTH >> 1) * 2);
@@ -284,6 +284,10 @@ void STORAGE_Initialize(void) {
     initializeDefaultStorageData();
   } else {
     EEPROM_ReadBytes(0, &storage, sizeof(storage));
+    
+    if (storage.callerIdMode == 0xFF) {
+      STORAGE_SetCallerIdMode(CALLER_ID_Mode_OFF);
+    }
   }
   
   initializeSortedNameIndexes();
@@ -679,13 +683,13 @@ void STORAGE_SetVehicleModeEnabled(bool enabled) {
   EEPROM_AsyncWriteBytes(offsetof(storage_t, toggles), &storage.toggles, sizeof(toggles_t));
 }
 
-bool STORAGE_GetCallerIdEnabled(void) {
-  return storage.toggles.callerIdEnabled;
+CALLER_ID_Mode STORAGE_GetCallerIdMode(void) {
+  return storage.callerIdMode;
 }
 
-void STORAGE_SetCallerIdEnabled(bool enabled) {
-  storage.toggles.callerIdEnabled = enabled;
-  EEPROM_AsyncWriteBytes(offsetof(storage_t, toggles), &storage.toggles, sizeof(toggles_t));
+void STORAGE_SetCallerIdMode(CALLER_ID_Mode mode) {
+  storage.callerIdMode = mode;
+  EEPROM_AsyncWriteByte(offsetof(storage_t, callerIdMode), storage.callerIdMode);
 }
 
 bool STORAGE_GetShowOwnNumberEnabled(void) {

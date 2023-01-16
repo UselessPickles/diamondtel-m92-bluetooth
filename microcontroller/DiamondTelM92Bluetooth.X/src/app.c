@@ -578,11 +578,13 @@ static void recallNumberInputOverflow(RecallOverflowType type) {
 #define CALLER_ID_MAX_LENGTH (20)
 static char callerIdText[CALLER_ID_MAX_LENGTH + 1];
 
-static void setCallerId(char const* text, size_t len) {
+static void setCallerId(char const* text) {
   if (!text) {
     callerIdText[0] = 0;
     return;
   }
+  
+  size_t len = strlen(text);
   
   while (*text == ' ') {
     ++text;
@@ -604,7 +606,7 @@ static void setCallerId(char const* text, size_t len) {
   
   //printf("[CALLER ID]: \"%s\"\r\n", callerIdText);
   
-  if ((appState == APP_State_INCOMING_CALL) && len && STORAGE_GetCallerIdEnabled()) {
+  if ((appState == APP_State_INCOMING_CALL) && len && STORAGE_GetCallerIdMode()) {
     HANDSET_SetTextBlink(false);
     MARQUEE_Start(callerIdText, MARQUEE_Row_TOP);
   }
@@ -613,7 +615,7 @@ static void setCallerId(char const* text, size_t len) {
 static bool isCallFlashOn;
 
 static void showIncomingCall(bool isMissedCall) {
-  bool showCallerId = STORAGE_GetCallerIdEnabled() && callerIdText[0];
+  bool showCallerId = STORAGE_GetCallerIdMode() && callerIdText[0];
   
   CALL_TIMER_DisableDisplayUpdate();
   
@@ -1187,10 +1189,13 @@ void handleCallListAtResponse(ATCMD_Response response, char const* result) {
         // Process incoming or call waiting result to get caller ID
         if ((stat == '4') || (stat == '5')) {
           // If "alpha" is populated, then use it as Caller ID
-          if (*buffer) {
-            setCallerId(buffer, strlen(buffer));
+          if (*buffer && ((STORAGE_GetCallerIdMode() == CALLER_ID_Mode_NAME) || !*phoneNumber)) {
+            setCallerId(buffer);
+          } else if (*phoneNumber) {
+            formatPhoneNumber(buffer, phoneNumber);
+            setCallerId(buffer);
           } else {
-            setCallerId(phoneNumber, strlen(phoneNumber));
+            setCallerId("Unknown Caller");
           }
         }
         break;
@@ -1200,7 +1205,7 @@ void handleCallListAtResponse(ATCMD_Response response, char const* result) {
         // ASSUMPTION: We only request this for outgoing calls that were
         //             initiated externally.
         if (stat == '2') {
-          setExternallyInitiatedOutgoingCallNumber(phoneNumber);
+          setExternallyInitiatedOutgoingCallNumber(simplifyPhoneNumber(buffer, phoneNumber));
         }
         break;
     }
@@ -1274,7 +1279,7 @@ static void handleCallStatusChange(int newCallStatus) {
       HANDSET_SetIndicator(HANDSET_Indicator_MUTE, false);
       isMuted = false;
       SOUND_SetButtonsMuted(false);
-      setCallerId(NULL, 0);
+      setCallerId(NULL);
       break;
 
     case BT_CALL_ACTIVE:
@@ -1299,7 +1304,7 @@ static void handleCallStatusChange(int newCallStatus) {
       // Look out below!
       
     case BT_CALL_ACTIVE_WITH_HOLD:
-      setCallerId(NULL, 0);
+      setCallerId(NULL);
       CALL_TIMER_Start(false);
       // Look out below!
 
@@ -1354,7 +1359,7 @@ static void handleCallStatusChange(int newCallStatus) {
       isStoInputPending = false;
       
       // Request current call list to extract Caller ID
-      if (STORAGE_GetCallerIdEnabled()) {
+      if (STORAGE_GetCallerIdMode()) {
         ATCMD_Send("+CLCC", handleCallListAtResponse);
       }
       break;
@@ -1673,7 +1678,7 @@ void APP_Task(void) {
       
     case APP_State_INCOMING_CALL:
       if (!TIMEOUT_IsPending(&appStateTimeout)) {
-        if (STORAGE_GetCallerIdEnabled() && callerIdText[0]) {
+        if (STORAGE_GetCallerIdMode() && callerIdText[0]) {
           isCallFlashOn = !isCallFlashOn;
           HANDSET_PrintStringAt(isCallFlashOn ? "CALL" : "    ", 4);
           TIMEOUT_Start(&appStateTimeout, 50);
@@ -3297,10 +3302,6 @@ void APP_BT_EventHandler(uint8_t event, uint16_t para, uint8_t* para_full) {
       if (appState == APP_State_RECALL_PAIRED_DEVICE_NAME) {
         recallPairedDeviceName(false);
       }
-      break;
-      
-    case BT_EVENT_CALLER_ID: 
-      //setCallerId(para_full, para);
       break;
   }
 }
