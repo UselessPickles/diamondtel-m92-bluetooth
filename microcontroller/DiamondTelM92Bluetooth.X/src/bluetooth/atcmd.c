@@ -7,6 +7,9 @@
 #include "bt_command_send.h"
 #include "bt_command_decode.h"
 #include "../util/string.h"
+#include "../util/timeout.h"
+#include "../constants.h"
+#include "../telephone/handset.h"
 #include <stdio.h>
 #include <stdint.h>
 #include <string.h>
@@ -37,6 +40,15 @@ static struct {
     uint16_t head;
     uint16_t remaining;
   } cmdBuffer;
+  
+  struct {
+    bool isDigitPending;
+    timeout_t nextDigitTimeout;
+    char buffer[MAX_EXTENDED_PHONE_NUMBER_LENGTH];
+    uint8_t head;
+    uint8_t tail;
+    uint8_t bufferSize;
+  } dtmfState;
 } module;
 
 #define MAX_AT_CMD_LENGTH (128)
@@ -70,12 +82,50 @@ static void sendNextCommand(void) {
     --len;
   }
   len = cmdInfo->cmdLen;
+
   *nextChar = 0;
-  
   printf("[ATCMD] Sending: %s\r\n", command + 5);
   
   command[len + 5] = BT_CalculateCmdChecksum(&command[2], &command[len + 4]);
   BT_SendBytesAsCompleteCommand(command, len + 6);    
+}
+
+static void handleDTMFDigitAtResponse(ATCMD_Response response, char const* result) {
+  if (response != ATCMD_Response_OK) {
+    // If the command failed, then cancel all remaining pending DTMF digits.
+    // This is most likely caused by no longer being in a call.
+    ATCMD_CancelDTMFDigits();
+  } else {
+    module.dtmfState.isDigitPending = false;
+    TIMEOUT_Start(&module.dtmfState.nextDigitTimeout, 10);
+  }
+}
+
+static bool sendDTMFDigitAtCmd(char digit) {
+  char command[] = "+VTS=?";
+  command[5] = digit;
+  return ATCMD_Send(command, handleDTMFDigitAtResponse);
+}
+
+static void sendNextDTMFStringDigit(void) {
+  if (
+      !module.dtmfState.bufferSize || 
+      module.dtmfState.isDigitPending || 
+      TIMEOUT_IsPending(&module.dtmfState.nextDigitTimeout)
+      ) {
+    return;
+  }
+  
+  if (sendDTMFDigitAtCmd(module.dtmfState.buffer[module.dtmfState.tail])) {
+    module.dtmfState.isDigitPending = true;
+
+    --module.dtmfState.bufferSize;
+    if (++module.dtmfState.tail == MAX_EXTENDED_PHONE_NUMBER_LENGTH) {
+      module.dtmfState.tail = 0;
+    }
+  } else {
+    ATCMD_CancelDTMFDigits();
+  }
 }
 
 void ATCMD_Initialize(ATCMD_UnsolicitedResultHandler unsolicitedResultHandler) {
@@ -86,10 +136,19 @@ void ATCMD_Initialize(ATCMD_UnsolicitedResultHandler unsolicitedResultHandler) {
 
   module.cmdInfoBuffer.head = module.cmdInfoBuffer.tail = 0;
   module.cmdInfoBuffer.remaining = COMMAND_INFO_BUFFER_SIZE;
+
+  ATCMD_CancelDTMFDigits();
 }
 
 void ATCMD_Task(void) {
+  TIMEOUT_Task(&module.dtmfState.nextDigitTimeout);
+  
+  sendNextDTMFStringDigit();
   sendNextCommand();
+}
+
+void ATCMD_Timer10ms_Interrupt(void) {
+  TIMEOUT_Timer_Interrupt(&module.dtmfState.nextDigitTimeout);
 }
 
 bool ATCMD_Send(char const *cmd, ATCMD_ResponseCallback responseCallback) {
@@ -142,10 +201,36 @@ bool ATCMD_Send(char const *cmd, ATCMD_ResponseCallback responseCallback) {
   return true;
 }
 
-bool ATCMD_SendDTMFButtonPress(char button, ATCMD_ResponseCallback responseCallback) {
-  char command[] = "+VTS=?";
-  command[5] = button;
-  return ATCMD_Send(command, responseCallback);
+bool ATCMD_SendDTMFDigit(char digit) {
+  if (!HANDSET_IsButtonPrintable(digit)) {
+    return false;
+  }
+
+  if (module.dtmfState.bufferSize == MAX_EXTENDED_PHONE_NUMBER_LENGTH) {
+    return false;
+  }
+  
+  module.dtmfState.buffer[module.dtmfState.head] = digit;
+  if (++module.dtmfState.head == MAX_EXTENDED_PHONE_NUMBER_LENGTH) {
+    module.dtmfState.head = 0;
+  }
+  
+  ++module.dtmfState.bufferSize;
+  
+  return true;
+}
+
+void ATCMD_SendDTMFDigitString(char const* dtmfString) {
+  while(*dtmfString) {
+    ATCMD_SendDTMFDigit(*dtmfString++);
+  }
+}
+
+void ATCMD_CancelDTMFDigits(void) {
+  module.dtmfState.tail = module.dtmfState.head = 0;
+  module.dtmfState.bufferSize = 0;
+  module.dtmfState.isDigitPending = false;
+  TIMEOUT_Cancel(&module.dtmfState.nextDigitTimeout);
 }
 
 void ATCMD_BT_ResultHandler(char const* result, uint8_t length) {

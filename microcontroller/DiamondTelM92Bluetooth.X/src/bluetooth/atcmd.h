@@ -29,9 +29,15 @@ void ATCMD_Initialize(ATCMD_UnsolicitedResultHandler unsolicitedResultCallback);
 
 void ATCMD_Task(void);
 
+void ATCMD_Timer10ms_Interrupt(void);
+
 bool ATCMD_Send(char const *cmd, ATCMD_ResponseCallback responseCallback);
 
-bool ATCMD_SendDTMFButtonPress(char button, ATCMD_ResponseCallback responseCallback);
+bool ATCMD_SendDTMFDigit(char digit);
+
+void ATCMD_SendDTMFDigitString(char const* dtmfString);
+
+void ATCMD_CancelDTMFDigits(void);
 
 void ATCMD_BT_ResultHandler(char const* result, uint8_t length);
 

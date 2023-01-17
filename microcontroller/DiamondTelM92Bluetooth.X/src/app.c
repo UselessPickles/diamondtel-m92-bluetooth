@@ -230,82 +230,6 @@ static void resetFcn(void) {
 static timeout_t idleTimeout;
 static volatile bool isHandsetIdle;
 
-static struct {
-  bool isSending;
-  char buffer[MAX_EXTENDED_PHONE_NUMBER_LENGTH];
-  uint8_t head;
-  uint8_t tail;
-  uint8_t bufferSize;
-} dtmfState;
-
-static void cancelAllDtmfDigits(void) {
-  dtmfState.tail = dtmfState.head;
-  dtmfState.bufferSize = 0;
-  dtmfState.isSending = false;
-}
-
-static void handleDtmfAtResponse(ATCMD_Response response, char const* result);
-
-static void sendNextDtmfDigit(void) {
-  if (!dtmfState.bufferSize) {
-    dtmfState.isSending = false;
-    return;
-  }
-  
-  if (BT_CallStatus < BT_CALL_ACTIVE) {
-    cancelAllDtmfDigits();
-    return;
-  }
-  
-  if (ATCMD_SendDTMFButtonPress(dtmfState.buffer[dtmfState.tail], &handleDtmfAtResponse)) {
-    dtmfState.isSending = true;
-
-    --dtmfState.bufferSize;
-    if (++dtmfState.tail == MAX_EXTENDED_PHONE_NUMBER_LENGTH) {
-      dtmfState.tail = 0;
-    }
-  } else {
-    cancelAllDtmfDigits();
-  }  
-}
-
-static void handleDtmfAtResponse(ATCMD_Response response, char const* result) {
-  if (response != ATCMD_Response_OK) {
-    cancelAllDtmfDigits();
-  } else if (dtmfState.isSending) {
-    sendNextDtmfDigit();
-  }
-}
-
-static bool sendDtmfDigit(char digit) {
-  if (!HANDSET_IsButtonPrintable(digit)) {
-    return false;
-  }
-
-  if (dtmfState.bufferSize == MAX_EXTENDED_PHONE_NUMBER_LENGTH) {
-    return false;
-  }
-  
-  dtmfState.buffer[dtmfState.head] = digit;
-  if (++dtmfState.head == MAX_EXTENDED_PHONE_NUMBER_LENGTH) {
-    dtmfState.head = 0;
-  }
-  
-  ++dtmfState.bufferSize;
-  
-  if (!dtmfState.isSending) {
-    sendNextDtmfDigit();
-  }
-  
-  return true;
-}
-
-static void sendDtmfString(char const* dtmfStr) {
-  while(*dtmfStr) {
-    sendDtmfDigit(*dtmfStr++);
-  }
-}
-
 static void wakeUpHandset(bool backlight) {
   TIMEOUT_Start(&idleTimeout, IDLE_TIMEOUT);
 
@@ -525,7 +449,7 @@ static void NumberInput_SendCurrentNumberAsDtmf(void) {
     dialedNumberNextDigitsToDial = NULL;
   }
   
-  sendDtmfString(dialedNumber);
+  ATCMD_SendDTMFDigitString(dialedNumber);
 }
 
 static void NumberInput_CallCurrentNumber(void) {
@@ -1824,7 +1748,8 @@ void APP_Timer10MS_Interrupt(void) {
       TETRIS_GAME_Timer10MS_Interrupt();
       break;
   }
-  
+
+  ATCMD_Timer10ms_Interrupt();
   TRANSCEIVER_Timer10MS_Interrupt();
   INDICATOR_Timer10MS_Interrupt();
   MARQUEE_Timer10MS_Interrupt();
@@ -2556,7 +2481,7 @@ void handle_HANDSET_Event(HANDSET_Event const* event) {
               SOUND_PlayDTMFButtonBeep(button, false);
               
               if ((BT_CallStatus >= BT_CALL_ACTIVE) && (APP_CallAction == APP_CALL_IDLE)) {
-                sendDtmfDigit(button);
+                ATCMD_SendDTMFDigit(button);
               }
             }
 
@@ -2595,10 +2520,10 @@ void handle_HANDSET_Event(HANDSET_Event const* event) {
                   } else if (isCreditCardRecall) {
                     char creditCardNumber[CREDIT_CARD_NUMBER_LENGTH + 1];
                     STORAGE_GetCreditCardNumber(*dialedNumberNextDigitsToDial++ - '1', creditCardNumber);
-                    sendDtmfString(creditCardNumber);
+                    ATCMD_SendDTMFDigitString(creditCardNumber);
                     isCreditCardRecall = false;
                   } else {
-                    sendDtmfDigit(*dialedNumberNextDigitsToDial++);
+                    ATCMD_SendDTMFDigit(*dialedNumberNextDigitsToDial++);
                   }
                 }
                 
@@ -2934,7 +2859,7 @@ void handle_HANDSET_Event(HANDSET_Event const* event) {
           } else if ((BT_CallStatus >= BT_CALL_ACTIVE) && (APP_CallAction == APP_CALL_IDLE)) {
             SOUND_PlayButtonBeep(button, false);
             STORAGE_GetCreditCardNumber(creditCardIndex, tempNumberBuffer);
-            sendDtmfString(tempNumberBuffer);
+            ATCMD_SendDTMFDigitString(tempNumberBuffer);
             returnToNumberInput(false);
             return;
           }
