@@ -1837,6 +1837,29 @@ void handle_HANDSET_Event(HANDSET_Event const* event) {
     HANDSET_SetMicrophone(!event->isOnHook);
   }
 
+  // Handle initiation of voice command
+  if (
+      (button == HANDSET_Button_END) && 
+      (event->type == HANDSET_EventType_BUTTON_HOLD) &&
+      (event->holdDuration == HANDSET_HoldDuration_SHORT) &&
+      (BT_CallStatus == BT_CALL_IDLE) &&
+      (APP_CallAction == APP_CALL_IDLE)
+      ) {
+    SOUND_Stop(SOUND_Channel_BACKGROUND);
+    resetFcn();
+    
+    if (!cellPhoneState.isConnected) {
+      startCallFailed();
+    } else {
+      SOUND_PlayButtonBeep(button, false);
+      APP_CallAction = APP_CALL_VOICE_COMMAND;
+      TIMEOUT_Start(&callActionTimeout, CALL_ACTION_TIMEOUT);
+      BT_StartVoiceCommand();
+      displayVoiceCommand();
+    }
+    return;
+  }
+
   if (
       ((APP_CallAction == APP_CALL_SENDING) || (BT_CallStatus == BT_CALL_OUTGOING)) && 
       (button != HANDSET_Button_END) && 
@@ -1850,7 +1873,7 @@ void handle_HANDSET_Event(HANDSET_Event const* event) {
     // - UP/DOWN to adjust volume
     return;
   }
-  
+
   if (event->button != HANDSET_Button_PWR) {
     switch (appState) {
       case APP_State_PROGRAMMING: 
@@ -2931,24 +2954,6 @@ void handle_HANDSET_Event(HANDSET_Event const* event) {
     if ((BT_CallStatus >= BT_CALL_ACTIVE) && (APP_CallAction == APP_CALL_IDLE)) {
       SOUND_PlayButtonBeep(button, false);
       BT_SwapHoldOrWaitingCall();
-    }
-  }
-  
-  if (
-      (button == HANDSET_Button_END) && 
-      (event->type == HANDSET_EventType_BUTTON_HOLD) &&
-      (event->holdDuration == HANDSET_HoldDuration_SHORT) &&
-      (BT_CallStatus == BT_CALL_IDLE) &&
-      (APP_CallAction == APP_CALL_IDLE)
-      ) {
-    if (!cellPhoneState.isConnected) {
-      startCallFailed();
-    } else {
-      SOUND_PlayButtonBeep(button, false);
-      APP_CallAction = APP_CALL_VOICE_COMMAND;
-      TIMEOUT_Start(&callActionTimeout, CALL_ACTION_TIMEOUT);
-      BT_StartVoiceCommand();
-      displayVoiceCommand();
     }
   }
 }
