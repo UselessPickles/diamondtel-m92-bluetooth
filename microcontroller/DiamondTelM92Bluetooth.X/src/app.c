@@ -2584,7 +2584,6 @@ void handle_HANDSET_Event(HANDSET_Event const* event) {
 
         case HANDSET_EventType_BUTTON_HOLD:
           if ((button == HANDSET_Button_CLR) && (event->holdDuration == HANDSET_HoldDuration_SHORT) && canType && numberInputLength) {
-            SOUND_StopButtonBeep();
             NumberInput_Clear();
             
             if (BT_CallStatus >= BT_CALL_ACTIVE) {
@@ -2812,7 +2811,6 @@ void handle_HANDSET_Event(HANDSET_Event const* event) {
           (event->holdDuration == HANDSET_HoldDuration_SHORT) &&
           (button == HANDSET_Button_CLR)
           ) {
-        SOUND_StopButtonBeep();
         startAlphaStoreNumberInput(true);
       }
       break;

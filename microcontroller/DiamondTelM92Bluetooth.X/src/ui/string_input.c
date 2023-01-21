@@ -168,7 +168,6 @@ void STRING_INPUT_HANDSET_EventHandler(HANDSET_Event const* event) {
       ) {
     // Short hold of the CLR button clears out the string input and resets
     // to alphabetic input mode.
-    SOUND_StopButtonBeep();
     module.length = 0;
     module.buffer[0] = 0;
     module.isAlphaInput = true;

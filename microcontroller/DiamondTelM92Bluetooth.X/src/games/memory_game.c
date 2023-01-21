@@ -307,7 +307,6 @@ void MEMORY_GAME_HANDSET_EventHandler(HANDSET_Event const* event) {
       (event->type == HANDSET_EventType_BUTTON_HOLD) &&
       (event->holdDuration == HANDSET_HoldDuration_SHORT)
       ) {
-    SOUND_StopButtonBeep();
     HANDSET_CancelCurrentButtonHoldEvents();
     module.returnCallback();
     return;
