@@ -302,8 +302,7 @@ static bool isDirectoryScanNameMode;
 
 #define NUMBER_INPUT_MAX_LENGTH (MAX_EXTENDED_PHONE_NUMBER_LENGTH)
 static char numberInput[NUMBER_INPUT_MAX_LENGTH + 1];
-static char dialedNumber[NUMBER_INPUT_MAX_LENGTH + 1];
-static char* dialedNumberNextDigitsToDial;
+static size_t numberInputNextDtmfSendIndex;
 static size_t numberInputLength;
 static bool numberInputIsStale;
 
@@ -326,6 +325,7 @@ static void NumberInput_Overwrite(char const* str) {
   numberInputLength = strlen(str);
   memcpy(numberInput, str, numberInputLength + 1);
   numberInputIsStale = false;
+  numberInputNextDtmfSendIndex = 0;
   isCallTimerDisplayedByDefault = false;
 }
 
@@ -355,6 +355,7 @@ static void NumberInput_PopDigit(void) {
     }
 
     numberInput[--numberInputLength] = 0;
+    numberInputNextDtmfSendIndex = 0;
     numberInputIsStale = false;
   }
 }
@@ -381,6 +382,7 @@ static void NumberInput_PrintToHandset(void)  {
 
 static void NumberInput_Clear(void) {
   numberInput[numberInputLength = 0] = 0;
+  numberInputNextDtmfSendIndex = 0;
   numberInputIsStale = false;
 }
 
@@ -391,19 +393,17 @@ static uint8_t NumberInput_GetMemoryIndex(void) {
     return 0xFF;
   }
   
-  if ((numberInputLength >= 1) && (numberInputLength <= 2)) {
-    if (!isdigit(numberInput[0])) {
-      return 0xFF;
-    }
-    
-    result = (numberInput[0] & 0x0F);
+  if (!isdigit(numberInput[0])) {
+    return 0xFF;
+  }
 
-    if (numberInputLength == 2) {
-      if (!isdigit(numberInput[1])) {
-        return 0xFF;
-      } else {
-        result = result * 10 + (numberInput[1] & 0x0F);
-      }
+  result = (numberInput[0] & 0x0F);
+
+  if (numberInputLength == 2) {
+    if (!isdigit(numberInput[1])) {
+      return 0xFF;
+    } else {
+      result = result * 10 + (numberInput[1] & 0x0F);
     }
   }
  
@@ -413,6 +413,67 @@ static uint8_t NumberInput_GetMemoryIndex(void) {
 }
 
 static void returnToNumberInput(bool withRecalledNumber);
+
+static void hideCallTimer(void) {
+  isCallTimerDisplayedByDefault = false;
+
+  if (CALL_TIMER_IsDisplayEnabled()) {
+    if (numberInputLength) {
+      returnToNumberInput(false);
+    } else {
+      NumberInput_PrintToHandset();
+    }
+  }
+}
+
+static bool NumberInput_SendNextDTMFString(void) {
+  if ((numberInputNextDtmfSendIndex == 0) || (numberInputNextDtmfSendIndex >= numberInputLength)) {
+    char const* const firstPause = strpbrk(numberInput, "PM");
+    if (firstPause) {
+      numberInputNextDtmfSendIndex = firstPause - numberInput;
+    } else {
+      numberInputNextDtmfSendIndex = 0;
+    }
+  }
+
+  if (numberInputNextDtmfSendIndex == 0) {
+    return false;
+  }
+
+  hideCallTimer();
+  numberInputIsStale = true;
+  
+  if (NumberInput_HasIncompleteCreditCardMemorySymbol() ||
+    (numberInput[numberInputLength - 1] == 'P')) {
+    return true;
+  }
+
+  if (numberInput[numberInputNextDtmfSendIndex] == 'M') {
+    numberInputNextDtmfSendIndex += 2;
+    char digit = numberInput[numberInputNextDtmfSendIndex];
+
+    STORAGE_GetCreditCardNumber(digit - '1', tempNumberBuffer);
+    ++numberInputNextDtmfSendIndex;
+  } else {
+    if (numberInput[numberInputNextDtmfSendIndex] == 'P') {
+      ++numberInputNextDtmfSendIndex;
+    }
+
+    char const* const nextPause = strpbrk(numberInput + numberInputNextDtmfSendIndex, "PM");
+
+    if (nextPause) {
+      size_t const len = (nextPause - numberInput) - numberInputNextDtmfSendIndex;
+      strncpy(tempNumberBuffer, numberInput + numberInputNextDtmfSendIndex, len)[len] = 0;
+      numberInputNextDtmfSendIndex += len;
+    } else {
+      strcpy(tempNumberBuffer, numberInput + numberInputNextDtmfSendIndex);
+      numberInputNextDtmfSendIndex = 0;
+    }
+  }
+
+  ATCMD_SendDTMFDigitString(tempNumberBuffer);
+  return true;
+}
 
 static void startCallFailed(void) {
   SOUND_PlayEffect(
@@ -436,40 +497,25 @@ static void startCallFailed(void) {
 }
 
 static void NumberInput_SendCurrentNumberAsDtmf(void) {
-  strcpy(dialedNumber, numberInput);
-  char* firstPause = strpbrk(dialedNumber, "PM");
-  
-  if (firstPause) {
-    if (*firstPause == 'M') {
-      firstPause[1] = '^';
-    }
-    *firstPause = 0;
-    dialedNumberNextDigitsToDial = firstPause + 1;
-  } else {
-    dialedNumberNextDigitsToDial = NULL;
-  }
-  
-  ATCMD_SendDTMFDigitString(dialedNumber);
+  hideCallTimer();
+  numberInputIsStale = true;
+  numberInputNextDtmfSendIndex = 0;
+  ATCMD_SendDTMFDigitString(numberInput);
 }
 
 static void NumberInput_CallCurrentNumber(void) {
   STORAGE_SetLastDialedNumber(numberInput);
   numberInputIsStale = true;
+  numberInputNextDtmfSendIndex = 0;
   
-  strcpy(dialedNumber, numberInput);
-  char* firstPause = strpbrk(dialedNumber, "PM");
+  strcpy(tempNumberBuffer, numberInput);
+  char* firstPause = strpbrk(tempNumberBuffer, "PM");
   
   if (firstPause) {
-    if (*firstPause == 'M') {
-      firstPause[1] = '^';
-    }
     *firstPause = 0;
-    dialedNumberNextDigitsToDial = firstPause + 1;
-  } else {
-    dialedNumberNextDigitsToDial = NULL;
   }
 
-  if (!cellPhoneState.hasService || !BT_MakeCall(dialedNumber)) {
+  if (!cellPhoneState.hasService || !BT_MakeCall(tempNumberBuffer)) {
     startCallFailed();
   } else {
     if (
@@ -1166,7 +1212,6 @@ static void handleCallStatusChange(int newCallStatus) {
   switch (BT_CallStatus) {
     case BT_CALL_IDLE:
       TIMEOUT_Start(&idleTimeout, IDLE_TIMEOUT);
-      dialedNumberNextDigitsToDial = NULL;
       CALL_TIMER_Stop();
       SOUND_SetDefaultAudioSource(SOUND_AudioSource_MCU);
       isCallTimerDisplayedByDefault = false;
@@ -1275,6 +1320,9 @@ static void handleCallStatusChange(int newCallStatus) {
         if (STORAGE_GetAutoAnswerEnabled()) {
           TIMEOUT_Start(&autoAnswerTimeout, 900);
         }
+      } else {
+        BT_SetHFPGain(0x0F);
+        SOUND_SetDefaultAudioSource(SOUND_AudioSource_BT);
       }
 
       resetFcn();
@@ -1995,11 +2043,6 @@ void handle_HANDSET_Event(HANDSET_Event const* event) {
           returnToNumberInput(false);
           NumberInput_CallCurrentNumber();
           return;
-        } else if ((BT_CallStatus >= BT_CALL_ACTIVE) && (APP_CallAction == APP_CALL_IDLE)) {
-          SOUND_PlayButtonBeep(button, false);
-          returnToNumberInput(false);
-          NumberInput_SendCurrentNumberAsDtmf();
-          return;
         }
       }
     } else if (
@@ -2083,19 +2126,12 @@ void handle_HANDSET_Event(HANDSET_Event const* event) {
       (event->holdDuration == HANDSET_HoldDuration_SHORT) &&
       (button >= HANDSET_Button_P1) &&
       (button <= HANDSET_Button_P3) &&
-      !callFailedTimer && (BT_CallStatus == BT_CALL_IDLE) && (APP_CallAction == APP_CALL_IDLE)// &&
-//      (
-//        (appState == APP_State_NUMBER_INPUT) ||
-//        (appState == APP_State_DISPLAY_DISMISSABLE_TEXT) ||
-//        (appState == APP_State_DISPLAY_BATTERY_LEVEL) ||
-//        (appState == APP_State_DISPLAY_PAIRED_BATTERY_LEVEL) ||
-//        (appState == APP_State_DISPLAY_NUMBER_OVERFLOW) ||
-//        (appState == APP_State_BROWSE_DIRECTORY_IDLE)
-//      )
+      !callFailedTimer && (BT_CallStatus == BT_CALL_IDLE) && (APP_CallAction == APP_CALL_IDLE)
   ) {
     STORAGE_GetSpeedDial(button - HANDSET_Button_P1, tempNumberBuffer);
 
     if (tempNumberBuffer[0]) {
+      SOUND_PlayButtonBeep(button, false);
       NumberInput_Overwrite(tempNumberBuffer);
       returnToNumberInput(true);
       NumberInput_CallCurrentNumber();
@@ -2469,13 +2505,7 @@ void handle_HANDSET_Event(HANDSET_Event const* event) {
             if (CALL_TIMER_IsDisplayEnabled()) {
               SOUND_PlayButtonBeep(button, false);
               HANDSET_CancelCurrentButtonHoldEvents();
-              isCallTimerDisplayedByDefault = false;
-              
-              if (numberInputLength) {
-                returnToNumberInput(false);
-              } else {
-                NumberInput_PrintToHandset();
-              }
+              hideCallTimer();
             } else if (isNumberInput && !numberInputLength && (BT_CallStatus >= BT_CALL_ACTIVE)) {
               SOUND_PlayButtonBeep(button, false);
               HANDSET_CancelCurrentButtonHoldEvents();
@@ -2527,32 +2557,7 @@ void handle_HANDSET_Event(HANDSET_Event const* event) {
             }
           } else if (button == HANDSET_Button_SEND) {
             if ((BT_CallStatus >= BT_CALL_ACTIVE) && (APP_CallAction == APP_CALL_IDLE)) {
-              if (dialedNumberNextDigitsToDial) {
-                bool isCreditCardRecall = false;
-                while(*dialedNumberNextDigitsToDial) {
-                  if (*dialedNumberNextDigitsToDial == 'P') {
-                    ++dialedNumberNextDigitsToDial;
-                    break;
-                  } else if (*dialedNumberNextDigitsToDial == 'M') {
-                    ++dialedNumberNextDigitsToDial;
-                    *dialedNumberNextDigitsToDial = '^';
-                    break;
-                  } else if (*dialedNumberNextDigitsToDial == '^') {
-                    isCreditCardRecall = true;
-                    ++dialedNumberNextDigitsToDial;
-                  } else if (isCreditCardRecall) {
-                    char creditCardNumber[CREDIT_CARD_NUMBER_LENGTH + 1];
-                    STORAGE_GetCreditCardNumber(*dialedNumberNextDigitsToDial++ - '1', creditCardNumber);
-                    ATCMD_SendDTMFDigitString(creditCardNumber);
-                    isCreditCardRecall = false;
-                  } else {
-                    ATCMD_SendDTMFDigit(*dialedNumberNextDigitsToDial++);
-                  }
-                }
-                
-                if (!*dialedNumberNextDigitsToDial) {
-                  dialedNumberNextDigitsToDial = NULL;
-                }
+              if (NumberInput_SendNextDTMFString()) {
                 return;
               }
             } else if (!callFailedTimer && (BT_CallStatus == BT_CALL_IDLE) && (APP_CallAction == APP_CALL_IDLE) && numberInputLength) {
@@ -3211,7 +3216,7 @@ void APP_BT_EventHandler(uint8_t event, uint16_t para, uint8_t* para_full) {
       
     case BT_EVENT_HFP_VOLUME_CHANGED:
       printf("[PHONE] Volume changed: %d\r\n", para);
-      if (BT_CallStatus != BT_CALL_IDLE) {
+      if ((BT_CallStatus != BT_CALL_IDLE) && (BT_CallStatus != BT_CALL_INCOMING)) {
         BT_SetHFPGain(0x0F);
       }
       break;
