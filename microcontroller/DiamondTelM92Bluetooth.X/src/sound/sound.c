@@ -837,12 +837,6 @@ static Note const TETRIS_LOSE_NOTES[] = {
 
 static Note const TETRIS_MUSIC_NOTES[] = {
   // Measure 1
-//  NOTE(E5, 400),
-//  NOTE(B4, 200),
-//  NOTE(C5, 200),
-//  NOTE(D5, 400),
-//  NOTE(C5, 200),
-//  NOTE(B4, 200),
   DUAL_NOTE(B4, E5, 400),
   DUAL_NOTE(GS4, B4, 200),
   DUAL_NOTE(A4, C5, 200),
@@ -853,12 +847,6 @@ static Note const TETRIS_MUSIC_NOTES[] = {
   DUAL_NOTE(GS4, B4, 200),
   
   // Measure 2
-//  NOTE(A4, 400),
-//  NOTE(A4, 200),
-//  NOTE(C5, 200),
-//  NOTE(E5, 400),
-//  NOTE(D5, 200),
-//  NOTE(C5, 200),
   DUAL_NOTE(E4, A4, 400),
   DUAL_NOTE(E4, A4, 200),
   DUAL_NOTE(A4, C5, 200),
@@ -867,10 +855,6 @@ static Note const TETRIS_MUSIC_NOTES[] = {
   DUAL_NOTE(A4, C5, 200),
   
   // Measure 3
-//  NOTE(B4, 400 + 200),
-//  NOTE(C5, 200),
-//  NOTE(D5, 400),
-//  NOTE(E5, 400),
   DUAL_NOTE_SLUR(GS4, B4, 100),
   DUAL_NOTE_SLUR(GS4, B4, 100),
   DUAL_NOTE(E4, B4, 200),
@@ -880,10 +864,6 @@ static Note const TETRIS_MUSIC_NOTES[] = {
   DUAL_NOTE(C5, E5, 400),
   
   // Measure 4
-//  NOTE(C5, 400),
-//  NOTE(A4, 400),
-//  NOTE(A4, 400),
-//  REST(400),
   DUAL_NOTE(A4, C5, 400),
   DUAL_NOTE(E4, A4, 400),
   DUAL_NOTE(E4, A4, 400),
@@ -891,12 +871,6 @@ static Note const TETRIS_MUSIC_NOTES[] = {
   DUAL_NOTE(C4, C4, 200),
   
   // Measure 5
-//  REST(200),
-//  NOTE(D5, 400),
-//  NOTE(F5, 200),
-//  NOTE(A5, 400),
-//  NOTE(G5, 200),
-//  NOTE(F5, 200),
   DUAL_NOTE(D4, D4, 200),
   DUAL_NOTE(F4, D5, 400),
   DUAL_NOTE(A4, F5, 200),
@@ -907,11 +881,6 @@ static Note const TETRIS_MUSIC_NOTES[] = {
   DUAL_NOTE(A4, F5, 200),
 
   // Measure 6
-//  NOTE(E5, 400 + 200),
-//  NOTE(C5, 200),
-//  NOTE(E5, 400),
-//  NOTE(D5, 200),
-//  NOTE(C5, 200),
   DUAL_NOTE(G4, E5, 400),
   REST(200),
   DUAL_NOTE(E4, C5, 200),
@@ -922,10 +891,6 @@ static Note const TETRIS_MUSIC_NOTES[] = {
   DUAL_NOTE(E4, C5, 200),
   
   // Measure 7
-//  NOTE(B4, 400 + 200),
-//  NOTE(C5, 200),
-//  NOTE(D5, 400),
-//  NOTE(E5, 400),
   DUAL_NOTE_SLUR(GS4, B4, 200),
   DUAL_NOTE(E4, B4, 200),
   DUAL_NOTE(GS4, B4, 200),
@@ -936,10 +901,6 @@ static Note const TETRIS_MUSIC_NOTES[] = {
   DUAL_NOTE(GS4, E5, 200),
   
   // Measure 8
-//  NOTE(C5, 400),
-//  NOTE(A4, 400),
-//  NOTE(A4, 400),
-//  REST(400),
   DUAL_NOTE_SLUR(A4, C5, 100),
   DUAL_NOTE_SLUR(C5, C5, 100),
   DUAL_NOTE(E4, C5, 200),
@@ -948,8 +909,6 @@ static Note const TETRIS_MUSIC_NOTES[] = {
   REST(400),
   
   // Measure 9
-//  NOTE(E5, 800),
-//  NOTE(C5, 800),
   DUAL_NOTE_SLUR(A3, E5, 200),
   DUAL_NOTE_SLUR(E4, E5, 200),
   DUAL_NOTE_SLUR(A3, E5, 200),
@@ -960,8 +919,6 @@ static Note const TETRIS_MUSIC_NOTES[] = {
   DUAL_NOTE(E4, C5, 200),
   
   // Measure 10
-//  NOTE(D5, 800),
-//  NOTE(B4, 800),
   DUAL_NOTE_SLUR(GS3, D5, 200),
   DUAL_NOTE_SLUR(E4, D5, 200),
   DUAL_NOTE_SLUR(GS3, D5, 200),
@@ -972,8 +929,6 @@ static Note const TETRIS_MUSIC_NOTES[] = {
   DUAL_NOTE(E4, B4, 200),
   
   // Measure 11
-//  NOTE(C5, 800),
-//  NOTE(A4, 800),
   DUAL_NOTE_SLUR(A3, C5, 200),
   DUAL_NOTE_SLUR(E4, C5, 200),
   DUAL_NOTE_SLUR(A3, C5, 200),
@@ -984,7 +939,6 @@ static Note const TETRIS_MUSIC_NOTES[] = {
   DUAL_NOTE(E4, A4, 200),
   
   // Measure 12
-//  NOTE(GS4, 1600),
   DUAL_NOTE_SLUR(GS3, GS4, 200),
   DUAL_NOTE_SLUR(E4, GS4, 200),
   DUAL_NOTE_SLUR(GS3, GS4, 200),
@@ -993,8 +947,6 @@ static Note const TETRIS_MUSIC_NOTES[] = {
   REST(400),
   
   // Measure 13
-//  NOTE(E5, 800),
-//  NOTE(C5, 800),
   DUAL_NOTE_SLUR(A3, E5, 200),
   DUAL_NOTE_SLUR(E4, E5, 200),
   DUAL_NOTE_SLUR(A3, E5, 200),
@@ -1005,8 +957,6 @@ static Note const TETRIS_MUSIC_NOTES[] = {
   DUAL_NOTE(E4, C5, 200),
   
   // Measure 14
-//  NOTE(D5, 800),
-//  NOTE(B4, 800),
   DUAL_NOTE_SLUR(GS3, D5, 200),
   DUAL_NOTE_SLUR(E4, D5, 200),
   DUAL_NOTE_SLUR(GS3, D5, 200),
@@ -1017,10 +967,6 @@ static Note const TETRIS_MUSIC_NOTES[] = {
   DUAL_NOTE(E4, B4, 200),
   
   // Measure 15
-//  NOTE(C5, 400),
-//  NOTE(E5, 400),
-//  NOTE(A5, 400),
-//  NOTE(A5, 400),
   DUAL_NOTE_SLUR(A3, C5, 200),
   DUAL_NOTE(E4, C5, 200),
   DUAL_NOTE_SLUR(A3, E5, 200),
@@ -1031,7 +977,6 @@ static Note const TETRIS_MUSIC_NOTES[] = {
   DUAL_NOTE(E4, A5, 200),
   
   // Measure 16
-//  NOTE(GS5, 1600)
   DUAL_NOTE_SLUR(GS3, GS5, 200),
   DUAL_NOTE_SLUR(E4, GS5, 200),
   DUAL_NOTE_SLUR(GS3, GS5, 200),
