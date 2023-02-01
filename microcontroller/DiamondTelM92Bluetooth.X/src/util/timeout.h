@@ -109,6 +109,22 @@ bool TIMEOUT_Task(timeout_t* timeout);
 void TIMEOUT_Start(timeout_t* timeout, uint16_t duration);
 
 /**
+ * Starts a timeout, or allows it to continue running as-is if the current 
+ * remaining duration is longer than the new specified duration.
+ * 
+ * NOTE: If a timeout is started with a duration of zero (0), then it will
+ *       start as pending, but already timed out. The next execution of 
+ *       TIMEOUT_Task() will complete the timer.
+ * 
+ * @param timeout - Pointer to a timeout.
+ * @param duration - Duration of the timeout, in terms of "count" of timer 
+ *        interrupts. To target a specific amount of time, divide the amount 
+ *        of time by the period of the timer whose interrupt is advancing this 
+ *        timeout.
+ */
+void TIMEOUT_StartOrContinue(timeout_t* timeout, uint16_t duration);
+
+/**
  * Cancels/stops a timeout.
  * 
  * @param timeout - Pointer to a timeout.

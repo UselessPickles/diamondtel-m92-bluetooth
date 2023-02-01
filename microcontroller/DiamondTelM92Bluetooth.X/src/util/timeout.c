@@ -39,6 +39,23 @@ void TIMEOUT_Start(timeout_t* timeout,  uint16_t duration) {
   timeout->_timerExpired = (duration == 0);
 }
 
+void TIMEOUT_StartOrContinue(timeout_t* timeout,  uint16_t duration) {
+  // First mark the timer as expired. This guarantees that execution of
+  // TIMEOUT_Timer_Interrupt from within a timer interrupt will not interfere 
+  // with writing any other variables.
+  timeout->_timerExpired = true;
+
+  if (duration > timeout->_timer) {
+    timeout->_timer = duration;
+  }
+  
+  timeout->_isPending = true;
+  // Finally set the true "expired" state of the timer.
+  // It is immediately expired if the duration is zero.
+  timeout->_timerExpired = (duration == 0);
+}
+
+
 void TIMEOUT_Cancel(timeout_t* timeout) {
   // First mark the timer as expired. This guarantees that execution of
   // TIMEOUT_Timer_Interrupt from within a timer interrupt will not interfere 
