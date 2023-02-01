@@ -48,7 +48,7 @@ static enum {
   APP_CALL_CANCEL_VOICE_COMMAND
 } APP_CallAction;
 
-#define CALL_ACTION_TIMEOUT (150)
+#define CALL_ACTION_TIMEOUT (200)
 static timeout_t callActionTimeout;
 
 static enum {
@@ -496,6 +496,27 @@ static void startCallFailed(void) {
   }
 }
 
+static void displayVoiceCommand(void) {
+  HANDSET_DisableTextDisplay();
+  HANDSET_ClearText();
+  HANDSET_PrintString("VOICE  COMMAND");
+  HANDSET_EnableTextDisplay();
+  appState = APP_State_VOICE_COMMAND;
+}
+
+static bool startVoiceCommand(void) {
+  if (!cellPhoneState.isConnected) {
+    startCallFailed();
+    return false;
+  } else {
+    APP_CallAction = APP_CALL_VOICE_COMMAND;
+    TIMEOUT_Start(&callActionTimeout, CALL_ACTION_TIMEOUT);
+    BT_StartVoiceCommand();
+    displayVoiceCommand();
+    return true;
+  }
+}
+
 static void NumberInput_SendCurrentNumberAsDtmf(void) {
   hideCallTimer();
   numberInputIsStale = true;
@@ -514,8 +535,17 @@ static void NumberInput_CallCurrentNumber(void) {
   if (firstPause) {
     *firstPause = 0;
   }
-
-  if (!cellPhoneState.hasService || !BT_MakeCall(tempNumberBuffer)) {
+  
+  if ((strcmp(tempNumberBuffer, "0") == 0) || (strcmp(tempNumberBuffer, "411") == 0)) {
+    // Handle special phone numbers that should initiate voice command instead
+    // of actually calling the number.
+    // This special way of initiating voice command allows it to be triggered
+    // from the Hands-Free Controller Box, which is only able speed dial by 
+    // simulating the handset button sequence to recall one of the first 3 
+    // directory entries then "SEND" to call it. There's no way to directly
+    // detect and process Hands-Free button presses to implement custom behavior.
+    startVoiceCommand();
+  } else if (!cellPhoneState.hasService || !BT_MakeCall(tempNumberBuffer)) {
     startCallFailed();
   } else {
     if (
@@ -1092,14 +1122,6 @@ static void startEnterSecurityCode(SecurityAction action, bool prompt) {
   appState = APP_State_ENTER_SECURITY_CODE;
 }
 
-static void displayVoiceCommand(void) {
-  HANDSET_DisableTextDisplay();
-  HANDSET_ClearText();
-  HANDSET_PrintString("VOICE  COMMAND");
-  HANDSET_EnableTextDisplay();
-  appState = APP_State_VOICE_COMMAND;
-}
-
 static void handleReturnFromSubModule(void) {
   HANDSET_CancelCurrentButtonHoldEvents();
 
@@ -1213,8 +1235,25 @@ static void handleCallStatusChange(int newCallStatus) {
     case BT_CALL_IDLE:
       TIMEOUT_Start(&idleTimeout, IDLE_TIMEOUT);
       CALL_TIMER_Stop();
+      // NOTE: IN USE indicator must be cleared out BEFORE making any SOUND
+      // module calls to ensure that the Hands-Free Controller Unit is aware
+      // that the call is over, and prevent it from interfering with our 
+      // sound-related commands to the handset.
+      INDICATOR_StopFlashing(HANDSET_Indicator_IN_USE, false);
+      HANDSET_SetIndicator(HANDSET_Indicator_MUTE, false);
+      isMuted = false;
+      // Force the next update to handset audio output to send commands to the 
+      // handset regardless of whether we believe the handset is already in the
+      // desired state or not. This is necessary for compatibility with the 
+      // Hands-Free Controller Unit, which may disable sound output on the 
+      // handset during a call to redirect sound to the car radio speakers,
+      // which causes our assumptions about the handset audio state to be out 
+      // of sync with the actual handset audio state.
+      SOUND_ForceNextSetHandsetAudioOutput();
       SOUND_SetDefaultAudioSource(SOUND_AudioSource_MCU);
+      SOUND_SetButtonsMuted(false);
       isCallTimerDisplayedByDefault = false;
+      setCallerId(NULL);
 
       if ((appState == APP_State_INCOMING_CALL) && (APP_CallAction != APP_CALL_REJECTING)) {
         numberInputIsStale = true;
@@ -1223,12 +1262,12 @@ static void handleCallStatusChange(int newCallStatus) {
         if (
             (APP_CallAction != APP_CALL_ENDING) && 
             (APP_CallAction != APP_CALL_REJECTING) && 
-            (APP_CallAction != APP_CALL_CANCEL_VOICE_COMMAND
-            )) {
+            (APP_CallAction != APP_CALL_CANCEL_VOICE_COMMAND)
+            ) {
           SOUND_PlayEffect(
             SOUND_Channel_FOREGROUND, 
-            SOUND_Target_EAR,
-            HANDSET_IsOnHook() ? VOLUME_Mode_HANDS_FREE : VOLUME_Mode_HANDSET,
+            SOUND_Target_SPEAKER,
+            VOLUME_Mode_TONE,
             SOUND_Effect_CALL_DISCONNECT, 
             false
           );
@@ -1243,12 +1282,6 @@ static void handleCallStatusChange(int newCallStatus) {
           returnToNumberInput(false);
         }
       }
-
-      INDICATOR_StopFlashing(HANDSET_Indicator_IN_USE, false);
-      HANDSET_SetIndicator(HANDSET_Indicator_MUTE, false);
-      isMuted = false;
-      SOUND_SetButtonsMuted(false);
-      setCallerId(NULL);
       break;
 
     case BT_CALL_ACTIVE:
@@ -1564,15 +1597,7 @@ void APP_Task(void) {
     case APP_State_INIT_ALL_DISPLAY_ON:
       if (!TIMEOUT_IsPending(&appStateTimeout)) {
         TIMEOUT_Start(&appStateTimeout, 50);
-        SOUND_Initialize();
-        VOLUME_Enable();
-        SOUND_PlayEffect(
-            SOUND_Channel_FOREGROUND, 
-            SOUND_Target_SPEAKER,
-            VOLUME_Mode_SPEAKER,
-            SOUND_Effect_TONE_DUAL_CONTINUOUS, 
-            true
-        );
+        SOUND_Initialize();       
         HANDSET_SetTextBlink(false);
         HANDSET_DisableTextDisplay();
         HANDSET_ClearText();
@@ -1896,14 +1921,8 @@ void handle_HANDSET_Event(HANDSET_Event const* event) {
     SOUND_Stop(SOUND_Channel_BACKGROUND);
     resetFcn();
     
-    if (!cellPhoneState.isConnected) {
-      startCallFailed();
-    } else {
+    if (startVoiceCommand()) {
       SOUND_PlayButtonBeep(button, false);
-      APP_CallAction = APP_CALL_VOICE_COMMAND;
-      TIMEOUT_Start(&callActionTimeout, CALL_ACTION_TIMEOUT);
-      BT_StartVoiceCommand();
-      displayVoiceCommand();
     }
     return;
   }

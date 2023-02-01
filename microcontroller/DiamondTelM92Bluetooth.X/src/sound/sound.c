@@ -6,6 +6,7 @@
 #include "sound.h"
 #include "tone.h"
 #include "volume.h"
+#include "../util/timeout.h"
 #include "../../mcc_generated_files/pin_manager.h"
 #include <xc.h>
 #include <stddef.h>
@@ -14,6 +15,7 @@
 
 typedef enum SpeakerMode {
   SpeakerMode_NONE,
+  SpeakerMode_IDLE,
   SpeakerMode_EAR,
   SpeakerMode_SPEAKER    
 } SpeakerMode;
@@ -60,12 +62,12 @@ static SOUND_Target currentTarget;
 static bool isOnHook;
 static SpeakerMode currentSpeakerMode;
 static VOLUME_Mode currentVolumeMode;
-static uint8_t finishSetHandsetAudioOutputTimer;
-static bool finishSetHandsetAudioOutputTimerExpired;
+static timeout_t finishSetHandsetAudioOutputTimeout;
 static bool isDisabled = true;
 static SOUND_AudioSource defaultAudioSource;
 static bool isButtonsMuted;
 static HANDSET_Button currentButtonBeep;
+static bool forceNextSetHandsetAudioOutput;
 
 static bool isSoundEffectOnAndNotMuted(SoundEffectState const* soundEffectState) {
   if (!soundEffectState->on) {
@@ -103,11 +105,14 @@ static void playCurrentTone(void) {
 
 static void setHandsetAudioOutput(void) {
   SOUND_AudioSource newAudioSource = SOUND_AudioSource_MCU;
+  bool isPlayingSound = false;
   
   if (isSoundEffectOnAndNotMuted(foregroundEffectState)) {
+    isPlayingSound = true;
     currentTarget = foregroundEffectState->target;
     currentVolumeMode = foregroundEffectState->volumeMode;
   } else if (isSoundEffectOnAndNotMuted(backgroundEffectState)) {
+    isPlayingSound = true;
     currentTarget = backgroundEffectState->target;
     currentVolumeMode = backgroundEffectState->volumeMode;
   } else {
@@ -124,15 +129,41 @@ static void setHandsetAudioOutput(void) {
     }
   }
   
+  // Stop playing the current tone now if we're no longer playing sound.
+  // This allows the tone to gracefully end (with zero-crossing detection)
+  // by the time the handset receives processes the commands to change the
+  // sound/speaker status, helping avoid an audio "click".
+  if (!isPlayingSound) {
+    TONE_Stop();
+  }
+  
   SpeakerMode newSpeakerMode = isDisabled 
       ? SpeakerMode_NONE
+      : ((newAudioSource != SOUND_AudioSource_BT) && !isPlayingSound) 
+      ? SpeakerMode_IDLE
       : ((currentTarget == SOUND_Target_SPEAKER) || isOnHook)
       ? SpeakerMode_SPEAKER
       : SpeakerMode_EAR;
 
-  if (newSpeakerMode != currentSpeakerMode) {
-    VOLUME_Disable();
+  if (forceNextSetHandsetAudioOutput || (newSpeakerMode != currentSpeakerMode)) {
+    // Only disable volume if the the speaker mode is believed to be changing
+    // (not just for a forced update) AND if any sound is currently playing
+    // (including if the default source is the Bluetooth module, meaning that
+    // Bluetooth voice audio may be playing).
+    // Disabling volume helps ensure a clean transition between sound sources
+    // and speaker modes by avoiding cross-over of the old sound source playing 
+    // through the new speaker mode or volume level, etc.
+    if (
+        newSpeakerMode != currentSpeakerMode && 
+        (isPlayingSound || (defaultAudioSource == SOUND_AudioSource_BT))
+        ) {
+      VOLUME_Disable();
+    }
 
+    if (forceNextSetHandsetAudioOutput) {
+      HANDSET_DisableCommandOptimization();
+    }
+    
     if (newSpeakerMode == SpeakerMode_SPEAKER) {
       HANDSET_SetMasterAudio(true);
       HANDSET_SetEarSpeaker(false);
@@ -141,26 +172,35 @@ static void setHandsetAudioOutput(void) {
       HANDSET_SetMasterAudio(true);
       HANDSET_SetLoudSpeaker(false);
       HANDSET_SetEarSpeaker(true);
+    } else if (newSpeakerMode == SpeakerMode_IDLE) {
+      HANDSET_SetMasterAudio(true);
+      HANDSET_SetLoudSpeaker(false);
+      HANDSET_SetEarSpeaker(false);
     } else {
       HANDSET_SetEarSpeaker(false);
       HANDSET_SetLoudSpeaker(false);
       HANDSET_SetMasterAudio(false);
     }
 
+    if (forceNextSetHandsetAudioOutput) {
+      HANDSET_EnableCommandOptimization();
+    }
+
     HANDSET_FlushWriteBuffer();
 
-    finishSetHandsetAudioOutputTimerExpired = true;
-    finishSetHandsetAudioOutputTimer = 
+    TIMEOUT_StartOrContinue(
+        &finishSetHandsetAudioOutputTimeout,
         (newSpeakerMode == SpeakerMode_NONE) 
-        ? 0 
-        : (currentSpeakerMode == SpeakerMode_NONE) 
-        ? 200
-        : 20;
-    finishSetHandsetAudioOutputTimerExpired = false;
+          ? 0 
+          : (currentSpeakerMode == SpeakerMode_NONE) 
+          ? 100
+          : 20
+    );
     
     currentSpeakerMode = newSpeakerMode;
-  } else {
+  } else if (!TIMEOUT_IsPending(&finishSetHandsetAudioOutputTimeout)) {
     VOLUME_SetMode(currentVolumeMode);
+    playCurrentTone();
   }
 
   if (newAudioSource == SOUND_AudioSource_BT) {
@@ -169,20 +209,19 @@ static void setHandsetAudioOutput(void) {
     IO_VOICE_IN_SetLow();
   }
   
-  if (
-      isOnHook || 
-      isSoundEffectOnAndNotMuted(backgroundEffectState) || 
-      isSoundEffectOnAndNotMuted(foregroundEffectState)
-      ) {
+  if (isOnHook || isPlayingSound) {
     IO_MIC_OUT_DISABLE_SetHigh();
   } else {
     IO_MIC_OUT_DISABLE_SetLow();
   }
+  
+  forceNextSetHandsetAudioOutput = false;
 }
 
 static void finishSetHandsetAudioOutput(void) {
   VOLUME_SetMode(currentVolumeMode);
   VOLUME_Enable();
+  playCurrentTone();
 }
 
 static bool soundEffectStateTask(SOUND_Channel channel) {
@@ -230,22 +269,27 @@ static bool soundEffectStateTask(SOUND_Channel channel) {
 }
 
 void SOUND_Initialize(void) {
-  VOLUME_SetMode(VOLUME_Mode_SPEAKER);
-
-  HANDSET_SetMasterAudio(true);
-  HANDSET_SetLoudSpeaker(true);
-  HANDSET_SetEarSpeaker(false);
-  HANDSET_SetMicrophone(false);
-  
   defaultAudioSource = SOUND_AudioSource_MCU;
   currentTarget = SOUND_Target_SPEAKER;
-  currentSpeakerMode = SpeakerMode_SPEAKER;
+  currentSpeakerMode = SpeakerMode_IDLE;
   currentVolumeMode = VOLUME_Mode_SPEAKER;
   currentButtonBeep = HANDSET_Button_NONE;
   isOnHook = true;
   isInitialized = true;
   isDisabled = false;
   isButtonsMuted = false;
+  
+  SOUND_PlayEffect(
+      SOUND_Channel_FOREGROUND, 
+      SOUND_Target_SPEAKER,
+      VOLUME_Mode_SPEAKER,
+      SOUND_Effect_TONE_DUAL_CONTINUOUS, 
+      true
+  );
+}
+
+void SOUND_ForceNextSetHandsetAudioOutput(void) {
+  forceNextSetHandsetAudioOutput = true;
 }
 
 void SOUND_Disable(void) {
@@ -276,12 +320,12 @@ void SOUND_Timer1MS_Interrupt(void) {
     return;
   }
   
-  if (!finishSetHandsetAudioOutputTimerExpired && finishSetHandsetAudioOutputTimer) {
-    if (!--finishSetHandsetAudioOutputTimer) {
-      finishSetHandsetAudioOutputTimerExpired = true;
-    }
+  
+  TIMEOUT_Timer_Interrupt(&finishSetHandsetAudioOutputTimeout);
+  
+  if (TIMEOUT_IsPending(&finishSetHandsetAudioOutputTimeout)) {
     return;
-  } 
+  }
   
   if (!backgroundEffectState->noteTimerExpired && backgroundEffectState->noteTimer) {
     if (!--backgroundEffectState->noteTimer) {
@@ -301,14 +345,17 @@ void SOUND_Task(void) {
     return;
   }
   
-  if (finishSetHandsetAudioOutputTimerExpired) {
+  if (TIMEOUT_Task(&finishSetHandsetAudioOutputTimeout)) {
     finishSetHandsetAudioOutput();
-    finishSetHandsetAudioOutputTimerExpired = false;
+    return;
   } 
+  
+  if (TIMEOUT_IsPending(&finishSetHandsetAudioOutputTimeout)) {
+    return;
+  }
   
   if (soundEffectStateTask(SOUND_Channel_BACKGROUND) || soundEffectStateTask(SOUND_Channel_FOREGROUND)) {
     setHandsetAudioOutput();
-    playCurrentTone();
   }  
 }
 
@@ -321,7 +368,7 @@ void SOUND_HANDSET_EventHandler(HANDSET_Event const* event) {
     if (event->isOnHook != isOnHook) {
       isOnHook = event->isOnHook;
       setHandsetAudioOutput();
-    }  
+    }
   }
 }
 
@@ -346,7 +393,6 @@ void SOUND_PlayEffect(SOUND_Channel channel, SOUND_Target target, VOLUME_Mode vo
   state->volumeMode = volumeMode;
 
   setHandsetAudioOutput();
-  playCurrentTone();
   
   if (currentButtonBeep && (channel == SOUND_Channel_FOREGROUND)) {
     currentButtonBeep = HANDSET_Button_NONE;
@@ -375,7 +421,6 @@ void SOUND_PlayDualTone(SOUND_Channel channel, SOUND_Target target, VOLUME_Mode 
   state->volumeMode = volumeMode;
   
   setHandsetAudioOutput();
-  playCurrentTone();
   
   if (currentButtonBeep && (channel == SOUND_Channel_FOREGROUND)) {
     currentButtonBeep = HANDSET_Button_NONE;
@@ -448,8 +493,8 @@ void SOUND_PlayDTMFButtonBeep(HANDSET_Button button, bool limitDuration) {
     default:
       rowTone = TONE_LOW;
       break;
-  }
-  
+}
+
   switch(button) {
     case HANDSET_Button_1:
     case HANDSET_Button_4:
@@ -514,7 +559,6 @@ void SOUND_Stop(SOUND_Channel channel) {
   soundEffectState[channel].on = false;  
 
   setHandsetAudioOutput();
-  playCurrentTone();
 
   if (channel == SOUND_Channel_FOREGROUND) {
     currentButtonBeep = HANDSET_Button_NONE;
@@ -530,7 +574,6 @@ void SOUND_SetVolumeLevel(VOLUME_Mode mode, VOLUME_Level level) {
   
   if (mode == currentVolumeMode) {
     setHandsetAudioOutput();
-    playCurrentTone();
   }
 }
 

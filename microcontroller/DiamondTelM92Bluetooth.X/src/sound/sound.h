@@ -58,6 +58,8 @@ typedef enum SOUND_Effect {
 
 void SOUND_Initialize(void);
 
+void SOUND_ForceNextSetHandsetAudioOutput(void);
+
 void SOUND_Disable(void);
 
 void SOUND_Enable(void);
