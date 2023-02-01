@@ -8,6 +8,7 @@
 #ifndef TRANSCEIVER_H
 #define	TRANSCEIVER_H
 
+#include "handset.h"
 #include <stdint.h>
 #include <stdbool.h>
 
@@ -38,7 +39,14 @@ typedef enum TRANSCEIVER_EventType {
    * The battery level has changed.
    * Use TRANSCEIVER_GetBatteryLevel() to get the new battery level.
    */    
-  TRANSCEIVER_EventType_BATTERY_LEVEL_CHANGED    
+  TRANSCEIVER_EventType_BATTERY_LEVEL_CHANGED,
+  /**
+   * The PWR button power-off process has begun.
+   * 
+   * The user has held the PWR button long enough such that the phone
+   * will power off upon release.
+   */
+  TRANSCEIVER_EventType_POWERING_OFF
 } TRANSCEIVER_EventType;  
 
 /**
@@ -66,6 +74,15 @@ void TRANSCEIVER_Task(void);
  * This must be called from a timer interrupt with a 10 millisecond period.
  */
 void TRANSCEIVER_Timer10MS_Interrupt(void);
+
+/**
+ * Handset event handler for this module.
+ * 
+ * The parent module must call this from its handset event handler.
+ * 
+ * @param event - The handset event.
+ */
+void TRANSCEIVER_HANDSET_EventHandler(HANDSET_Event const* event);
 
 /**
  * Poll the transceiver for the current battery level right now.

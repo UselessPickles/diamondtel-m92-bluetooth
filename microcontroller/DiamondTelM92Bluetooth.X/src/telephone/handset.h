@@ -392,7 +392,6 @@ typedef enum HANDSET_Button {
  */
 typedef enum HANDSET_HoldDuration {
   HANDSET_HoldDuration_NONE = 0,
-  HANDSET_HoldDuration_VERY_SHORT = 400,
   HANDSET_HoldDuration_SHORT = 500,
   HANDSET_HoldDuration_LONG = 1000,
   HANDSET_HoldDuration_VERY_LONG = 2000,

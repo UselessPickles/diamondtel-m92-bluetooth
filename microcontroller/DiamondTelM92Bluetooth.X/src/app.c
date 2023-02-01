@@ -1864,46 +1864,17 @@ void handle_HANDSET_Event(HANDSET_Event const* event) {
   if (appState <= APP_State_INIT_CLEAR_PHONE_NUMBER) {
     return;
   }
-  
-  SOUND_HANDSET_EventHandler(event);
-  
+
   if (isButtonUp || isButtonDown || (event->type == HANDSET_EventType_HOOK)) {
     wakeUpHandset(button != HANDSET_Button_PWR);
   }
-
+  
+  SOUND_HANDSET_EventHandler(event);
+  TRANSCEIVER_HANDSET_EventHandler(event);  
   CLR_CODES_HANDSET_EventHandler(event);
 
   if (HANDSET_IsButtonClrCode(button)) {
     return;
-  }
-  
-  if (button == HANDSET_Button_PWR) {
-    if ( 
-      (event->type == HANDSET_EventType_BUTTON_HOLD) &&
-      (event->holdDuration == HANDSET_HoldDuration_VERY_SHORT)
-      ) {
-      SOUND_PlaySingleTone(
-          SOUND_Channel_FOREGROUND,
-          SOUND_Target_SPEAKER,
-          VOLUME_Mode_TONE,
-          TONE_HIGH,
-          0
-      );
-    } else if (isButtonUp) {
-      if (event->holdDuration >= HANDSET_HoldDuration_VERY_SHORT) {
-        // Continue playing the high tone for a short time
-        SOUND_PlaySingleTone(
-            SOUND_Channel_FOREGROUND,
-            SOUND_Target_SPEAKER,
-            VOLUME_Mode_TONE,
-            TONE_HIGH,
-            300
-        );
-      } else {
-        printf("[APP] Sending HANDSET Mystery Command EA\r\n");
-        HANDSET_SendArbitraryCommand(0xEA);
-      }
-    }
   }
   
   if (event->type == HANDSET_EventType_HOOK) {

@@ -21,6 +21,7 @@
 #include "../../mcc_generated_files/uart4.h"
 #include "../util/timeout.h"
 #include "../util/interval.h"
+#include "../sound/sound.h"
 #include <stdio.h>
 
 /**
@@ -92,6 +93,20 @@ static struct {
    * True if the battery level is currently "low".
    */
   bool isBatteryLevelLow;
+  /**
+   * True if the PWR button is currently pressed.
+   * 
+   * NOTE: This is maintained by handling HANDSET button events, which means
+   * that this is guaranteed to be false during power-on when the PWR button
+   * is still held from powering on. This is intentional and necessary to 
+   * ensure that we only handle the PWR button being pressed AFTER power-on.
+   */
+  bool isPowerButtonPressed;
+  /**
+   * True if the power-off process has begun (PWR button has been held long 
+   * enough that the phone will now power off upon release).
+   */
+  bool isPoweringOff;
 } module;
 
 void TRANSCEIVER_Initialize(TRANSCEIVER_EventHandler eventHandler) {
@@ -103,6 +118,8 @@ void TRANSCEIVER_Initialize(TRANSCEIVER_EventHandler eventHandler) {
   module.batteryLevel = 0;
   TIMEOUT_Cancel(&module.deferBatteryLevelOkEventTimeout);
   module.isBatteryLevelLow = false;
+  module.isPowerButtonPressed = false;
+  module.isPoweringOff = false;
 }
 
 void TRANSCEIVER_Task(void) {
@@ -141,6 +158,27 @@ void TRANSCEIVER_Task(void) {
       printf("[TSCVR] Transceiver Ready\r\n");
       INTERVAL_Start(&module.batteryLevelRequestInterval, true);
       TIMEOUT_Cancel(&module.transceiverReadyTimeout);
+    } else if ((cmd == HANDSET_UartCmd_LOUD_SPEAKER_ON) && module.isPowerButtonPressed) {
+      // If the transceiver is turning the speaker on while the PWR button is 
+      // pressed, then assume that it is for the purpose of playing the power-off
+      // beep. We now know that the phone is powering off, and we should also
+      // play the power-off beep.
+      module.isPoweringOff = true;
+
+      SOUND_PlaySingleTone(
+          SOUND_Channel_FOREGROUND,
+          SOUND_Target_SPEAKER,
+          VOLUME_Mode_TONE,
+          TONE_HIGH,
+          0
+      );
+      
+      printf("[TSCVR] Powering Off (upon PWR release)\r\n");
+      module.eventHandler(TRANSCEIVER_EventType_POWERING_OFF);
+    } else if ((cmd == HANDSET_UartCmd_LOUD_SPEAKER_OFF) && module.isPoweringOff) {
+      // If the transceiver turns the speaker off while powering off, then we
+      // know it's time to stop playing the power-off beep.
+      SOUND_Stop(SOUND_Channel_FOREGROUND);
     }
     
     if (TIMEOUT_IsPending(&module.batteryLevelRequestTimeout)) {
@@ -227,6 +265,16 @@ void TRANSCEIVER_Task(void) {
     // Retry polling the battery level now.
     TRANSCEIVER_PollBatteryLevelNow();
   }  
+}
+
+void TRANSCEIVER_HANDSET_EventHandler(HANDSET_Event const* event) {
+  if (event->button == HANDSET_Button_PWR) {
+    if (event->type == HANDSET_EventType_BUTTON_DOWN) {
+      module.isPowerButtonPressed = true;
+    } else if (event->type == HANDSET_EventType_BUTTON_UP) {
+      module.isPowerButtonPressed = false;
+    }
+  }
 }
 
 void TRANSCEIVER_Timer10MS_Interrupt(void) {
