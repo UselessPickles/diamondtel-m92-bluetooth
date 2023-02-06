@@ -298,8 +298,8 @@ static void dispatchEvent(HANDSET_Event* event) {
   event->isFcn = handset.isFcnButtonDown;
   event->isOnHook = handset.isOnHook;
   
-  handset.eventHandler(event);
   //printEvent(event);
+  handset.eventHandler(event);
 }
 
 /**
