@@ -1340,8 +1340,16 @@ static void handleCallStatusChange(int newCallStatus) {
       wakeUpHandset(true);
       BT_SetHFPGain(0x0F);
       SOUND_SetDefaultAudioSource(SOUND_AudioSource_BT);
+      
       HANDSET_SetTextBlink(false);
+
+      // Send the following command unconditionally for compatibility
+      // with the Hands-Free Controller. This is necessary to for it to 
+      // properly believe the the phone is "IN USE" when transitioning out of 
+      // BT_CALL_ACTIVE_WITH_CALL_WAITING state.
+      HANDSET_DisableCommandOptimization();
       HANDSET_SetIndicator(HANDSET_Indicator_IN_USE, true);
+      HANDSET_EnableCommandOptimization();
 
 // TODO: Implement new indication of call waiting.
 //       Flashing the IN USE indicator is incompatible with the Hands-Free Controller        
