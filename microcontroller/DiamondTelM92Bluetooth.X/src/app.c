@@ -476,6 +476,8 @@ static bool NumberInput_SendNextDTMFString(void) {
 }
 
 static void startCallFailed(void) {
+  HANDSET_SetIndicator(HANDSET_Indicator_IN_USE, true);
+
   SOUND_PlayEffect(
       SOUND_Channel_BACKGROUND, 
       SOUND_Target_EAR,
@@ -483,8 +485,6 @@ static void startCallFailed(void) {
       SOUND_Effect_REORDER_TONE, 
       true
       );
-
-  HANDSET_SetIndicator(HANDSET_Indicator_IN_USE, true);
 
   callFailedTimer = CALL_FAILED_TIMEOUT;
 
@@ -579,7 +579,9 @@ static void recallNumberInputOverflow(RecallOverflowType type) {
 static char callerIdText[CALLER_ID_MAX_LENGTH + 1];
 
 static void setCallerId(char const* text) {
-  if (!text) {
+  // NOTE: Ignore Caller ID when in "Vehicle Mode", even if Caller ID is enabled.
+  //       This is because Caller ID is incompatible with the Hands-Free Controller.  
+  if (!text || !STORAGE_GetCallerIdMode() || STORAGE_GetVehicleModeEnabled()) {
     callerIdText[0] = 0;
     return;
   }
@@ -606,7 +608,7 @@ static void setCallerId(char const* text) {
   
   //printf("[CALLER ID]: \"%s\"\r\n", callerIdText);
   
-  if ((appState == APP_State_INCOMING_CALL) && len && STORAGE_GetCallerIdMode()) {
+  if ((appState == APP_State_INCOMING_CALL) && len) {
     HANDSET_SetTextBlink(false);
     MARQUEE_Start(callerIdText, MARQUEE_Row_TOP);
   }
@@ -615,34 +617,46 @@ static void setCallerId(char const* text) {
 static bool isCallFlashOn;
 
 static void showIncomingCall(bool isMissedCall) {
-  bool showCallerId = STORAGE_GetCallerIdMode() && callerIdText[0];
+  bool const showCallerId = callerIdText[0];
   
   CALL_TIMER_DisableDisplayUpdate();
   
   MARQUEE_Stop();
-  HANDSET_DisableTextDisplay();
   HANDSET_ClearText();
+  HANDSET_DisableTextDisplay();
   HANDSET_PrintString("CALL ");
   HANDSET_EnableTextDisplay();
   
-  if (showCallerId) {
-    MARQUEE_Start(callerIdText, MARQUEE_Row_TOP);
-  }
- 
   if (isMissedCall) {
-    HANDSET_SetTextBlink(false);
     TIMEOUT_Cancel(&appStateTimeout);
     appState = APP_State_DISPLAY_DISMISSABLE_TEXT;
   } else {
     if (showCallerId) {
+      // HANDSET_SetTextBlink(false);
       isCallFlashOn = true;
       TIMEOUT_Start(&appStateTimeout, 50);
-    } else  {
+    } else {
+      // This sequence of commands immediately following the printing of "CALL "
+      // to the display seems to be necessary to properly trigger the
+      // Hands-Free Controller to believe that there is an incoming call.
+      // NOTE: Any subsequent commands to print anything to the display seems
+      //       to break the state of the Hands-Free Controller such that it
+      //       still has control of audio, but does not believe there is an
+      //       incoming call so the "H?F" button cannot be used to answer the
+      //       call. This means there's no way to make caller ID compatible with
+      //       the Hands-Free Controller
+      HANDSET_DisableCommandOptimization();
       HANDSET_SetTextBlink(true);
+      HANDSET_SetIndicator(HANDSET_Indicator_IN_USE, BT_CallStatus == BT_CALL_ACTIVE_WITH_CALL_WAITING);
+      HANDSET_EnableCommandOptimization();
     }
     
     appState = APP_State_INCOMING_CALL;
   }
+
+  if (showCallerId) {
+    MARQUEE_Start(callerIdText, MARQUEE_Row_TOP);
+  } 
 }
 
 static void startAlphaStoreNumberInput(bool reset);
@@ -1221,8 +1235,9 @@ static void handleCallStatusChange(int newCallStatus) {
   }
 
   if (callFailedTimer || callFailedTimerExpired) {
-    SOUND_Stop(SOUND_Channel_BACKGROUND);
     HANDSET_SetIndicator(HANDSET_Indicator_IN_USE, false);
+    SOUND_ForceNextSetHandsetAudioOutput();
+    SOUND_Stop(SOUND_Channel_BACKGROUND);
     callFailedTimerExpired = true;
     callFailedTimer = 0;
     callFailedTimerExpired = false;
@@ -1235,13 +1250,22 @@ static void handleCallStatusChange(int newCallStatus) {
     case BT_CALL_IDLE:
       TIMEOUT_Start(&idleTimeout, IDLE_TIMEOUT);
       CALL_TIMER_Stop();
-      // NOTE: IN USE indicator must be cleared out BEFORE making any SOUND
-      // module calls to ensure that the Hands-Free Controller Unit is aware
-      // that the call is over, and prevent it from interfering with our 
-      // sound-related commands to the handset.
-      INDICATOR_StopFlashing(HANDSET_Indicator_IN_USE, false);
+      
+      // The following sequence of commands is what seems to be necessary
+      // to reliably trigger the Hands-Free Controller to believe that the phone
+      // is no longer in a call (works when coming from an active call, or
+      // an incoming call that was missed or explicitly rejected).
+      // This MUST be done before any SOUND commands to ensure that the SOUND
+      // commands are not intercepted by the Hands-Free Controller.
+      HANDSET_DisableCommandOptimization();
+      HANDSET_SetLoudSpeaker(false);
+      HANDSET_SetEarSpeaker(true);
+      HANDSET_SetMicrophone(true);
+      HANDSET_SetIndicator(HANDSET_Indicator_IN_USE, false);
+      HANDSET_SetTextBlink(false);
       HANDSET_SetIndicator(HANDSET_Indicator_MUTE, false);
-      isMuted = false;
+      HANDSET_EnableCommandOptimization();
+
       // Force the next update to handset audio output to send commands to the 
       // handset regardless of whether we believe the handset is already in the
       // desired state or not. This is necessary for compatibility with the 
@@ -1252,6 +1276,8 @@ static void handleCallStatusChange(int newCallStatus) {
       SOUND_ForceNextSetHandsetAudioOutput();
       SOUND_SetDefaultAudioSource(SOUND_AudioSource_MCU);
       SOUND_SetButtonsMuted(false);
+
+      isMuted = false;
       isCallTimerDisplayedByDefault = false;
       setCallerId(NULL);
 
@@ -1283,7 +1309,7 @@ static void handleCallStatusChange(int newCallStatus) {
         }
       }
       break;
-
+    
     case BT_CALL_ACTIVE:
       if (
           (prevCallStatus == BT_CALL_ACTIVE_WITH_HOLD) && 
@@ -1315,12 +1341,16 @@ static void handleCallStatusChange(int newCallStatus) {
       BT_SetHFPGain(0x0F);
       SOUND_SetDefaultAudioSource(SOUND_AudioSource_BT);
       HANDSET_SetTextBlink(false);
-      
-      if (BT_CallStatus > BT_CALL_ACTIVE_WITH_CALL_WAITING) {
-        INDICATOR_StartFlashing(HANDSET_Indicator_IN_USE);
-      } else {
-        INDICATOR_StopFlashing(HANDSET_Indicator_IN_USE, true);
-      }
+      HANDSET_SetIndicator(HANDSET_Indicator_IN_USE, true);
+
+// TODO: Implement new indication of call waiting.
+//       Flashing the IN USE indicator is incompatible with the Hands-Free Controller        
+//
+//      if (BT_CallStatus > BT_CALL_ACTIVE_WITH_CALL_WAITING) {
+//        INDICATOR_StartFlashing(HANDSET_Indicator_IN_USE);
+//      } else {
+//        INDICATOR_StopFlashing(HANDSET_Indicator_IN_USE, true);
+//      }
 
       if ((BT_CallStatus == BT_CALL_OUTGOING) && (APP_CallAction != APP_CALL_SENDING)) {
         // This is an outgoing call that was initiated externally, so we don't 
@@ -1343,10 +1373,14 @@ static void handleCallStatusChange(int newCallStatus) {
     case BT_CALL_ACTIVE_WITH_CALL_WAITING:
     case BT_CALL_INCOMING:
       wakeUpHandset(true);
+
+      resetFcn();
+      isRclInputPending = false;
+      isRclOrSto2ndDigitPending = false;
+      isStoInputPending = false;
+
       showIncomingCall(false);
 
-      INDICATOR_StopFlashing(HANDSET_Indicator_IN_USE, BT_CallStatus == BT_CALL_ACTIVE_WITH_CALL_WAITING);
-      
       if (BT_CallStatus == BT_CALL_INCOMING) {
         RINGTONE_Start(STORAGE_GetRingtone());
         
@@ -1358,13 +1392,10 @@ static void handleCallStatusChange(int newCallStatus) {
         SOUND_SetDefaultAudioSource(SOUND_AudioSource_BT);
       }
 
-      resetFcn();
-      isRclInputPending = false;
-      isRclOrSto2ndDigitPending = false;
-      isStoInputPending = false;
-      
       // Request current call list to extract Caller ID
-      if (STORAGE_GetCallerIdMode()) {
+      // NOTE: Don't request Caller ID when in "Vehicle Mode", even if Caller ID is enabled.
+      //       This is because Caller ID is incompatible with the Hands-Free Controller.  
+      if (STORAGE_GetCallerIdMode() && !STORAGE_GetVehicleModeEnabled()) {
         ATCMD_Send("+CLCC", handleCallListAtResponse);
       }
       break;
@@ -1563,6 +1594,8 @@ void APP_Task(void) {
 
   if (callFailedTimerExpired) {
     HANDSET_SetIndicator(HANDSET_Indicator_IN_USE, false);
+    // Needed to recover audio control from the Hands-Free Controller
+    SOUND_ForceNextSetHandsetAudioOutput();
     SOUND_Stop(SOUND_Channel_BACKGROUND);
     callFailedTimerExpired = false;
   }
@@ -1675,7 +1708,7 @@ void APP_Task(void) {
       
     case APP_State_INCOMING_CALL:
       if (!TIMEOUT_IsPending(&appStateTimeout)) {
-        if (STORAGE_GetCallerIdMode() && callerIdText[0]) {
+        if (callerIdText[0]) {
           isCallFlashOn = !isCallFlashOn;
           HANDSET_PrintStringAt(isCallFlashOn ? "CALL" : "    ", 4);
           TIMEOUT_Start(&appStateTimeout, 50);
@@ -2924,6 +2957,8 @@ void handle_HANDSET_Event(HANDSET_Event const* event) {
       HANDSET_SetIndicator(HANDSET_Indicator_IN_USE, false);
       callFailedTimer = 0;
       callFailedTimerExpired = false;
+      // Needed to recover audio control from the Hands-Free Controller
+      SOUND_ForceNextSetHandsetAudioOutput();
       SOUND_Stop(SOUND_Channel_BACKGROUND);
       numberInputIsStale = true;
       returnToNumberInput(false);
