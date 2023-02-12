@@ -360,6 +360,10 @@ void SOUND_Task(void) {
 }
 
 void SOUND_HANDSET_EventHandler(HANDSET_Event const* event) {
+  if (event->type == HANDSET_EventType_HOOK) {
+    HANDSET_SetMicrophone(!event->isOnHook);
+  }
+
   if (event->type == HANDSET_EventType_BUTTON_UP) {
     if (event->button == currentButtonBeep) {
       SOUND_Stop(SOUND_Channel_FOREGROUND);
