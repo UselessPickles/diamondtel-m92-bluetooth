@@ -1904,13 +1904,20 @@ void handle_HANDSET_Event(HANDSET_Event const* event) {
   
   CLR_CODES_HANDSET_EventHandler(event);
 
-  if (HANDSET_IsButtonClrCode(button) || (button == HANDSET_Button_PWR)) {
+  // Nothing below here needs to handle CLR CODE button events.
+  if (HANDSET_IsButtonClrCode(button)) {
     return;
   }
 
-  SOUND_HANDSET_EventHandler(event);
   TRANSCEIVER_HANDSET_EventHandler(event);  
   
+  // Nothing below here needs to handle PWR button events.
+  if (button == HANDSET_Button_PWR) {
+    return;
+  }
+  
+  SOUND_HANDSET_EventHandler(event);
+
   // Common behavior END button behavior that needs to work no matter what the 
   // app state is (e.g., user can end a call or initiate voice command while 
   // browsing the directory or playing Tetris).
