@@ -20,6 +20,8 @@ void CALL_TIMER_Start(bool updateDisplay);
 
 void CALL_TIMER_Stop(void);
 
+void CALL_TIMER_SetCallWaitingIndicator(bool isCallWaiting);
+
 void CALL_TIMER_EnableDisplayUpdate(void);
 
 void CALL_TIMER_DisableDisplayUpdate(void);

@@ -624,7 +624,11 @@ static void showIncomingCall(bool isMissedCall) {
   MARQUEE_Stop();
   HANDSET_ClearText();
   HANDSET_DisableTextDisplay();
-  HANDSET_PrintString("CALL ");
+  HANDSET_PrintString(
+      BT_CallStatus == BT_CALL_ACTIVE_WITH_CALL_WAITING 
+      ? "W CALL " 
+      : "CALL "
+  );
   HANDSET_EnableTextDisplay();
   
   if (isMissedCall) {
@@ -632,7 +636,7 @@ static void showIncomingCall(bool isMissedCall) {
     appState = APP_State_DISPLAY_DISMISSABLE_TEXT;
   } else {
     if (showCallerId) {
-      // HANDSET_SetTextBlink(false);
+      HANDSET_SetTextBlink(false);
       isCallFlashOn = true;
       TIMEOUT_Start(&appStateTimeout, 50);
     } else {
@@ -642,7 +646,7 @@ static void showIncomingCall(bool isMissedCall) {
       // NOTE: Any subsequent commands to print anything to the display seems
       //       to break the state of the Hands-Free Controller such that it
       //       still has control of audio, but does not believe there is an
-      //       incoming call so the "H?F" button cannot be used to answer the
+      //       incoming call so the "H/F" button cannot be used to answer the
       //       call. This means there's no way to make caller ID compatible with
       //       the Hands-Free Controller
       HANDSET_DisableCommandOptimization();
@@ -1325,15 +1329,20 @@ static void handleCallStatusChange(int newCallStatus) {
           false
         );
       }
-      
-      if (prevCallStatus < BT_CALL_ACTIVE) {
-        isCallTimerDisplayedByDefault = true;
-      }
       // Look out below!
       
     case BT_CALL_ACTIVE_WITH_HOLD:
       setCallerId(NULL);
       CALL_TIMER_Start(false);
+
+      if (
+          (prevCallStatus < BT_CALL_ACTIVE) || 
+          (prevCallStatus == BT_CALL_ACTIVE_WITH_CALL_WAITING)
+          ) {
+        // Force the call timer to display any time a call first becomes active,
+        // or when coming from the "incoming call waiting" state.
+        isCallTimerDisplayedByDefault = true;
+      }
       // Look out below!
 
     case BT_CALL_OUTGOING:
@@ -1351,14 +1360,7 @@ static void handleCallStatusChange(int newCallStatus) {
       HANDSET_SetIndicator(HANDSET_Indicator_IN_USE, true);
       HANDSET_EnableCommandOptimization();
 
-// TODO: Implement new indication of call waiting.
-//       Flashing the IN USE indicator is incompatible with the Hands-Free Controller        
-//
-//      if (BT_CallStatus > BT_CALL_ACTIVE_WITH_CALL_WAITING) {
-//        INDICATOR_StartFlashing(HANDSET_Indicator_IN_USE);
-//      } else {
-//        INDICATOR_StopFlashing(HANDSET_Indicator_IN_USE, true);
-//      }
+      CALL_TIMER_SetCallWaitingIndicator(BT_CallStatus > BT_CALL_ACTIVE_WITH_CALL_WAITING);
 
       if ((BT_CallStatus == BT_CALL_OUTGOING) && (APP_CallAction != APP_CALL_SENDING)) {
         // This is an outgoing call that was initiated externally, so we don't 
@@ -1387,6 +1389,17 @@ static void handleCallStatusChange(int newCallStatus) {
       isRclOrSto2ndDigitPending = false;
       isStoInputPending = false;
 
+      // NOTE: Updating the IN USE indicator BEFORE showing the incoming call
+      //       is necessary for compatibility with the Hands-Free Controller
+      //       in the edge case where the call state transitioned from
+      //       BT_CALL_ACTIVE_WITH_CALL_WAITING to BT_CALL_INCOMING 
+      //       (active call was ended from the other end while a waiting call
+      //       was still incoming).
+      //       In this edge case, clearing out the IN USE indicator will exit 
+      //       the Hands-Free "in use" mode so that the subsequent display of
+      //       the incoming call will properly trigger the Hands-Free
+      //       "incoming call" mode.
+      HANDSET_SetIndicator(HANDSET_Indicator_IN_USE, BT_CallStatus == BT_CALL_ACTIVE_WITH_CALL_WAITING);
       showIncomingCall(false);
 
       if (BT_CallStatus == BT_CALL_INCOMING) {

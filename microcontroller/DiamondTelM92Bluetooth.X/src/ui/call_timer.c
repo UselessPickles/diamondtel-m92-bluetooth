@@ -11,100 +11,105 @@
 #include <stdint.h>
 
 static struct {
-  uint8_t minuteHundreds;
-  uint8_t minuteTens;
-  uint8_t minuteOnes;
-  uint8_t secondTens;
-  uint8_t secondOnes;
-} callTime;
-
-static bool isRunning;
-static bool isDisplayUpdateEnabled;
+  bool isRunning;
+  bool isDisplayUpdateEnabled;
+  bool isCallWaiting;
+  volatile uint8_t timerInterruptCount;
+  volatile bool secondTimerExpired;
+  struct {
+    uint8_t minuteHundreds;
+    uint8_t minuteTens;
+    uint8_t minuteOnes;
+    uint8_t secondTens;
+    uint8_t secondOnes;
+  } callTime;
+} module;
 
 static void displayCallTime(void) {
   HANDSET_DisableTextDisplay();
   HANDSET_ClearText();
   
-  if (callTime.minuteHundreds) {
-    HANDSET_PrintChar((callTime.minuteHundreds % 10) + '0');
-  }
+  HANDSET_PrintChar(module.isCallWaiting ? 'W' : ' ');
+
+  HANDSET_PrintChar(
+      module.callTime.minuteHundreds
+      ? (module.callTime.minuteHundreds % 10) + '0'
+      : ' '
+  );
   
-  HANDSET_PrintChar(callTime.minuteTens + '0');
-  HANDSET_PrintChar(callTime.minuteOnes + '0');
+  HANDSET_PrintChar(module.callTime.minuteTens + '0');
+  HANDSET_PrintChar(module.callTime.minuteOnes + '0');
   HANDSET_PrintChar(' ');
-  HANDSET_PrintChar(callTime.secondTens + '0');
-  HANDSET_PrintChar(callTime.secondOnes + '0');
+  HANDSET_PrintChar(module.callTime.secondTens + '0');
+  HANDSET_PrintChar(module.callTime.secondOnes + '0');
   HANDSET_EnableTextDisplay();
 }
 
-static volatile uint8_t timerInterruptCount;
-static volatile bool secondTimerExpired;
-
 static void timer100MS_Interrupt(void) {
-  if (++timerInterruptCount == 10) {
-    secondTimerExpired = true;
-    timerInterruptCount = 0;
+  if (++module.timerInterruptCount == 10) {
+    module.secondTimerExpired = true;
+    module.timerInterruptCount = 0;
   }
 }
 
 void CALL_TIMER_Initialize(void) {
-  timerInterruptCount = 0;
-  secondTimerExpired = false;
-  isRunning = false;
-  isDisplayUpdateEnabled = false;
+  module.timerInterruptCount = 0;
+  module.secondTimerExpired = false;
+  module.isRunning = false;
+  module.isDisplayUpdateEnabled = false;
   
   TMR0_SetInterruptHandler(&timer100MS_Interrupt);
 }
 
 void CALL_TIMER_Task(void) {
-  if (!isRunning) {
+  if (!module.isRunning) {
     return;
   }
   
   bool playWarningBeep = false;
   
-  if (secondTimerExpired) {
-    secondTimerExpired = false;
+  if (module.secondTimerExpired) {
+    module.secondTimerExpired = false;
     
-    if (++callTime.secondOnes == 10) {
-      callTime.secondOnes = 0;
+    if (++module.callTime.secondOnes == 10) {
+      module.callTime.secondOnes = 0;
 
-      if (++callTime.secondTens == 6) {
-        callTime.secondTens = 0;
+      if (++module.callTime.secondTens == 6) {
+        module.callTime.secondTens = 0;
 
-        if (++callTime.minuteOnes == 10) {
-          callTime.minuteOnes = 0;
+        if (++module.callTime.minuteOnes == 10) {
+          module.callTime.minuteOnes = 0;
 
-          if (++callTime.minuteTens == 10) {
-            callTime.minuteTens = 0;
-            ++callTime.minuteHundreds;
+          if (++module.callTime.minuteTens == 10) {
+            module.callTime.minuteTens = 0;
+            ++module.callTime.minuteHundreds;
 
-            if (isDisplayUpdateEnabled) {
-              HANDSET_PrintCharAt((callTime.minuteHundreds % 10) + '0', 5);
+            if (module.isDisplayUpdateEnabled) {
+              HANDSET_PrintCharAt((module.callTime.minuteHundreds % 10) + '0', 5);
             }
           }
 
-          if (isDisplayUpdateEnabled) {
-            HANDSET_PrintCharAt(callTime.minuteTens + '0', 4);
+          if (module.isDisplayUpdateEnabled) {
+            HANDSET_PrintCharAt(module.callTime.minuteTens + '0', 4);
           }
         }
 
-        if (isDisplayUpdateEnabled) {
-          HANDSET_PrintCharAt(callTime.minuteOnes + '0', 3);
+        if (module.isDisplayUpdateEnabled) {
+          HANDSET_PrintCharAt(module.callTime.minuteOnes + '0', 3);
         }
       }
 
-      if (isDisplayUpdateEnabled) {
-        HANDSET_PrintCharAt(callTime.secondTens + '0', 1);
+      if (module.isDisplayUpdateEnabled) {
+        HANDSET_PrintCharAt(module.callTime.secondTens + '0', 1);
       }
 
-      if ((callTime.secondTens == 5) && STORAGE_GetOneMinuteBeepEnabled()) {
+      if ((module.callTime.secondTens == 5) && STORAGE_GetOneMinuteBeepEnabled()) {
         playWarningBeep = true;
       }
     }
 
-    if (isDisplayUpdateEnabled) {
-      HANDSET_PrintCharAt(callTime.secondOnes + '0', 0);
+    if (module.isDisplayUpdateEnabled) {
+      HANDSET_PrintCharAt(module.callTime.secondOnes + '0', 0);
     }  
     
     if (playWarningBeep) {
@@ -114,59 +119,71 @@ void CALL_TIMER_Task(void) {
 }
 
 void CALL_TIMER_Start(bool updateDisplay) {
-  if (isRunning) {
+  if (module.isRunning) {
     return;
   }
   
-  callTime.minuteHundreds = 0;
-  callTime.minuteTens = 0;
-  callTime.minuteOnes = 0;
-  callTime.secondTens = 0;
-  callTime.secondOnes = 0;
+  module.callTime.minuteHundreds = 0;
+  module.callTime.minuteTens = 0;
+  module.callTime.minuteOnes = 0;
+  module.callTime.secondTens = 0;
+  module.callTime.secondOnes = 0;
   
   if (updateDisplay) {
     displayCallTime();
   }
   
-  timerInterruptCount = 0;
-  secondTimerExpired = false;
-  isRunning = true;
-  isDisplayUpdateEnabled = updateDisplay;
+  module.timerInterruptCount = 0;
+  module.secondTimerExpired = false;
+  module.isRunning = true;
+  module.isDisplayUpdateEnabled = updateDisplay;
   
   TMR0_WriteTimer(0);
   TMR0_StartTimer();
 }
 
 void CALL_TIMER_Stop(void) {
-  if (!isRunning) {
+  if (!module.isRunning) {
     return;
   }
   
   TMR0_StopTimer();
-  isRunning = false;
-  isDisplayUpdateEnabled = false;
+  module.isRunning = false;
+  module.isDisplayUpdateEnabled = false;
   
   STORAGE_SetLastCallTime(
-    callTime.minuteHundreds * 100 + callTime.minuteTens * 10 + callTime.minuteOnes,
-    callTime.secondTens * 10 + callTime.secondOnes  
+    module.callTime.minuteHundreds * 100 + module.callTime.minuteTens * 10 + module.callTime.minuteOnes,
+    module.callTime.secondTens * 10 + module.callTime.secondOnes  
   );
 }
 
+void CALL_TIMER_SetCallWaitingIndicator(bool isCallWaiting) {
+  if (isCallWaiting == module.isCallWaiting) {
+    return;
+  }
+  
+  module.isCallWaiting = isCallWaiting;
+  
+  if (module.isRunning && module.isDisplayUpdateEnabled) {
+    HANDSET_PrintCharAt(module.isCallWaiting ? 'W' : ' ', 6);
+  }
+}
+
 void CALL_TIMER_EnableDisplayUpdate(void) {
-  if (!isRunning || isDisplayUpdateEnabled) {
+  if (!module.isRunning || module.isDisplayUpdateEnabled) {
     return;
   }
   
   displayCallTime();
-  isDisplayUpdateEnabled = true;
+  module.isDisplayUpdateEnabled = true;
 }
 
 void CALL_TIMER_DisableDisplayUpdate(void) {
-  isDisplayUpdateEnabled = false;
+  module.isDisplayUpdateEnabled = false;
 }
 
 bool CALL_TIMER_IsDisplayEnabled(void) {
-  return isDisplayUpdateEnabled;
+  return module.isDisplayUpdateEnabled;
 }
 
 
