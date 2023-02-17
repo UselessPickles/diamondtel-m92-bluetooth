@@ -66,6 +66,10 @@ static struct {
    */
   bool isOnHook;
   /**
+   * True if a change in the PWR button position was detected.
+   */
+  volatile bool isPwrButtonChangeDetected; 
+  /**
    * True if the PWR button is currently down.
    */
   bool isPwrButtonDown;
@@ -330,11 +334,26 @@ static bool isValidCharPos(uint8_t pos) {
   return pos < HANDSET_TEXT_DISPLAY_LENGTH;
 }
 
+/**
+ * Interrupt-on-change handler for the PWR button input pin.
+ * 
+ * Triggers on both rising and falling edges.
+ * 
+ * NOTE: No need for debouncing. Verified by oscilloscope.
+ */
+static void pwrButtonInterruptHandler(void) {
+  handset.isPwrButtonChangeDetected = true;
+}
+
 void HANDSET_Initialize(HANDSET_EventHandler eventHandler) {
   handset.eventHandler = eventHandler;
   handset.charAtPos0 = BLANK_PRINTABLE_CHAR;
-  handset.isPwrButtonDown = true;
+  handset.isPwrButtonChangeDetected = false;
+  handset.isPwrButtonDown = !IO_PWR_GetValue();
+  handset.currentButtonDownDuration = HANDSET_HoldDuration_MAX + 1;
   handset.isOnHook = true;
+  
+  IOCAF0_SetInterruptHandler(pwrButtonInterruptHandler);
 }
 
 void HANDSET_Task(void) {
@@ -356,9 +375,11 @@ void HANDSET_Task(void) {
     dispatchEvent(&event);
   }
   
-  bool isPwrButtonDown = !IO_PWR_GetValue();
-  
-  if (isPwrButtonDown != handset.isPwrButtonDown) {
+  if (handset.isPwrButtonChangeDetected) {
+    handset.isPwrButtonChangeDetected = false;
+
+    bool const isPwrButtonDown = !IO_PWR_GetValue();
+    
     if (isPwrButtonDown) {
       PIE3bits.TMR2IE = 0;
       handset.currentButtonDown = HANDSET_Button_PWR;
@@ -387,8 +408,8 @@ void HANDSET_Task(void) {
     event.type = isPwrButtonDown 
         ? HANDSET_EventType_BUTTON_DOWN 
         : HANDSET_EventType_BUTTON_UP;
+    
     dispatchEvent(&event);
-
   }
   
   // UART handset command pass-through for testing
