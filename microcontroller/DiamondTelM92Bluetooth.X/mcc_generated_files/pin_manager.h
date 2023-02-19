@@ -97,6 +97,26 @@
 #define RA2_SetAnalogMode()         do { ANSELAbits.ANSELA2 = 1; } while(0)
 #define RA2_SetDigitalMode()        do { ANSELAbits.ANSELA2 = 0; } while(0)
 
+// get/set IO_MIC_HF_SELECT aliases
+#define IO_MIC_HF_SELECT_TRIS                 TRISAbits.TRISA5
+#define IO_MIC_HF_SELECT_LAT                  LATAbits.LATA5
+#define IO_MIC_HF_SELECT_PORT                 PORTAbits.RA5
+#define IO_MIC_HF_SELECT_WPU                  WPUAbits.WPUA5
+#define IO_MIC_HF_SELECT_OD                   ODCONAbits.ODCA5
+#define IO_MIC_HF_SELECT_ANS                  ANSELAbits.ANSELA5
+#define IO_MIC_HF_SELECT_SetHigh()            do { LATAbits.LATA5 = 1; } while(0)
+#define IO_MIC_HF_SELECT_SetLow()             do { LATAbits.LATA5 = 0; } while(0)
+#define IO_MIC_HF_SELECT_Toggle()             do { LATAbits.LATA5 = ~LATAbits.LATA5; } while(0)
+#define IO_MIC_HF_SELECT_GetValue()           PORTAbits.RA5
+#define IO_MIC_HF_SELECT_SetDigitalInput()    do { TRISAbits.TRISA5 = 1; } while(0)
+#define IO_MIC_HF_SELECT_SetDigitalOutput()   do { TRISAbits.TRISA5 = 0; } while(0)
+#define IO_MIC_HF_SELECT_SetPullup()          do { WPUAbits.WPUA5 = 1; } while(0)
+#define IO_MIC_HF_SELECT_ResetPullup()        do { WPUAbits.WPUA5 = 0; } while(0)
+#define IO_MIC_HF_SELECT_SetPushPull()        do { ODCONAbits.ODCA5 = 0; } while(0)
+#define IO_MIC_HF_SELECT_SetOpenDrain()       do { ODCONAbits.ODCA5 = 1; } while(0)
+#define IO_MIC_HF_SELECT_SetAnalogMode()      do { ANSELAbits.ANSELA5 = 1; } while(0)
+#define IO_MIC_HF_SELECT_SetDigitalMode()     do { ANSELAbits.ANSELA5 = 0; } while(0)
+
 // get/set RA6 procedures
 #define RA6_SetHigh()            do { LATAbits.LATA6 = 1; } while(0)
 #define RA6_SetLow()             do { LATAbits.LATA6 = 0; } while(0)

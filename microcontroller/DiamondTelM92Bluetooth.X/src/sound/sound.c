@@ -209,7 +209,18 @@ static void setHandsetAudioOutput(void) {
     IO_VOICE_IN_SetLow();
   }
   
-  if (isOnHook || isPlayingSound) {
+  if (isOnHook) {
+    // Handset is "on hook", so select the hands-free (external) microphone input.
+    IO_MIC_HF_SELECT_SetHigh();
+  } else {
+    // Handset is "off hook", so select the handset microphone input.
+    IO_MIC_HF_SELECT_SetLow();
+  }
+  
+  if (isPlayingSound) {
+    // Disconnect the microphone signal from the Bluetooth module when we're
+    // playing a sound to prevent the sound from being picked up by the 
+    // microphone and sent to the listener on the other end of the call.
     IO_MIC_OUT_DISABLE_SetHigh();
   } else {
     IO_MIC_OUT_DISABLE_SetLow();
