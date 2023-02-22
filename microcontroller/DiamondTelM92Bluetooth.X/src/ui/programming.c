@@ -84,7 +84,7 @@ static void initState(State newState) {
       break;
       
     case State_CALLER_ID_MODE:  
-      HANDSET_PrintString("CALL ID      ");
+      HANDSET_PrintString("CALLER ID    ");
       HANDSET_PrintChar('0' + STORAGE_GetCallerIdMode());
       break;
       
