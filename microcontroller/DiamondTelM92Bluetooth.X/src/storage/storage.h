@@ -470,20 +470,21 @@ bool STORAGE_GetOneMinuteBeepEnabled(void);
 void STORAGE_SetOneMinuteBeepEnabled(bool enabled);
 
 /**
- * Get the stored setting of whether vehicle mode is enabled.
+ * Get the stored setting of whether OEM Hands-Free integration is enabled.
  * 
- * If enabled, the handset should never "go to sleep". When not enabled
- * (carried mode), the handset back-light and audio system should be turned
- * off after a period of inactivity to conserve battery power.
+ * If enabled, certain behaviors are automatically altered when an external
+ * microphone connection is detected to ensure compatibility with the OEM 
+ * Hands-Free Controller. For example, Caller ID is disabled to avoid interfering
+ * with the controller's ability to infer status changes during an incoming call.
  * 
- * @return True if vehicle mode is enabled.
+ * @return True if OEM Hands-Free integration is enabled.
  */
-bool STORAGE_GetVehicleModeEnabled(void);
+bool STORAGE_GetOemHandsFreeIntegrationEnabled(void);
 /**
- * Set the stored setting of whether vehicle mode is enabled.
- * @param enabled - True if vehicle mode is enabled.
+ * Set the stored setting of whether OEM Hands-Free integration is enabled.
+ * @param enabled - True if OEM Hands-Free integration is enabled.
  */
-void STORAGE_SetVehicleModeEnabled(bool enabled);
+void STORAGE_SetOemHandsFreeIntegrationEnabled(bool enabled);
 
 /**
  * Get the stored setting of the Caller ID mode.

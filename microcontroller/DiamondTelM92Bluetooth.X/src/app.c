@@ -12,6 +12,7 @@
 #include "../mcc_generated_files/pin_manager.h"
 #include "telephone/handset.h"
 #include "telephone/transceiver.h"
+#include "sound/external_mic.h"
 #include "sound/tone.h"
 #include "sound/sound.h"
 #include "sound/ringtone.h"
@@ -82,7 +83,6 @@ static enum {
   APP_State_INCOMING_CALL,
   APP_State_VOICE_COMMAND,
   APP_State_SELECT_RINGTONE,    
-  APP_State_SELECT_SYSTEM_MODE,    
   APP_State_ADJUST_VIEW_ANGLE,
   APP_State_DISPLAY_DISMISSABLE_TEXT,
   APP_State_DISPLAY_BATTERY_LEVEL,
@@ -123,7 +123,6 @@ static char const* const appStateLabel[] = {
   "INCOMING_CALL",
   "VOICE_COMMAND",
   "SELECT_RINGTONE",    
-  "SELECT_SYSTEM_MODE",    
   "ADJUST_VIEW_ANGLE",
   "DISPLAY_DISMISSABLE_TEXT",
   "DISPLAY_BATTERY_LEVEL",
@@ -226,23 +225,10 @@ static void resetFcn(void) {
   HANDSET_SetIndicator(HANDSET_Indicator_FCN, false);
 }
 
-#define IDLE_TIMEOUT (1000)
-static timeout_t idleTimeout;
-static volatile bool isHandsetIdle;
-
-static void wakeUpHandset(bool backlight) {
-  TIMEOUT_Start(&idleTimeout, IDLE_TIMEOUT);
-
-  isHandsetIdle = false;
-  SOUND_Enable();
-  
-  if (backlight) {
-    HANDSET_SetBacklight(true);
-  }
-}
-
 #define STATUS_BEEP_COOLDOWN_TIMEOUT (100)
 static timeout_t statusBeepCooldownTimeout;
+
+static void wakeUpHandset(bool backlight);
 
 /**
  * Play a basic status beep, but only if status beeps are enabled and no other
@@ -293,6 +279,37 @@ static void playBluetoothConnectionStatusBeep(bool isConnected) {
 #define CALL_FAILED_TIMEOUT (3000)
 static volatile uint16_t callFailedTimer;
 static volatile bool callFailedTimerExpired;
+
+#define IDLE_TIMEOUT (1000)
+static timeout_t idleTimeout;
+static volatile bool isHandsetIdle;
+
+static void wakeUpHandset(bool backlight) {
+  TIMEOUT_Start(&idleTimeout, IDLE_TIMEOUT);
+
+  isHandsetIdle = false;
+  SOUND_Enable();
+  
+  if (backlight) {
+    HANDSET_SetBacklight(true);
+  }
+}
+
+static void sleepHandset(void) {
+  if (
+      !TIMEOUT_IsPending(&idleTimeout) &&
+      HANDSET_IsOnHook() && 
+      !HANDSET_IsAnyButtonDown() &&
+      (BT_CallStatus == BT_CALL_IDLE) &&
+      (appState != APP_State_PAIRING) && 
+      !callFailedTimer &&
+      !TRANSCEIVER_IsConnectedToExternalPower()
+      ) {
+    isHandsetIdle = true;
+    HANDSET_SetBacklight(false);
+    SOUND_Disable();
+  }
+}
 
 #define LOW_BATTERY_BEEP_INTERVAL (2000)
 interval_t lowBatteryBeepInterval;
@@ -574,14 +591,17 @@ static void recallNumberInputOverflow(RecallOverflowType type) {
   recallOverflowType = type;
 }
 
-
 #define CALLER_ID_MAX_LENGTH (20)
 static char callerIdText[CALLER_ID_MAX_LENGTH + 1];
 
 static void setCallerId(char const* text) {
-  // NOTE: Ignore Caller ID when in "Vehicle Mode", even if Caller ID is enabled.
+  // NOTE: Ignore Caller ID when a microphone is detected while OEM Hands-Free 
+  //       integration is enabled.
   //       This is because Caller ID is incompatible with the Hands-Free Controller.  
-  if (!text || !STORAGE_GetCallerIdMode() || STORAGE_GetVehicleModeEnabled()) {
+  if (!text || 
+      !STORAGE_GetCallerIdMode() ||
+      (STORAGE_GetOemHandsFreeIntegrationEnabled() && EXTERNAL_MIC_IsConnected())
+      ) {
     callerIdText[0] = 0;
     return;
   }
@@ -1012,19 +1032,6 @@ static void setExternallyInitiatedOutgoingCallNumber(char const* number) {
   STORAGE_SetLastDialedNumber(number);
 }
 
-static void selectSystemMode(bool isVehicleMode) {
-  STORAGE_SetVehicleModeEnabled(isVehicleMode);
-  
-  CALL_TIMER_DisableDisplayUpdate();
-  HANDSET_DisableTextDisplay();
-  HANDSET_ClearText();
-  HANDSET_PrintString(isVehicleMode ? "VEHICLE" : "CARRIED");
-  HANDSET_PrintString("MODE   ");
-  HANDSET_EnableTextDisplay();
-  
-  appState = APP_State_SELECT_SYSTEM_MODE;
-}
-
 typedef enum SecurityAction {
   SecurityAction_CLEAR_TALK_TIME,
   SecurityAction_DISPLAY_TOTAL_TALK_TIME,
@@ -1283,7 +1290,6 @@ static void handleCallStatusChange(int newCallStatus) {
 
       isMuted = false;
       isCallTimerDisplayedByDefault = false;
-      setCallerId(NULL);
 
       if ((appState == APP_State_INCOMING_CALL) && (APP_CallAction != APP_CALL_REJECTING)) {
         numberInputIsStale = true;
@@ -1312,6 +1318,8 @@ static void handleCallStatusChange(int newCallStatus) {
           returnToNumberInput(false);
         }
       }
+
+      setCallerId(NULL);
       break;
     
     case BT_CALL_ACTIVE:
@@ -1414,9 +1422,13 @@ static void handleCallStatusChange(int newCallStatus) {
       }
 
       // Request current call list to extract Caller ID
-      // NOTE: Don't request Caller ID when in "Vehicle Mode", even if Caller ID is enabled.
+      // NOTE: Ignore Caller ID when a microphone is detected while OEM Hands-Free 
+      //       integration is enabled.
       //       This is because Caller ID is incompatible with the Hands-Free Controller.  
-      if (STORAGE_GetCallerIdMode() && !STORAGE_GetVehicleModeEnabled()) {
+      if (
+          STORAGE_GetCallerIdMode() && 
+          !(STORAGE_GetOemHandsFreeIntegrationEnabled() && EXTERNAL_MIC_IsConnected())
+          ) {
         ATCMD_Send("+CLCC", handleCallListAtResponse);
       }
       break;
@@ -1551,23 +1563,14 @@ void APP_Task(void) {
   BT_CommandSend_Task();
   HANDSET_Task();
   TRANSCEIVER_Task();
+  EXTERNAL_MIC_Task();
   CLR_CODES_Task();
   
   TIMEOUT_Task(&appStateTimeout);
   TIMEOUT_Task(&statusBeepCooldownTimeout);
-  
-  if (
-      TIMEOUT_Task(&idleTimeout) && 
-      !STORAGE_GetVehicleModeEnabled() &&
-      HANDSET_IsOnHook() && 
-      !HANDSET_IsAnyButtonDown() &&
-      (BT_CallStatus == BT_CALL_IDLE) &&
-      (appState != APP_State_PAIRING) && 
-      !callFailedTimer
-  ) {
-    isHandsetIdle = true;
-    HANDSET_SetBacklight(false);
-    SOUND_Disable();
+
+  if (TIMEOUT_Task(&idleTimeout)) {
+    sleepHandset();
   }
   
   if (TIMEOUT_Task(&fcnTimeout)) {
@@ -1701,7 +1704,8 @@ void APP_Task(void) {
         HANDSET_EnableCommandOptimization();
         
         CLR_CODES_Start(handle_CLR_CODES_Event);
-        
+        EXTERNAL_MIC_Initialize(NULL);
+  
         appState = APP_State_NUMBER_INPUT;        
       }
       break;
@@ -1878,6 +1882,7 @@ void APP_Timer10MS_Interrupt(void) {
 
   ATCMD_Timer10ms_Interrupt();
   TRANSCEIVER_Timer10MS_Interrupt();
+  EXTERNAL_MIC_Timer10MS_Interrupt();
   INDICATOR_Timer10MS_Interrupt();
   MARQUEE_Timer10MS_Interrupt();
   CLR_CODES_Timer10MS_Interrupt();
@@ -2372,9 +2377,6 @@ void handle_HANDSET_Event(HANDSET_Event const* event) {
                   APP_CallAction = APP_CALL_ENDING;
                   TIMEOUT_Start(&callActionTimeout, CALL_ACTION_TIMEOUT);
                 }
-              } else if (button == HANDSET_Button_1) {
-                SOUND_PlayDTMFButtonBeep(button, false);
-                selectSystemMode(STORAGE_GetVehicleModeEnabled());
               } else if (button == HANDSET_Button_3) {
                 SOUND_PlayDTMFButtonBeep(button, false);
                 CALL_TIMER_DisableDisplayUpdate();
@@ -2687,23 +2689,6 @@ void handle_HANDSET_Event(HANDSET_Event const* event) {
       }
       break;
     }
-    
-    case APP_State_SELECT_SYSTEM_MODE: 
-      if (isButtonDown) {
-        if (button == HANDSET_Button_CLR) {
-          SOUND_PlayButtonBeep(button, false);
-          returnToNumberInput(false);
-          // Prevent short hold of CLR from clearing input
-          HANDSET_CancelCurrentButtonHoldEvents();
-        } else if (button == HANDSET_Button_1) {
-          SOUND_PlayDTMFButtonBeep(button, false);
-          selectSystemMode(false);
-        } else if (button == HANDSET_Button_2) {
-          SOUND_PlayDTMFButtonBeep(button, false);
-          selectSystemMode(true);
-        }
-      }
-      break;
     
     case APP_State_PAIRING:
       if (isButtonDown && (button == HANDSET_Button_CLR)) {
@@ -3042,6 +3027,14 @@ void handle_TRANSCEIVER_Event(TRANSCEIVER_EventType event) {
         returnToNumberInput(false);
       }
       reportBatteryLevelToBT();
+      break;
+      
+    case TRANSCEIVER_EventType_CONNECTED_TO_EXTERNAL_POWER: 
+      wakeUpHandset(true);
+      break;
+      
+    case TRANSCEIVER_EventType_DISCONNECTED_FROM_EXTERNAL_POWER:
+      sleepHandset();
       break;
   }
 }

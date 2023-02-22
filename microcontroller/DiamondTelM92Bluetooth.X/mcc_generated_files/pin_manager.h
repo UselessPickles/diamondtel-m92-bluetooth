@@ -98,24 +98,44 @@
 #define RA2_SetDigitalMode()        do { ANSELAbits.ANSELA2 = 0; } while(0)
 
 // get/set IO_MIC_HF_SELECT aliases
-#define IO_MIC_HF_SELECT_TRIS                 TRISAbits.TRISA5
-#define IO_MIC_HF_SELECT_LAT                  LATAbits.LATA5
-#define IO_MIC_HF_SELECT_PORT                 PORTAbits.RA5
-#define IO_MIC_HF_SELECT_WPU                  WPUAbits.WPUA5
-#define IO_MIC_HF_SELECT_OD                   ODCONAbits.ODCA5
-#define IO_MIC_HF_SELECT_ANS                  ANSELAbits.ANSELA5
-#define IO_MIC_HF_SELECT_SetHigh()            do { LATAbits.LATA5 = 1; } while(0)
-#define IO_MIC_HF_SELECT_SetLow()             do { LATAbits.LATA5 = 0; } while(0)
-#define IO_MIC_HF_SELECT_Toggle()             do { LATAbits.LATA5 = ~LATAbits.LATA5; } while(0)
-#define IO_MIC_HF_SELECT_GetValue()           PORTAbits.RA5
-#define IO_MIC_HF_SELECT_SetDigitalInput()    do { TRISAbits.TRISA5 = 1; } while(0)
-#define IO_MIC_HF_SELECT_SetDigitalOutput()   do { TRISAbits.TRISA5 = 0; } while(0)
-#define IO_MIC_HF_SELECT_SetPullup()          do { WPUAbits.WPUA5 = 1; } while(0)
-#define IO_MIC_HF_SELECT_ResetPullup()        do { WPUAbits.WPUA5 = 0; } while(0)
-#define IO_MIC_HF_SELECT_SetPushPull()        do { ODCONAbits.ODCA5 = 0; } while(0)
-#define IO_MIC_HF_SELECT_SetOpenDrain()       do { ODCONAbits.ODCA5 = 1; } while(0)
-#define IO_MIC_HF_SELECT_SetAnalogMode()      do { ANSELAbits.ANSELA5 = 1; } while(0)
-#define IO_MIC_HF_SELECT_SetDigitalMode()     do { ANSELAbits.ANSELA5 = 0; } while(0)
+#define IO_MIC_HF_SELECT_TRIS                 TRISAbits.TRISA4
+#define IO_MIC_HF_SELECT_LAT                  LATAbits.LATA4
+#define IO_MIC_HF_SELECT_PORT                 PORTAbits.RA4
+#define IO_MIC_HF_SELECT_WPU                  WPUAbits.WPUA4
+#define IO_MIC_HF_SELECT_OD                   ODCONAbits.ODCA4
+#define IO_MIC_HF_SELECT_ANS                  ANSELAbits.ANSELA4
+#define IO_MIC_HF_SELECT_SetHigh()            do { LATAbits.LATA4 = 1; } while(0)
+#define IO_MIC_HF_SELECT_SetLow()             do { LATAbits.LATA4 = 0; } while(0)
+#define IO_MIC_HF_SELECT_Toggle()             do { LATAbits.LATA4 = ~LATAbits.LATA4; } while(0)
+#define IO_MIC_HF_SELECT_GetValue()           PORTAbits.RA4
+#define IO_MIC_HF_SELECT_SetDigitalInput()    do { TRISAbits.TRISA4 = 1; } while(0)
+#define IO_MIC_HF_SELECT_SetDigitalOutput()   do { TRISAbits.TRISA4 = 0; } while(0)
+#define IO_MIC_HF_SELECT_SetPullup()          do { WPUAbits.WPUA4 = 1; } while(0)
+#define IO_MIC_HF_SELECT_ResetPullup()        do { WPUAbits.WPUA4 = 0; } while(0)
+#define IO_MIC_HF_SELECT_SetPushPull()        do { ODCONAbits.ODCA4 = 0; } while(0)
+#define IO_MIC_HF_SELECT_SetOpenDrain()       do { ODCONAbits.ODCA4 = 1; } while(0)
+#define IO_MIC_HF_SELECT_SetAnalogMode()      do { ANSELAbits.ANSELA4 = 1; } while(0)
+#define IO_MIC_HF_SELECT_SetDigitalMode()     do { ANSELAbits.ANSELA4 = 0; } while(0)
+
+// get/set IO_MIC_HF_DETECT aliases
+#define IO_MIC_HF_DETECT_TRIS                 TRISAbits.TRISA5
+#define IO_MIC_HF_DETECT_LAT                  LATAbits.LATA5
+#define IO_MIC_HF_DETECT_PORT                 PORTAbits.RA5
+#define IO_MIC_HF_DETECT_WPU                  WPUAbits.WPUA5
+#define IO_MIC_HF_DETECT_OD                   ODCONAbits.ODCA5
+#define IO_MIC_HF_DETECT_ANS                  ANSELAbits.ANSELA5
+#define IO_MIC_HF_DETECT_SetHigh()            do { LATAbits.LATA5 = 1; } while(0)
+#define IO_MIC_HF_DETECT_SetLow()             do { LATAbits.LATA5 = 0; } while(0)
+#define IO_MIC_HF_DETECT_Toggle()             do { LATAbits.LATA5 = ~LATAbits.LATA5; } while(0)
+#define IO_MIC_HF_DETECT_GetValue()           PORTAbits.RA5
+#define IO_MIC_HF_DETECT_SetDigitalInput()    do { TRISAbits.TRISA5 = 1; } while(0)
+#define IO_MIC_HF_DETECT_SetDigitalOutput()   do { TRISAbits.TRISA5 = 0; } while(0)
+#define IO_MIC_HF_DETECT_SetPullup()          do { WPUAbits.WPUA5 = 1; } while(0)
+#define IO_MIC_HF_DETECT_ResetPullup()        do { WPUAbits.WPUA5 = 0; } while(0)
+#define IO_MIC_HF_DETECT_SetPushPull()        do { ODCONAbits.ODCA5 = 0; } while(0)
+#define IO_MIC_HF_DETECT_SetOpenDrain()       do { ODCONAbits.ODCA5 = 1; } while(0)
+#define IO_MIC_HF_DETECT_SetAnalogMode()      do { ANSELAbits.ANSELA5 = 1; } while(0)
+#define IO_MIC_HF_DETECT_SetDigitalMode()     do { ANSELAbits.ANSELA5 = 0; } while(0)
 
 // get/set RA6 procedures
 #define RA6_SetHigh()            do { LATAbits.LATA6 = 1; } while(0)
@@ -445,6 +465,90 @@ extern void (*IOCAF0_InterruptHandler)(void);
 
 */
 void IOCAF0_DefaultInterruptHandler(void);
+
+
+/**
+ * @Param
+    none
+ * @Returns
+    none
+ * @Description
+    Interrupt on Change Handler for the IOCAF5 pin functionality
+ * @Example
+    IOCAF5_ISR();
+ */
+void IOCAF5_ISR(void);
+
+/**
+  @Summary
+    Interrupt Handler Setter for IOCAF5 pin interrupt-on-change functionality
+
+  @Description
+    Allows selecting an interrupt handler for IOCAF5 at application runtime
+    
+  @Preconditions
+    Pin Manager intializer called
+
+  @Returns
+    None.
+
+  @Param
+    InterruptHandler function pointer.
+
+  @Example
+    PIN_MANAGER_Initialize();
+    IOCAF5_SetInterruptHandler(MyInterruptHandler);
+
+*/
+void IOCAF5_SetInterruptHandler(void (* InterruptHandler)(void));
+
+/**
+  @Summary
+    Dynamic Interrupt Handler for IOCAF5 pin
+
+  @Description
+    This is a dynamic interrupt handler to be used together with the IOCAF5_SetInterruptHandler() method.
+    This handler is called every time the IOCAF5 ISR is executed and allows any function to be registered at runtime.
+    
+  @Preconditions
+    Pin Manager intializer called
+
+  @Returns
+    None.
+
+  @Param
+    None.
+
+  @Example
+    PIN_MANAGER_Initialize();
+    IOCAF5_SetInterruptHandler(IOCAF5_InterruptHandler);
+
+*/
+extern void (*IOCAF5_InterruptHandler)(void);
+
+/**
+  @Summary
+    Default Interrupt Handler for IOCAF5 pin
+
+  @Description
+    This is a predefined interrupt handler to be used together with the IOCAF5_SetInterruptHandler() method.
+    This handler is called every time the IOCAF5 ISR is executed. 
+    
+  @Preconditions
+    Pin Manager intializer called
+
+  @Returns
+    None.
+
+  @Param
+    None.
+
+  @Example
+    PIN_MANAGER_Initialize();
+    IOCAF5_SetInterruptHandler(IOCAF5_DefaultInterruptHandler);
+
+*/
+void IOCAF5_DefaultInterruptHandler(void);
 
 
 

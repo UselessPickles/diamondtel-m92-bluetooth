@@ -41,6 +41,22 @@ typedef enum TRANSCEIVER_EventType {
    */    
   TRANSCEIVER_EventType_BATTERY_LEVEL_CHANGED,
   /**
+   * The transceiver has been connected to external power.
+   * 
+   * NOTE: This event is not fired when the phone starts up with external power
+   *       because external power is the default assumption until evidence of
+   *       no external power is received.
+   */
+  TRANSCEIVER_EventType_CONNECTED_TO_EXTERNAL_POWER,
+  /**
+   * The transceiver has been disconnected from external power.
+   * 
+   * NOTE: This event is fired as a delayed result of absence of external
+   *       power when the transceiver attempts to turn off the handset 
+   *       back-light after a period of inactivity.
+   */
+  TRANSCEIVER_EventType_DISCONNECTED_FROM_EXTERNAL_POWER,
+  /**
    * The PWR button power-off process has begun.
    * 
    * The user has held the PWR button long enough such that the phone
@@ -122,6 +138,19 @@ uint8_t TRANSCEIVER_GetBatteryLevel(void);
  */
 bool TRANSCEIVER_IsBatteryLevelLow(void);
 
+/**
+ * Check if the transceiver is currently connected to external power.
+ * 
+ * NOTE: The default value during initialization is `true` until there is 
+ *       evidence of not having external power.
+ * 
+ * The TRANSCEIVER_EventType_CONNECTED_TO_EXTERNAL_POWER or
+ * TRANSCEIVER_EventType_DISCONNECTED_FROM_EXTERNAL_POWER events are triggered
+ * when the external power state changes.
+ * 
+ * @return True of the transceiver is currently connected to external power.
+ */
+bool TRANSCEIVER_IsConnectedToExternalPower(void);
 #ifdef	__cplusplus
 }
 #endif

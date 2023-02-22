@@ -12,7 +12,6 @@
 #include "../../mcc_generated_files/pin_manager.h"
 #include <string.h>
 #include <xc.h>
-#include <stdio.h>
 
 typedef enum State {
   State_ENABLE_DUAL_NUMBER,
@@ -22,6 +21,7 @@ typedef enum State {
   State_DISABLE_CUMULATIVE_RESET,
   State_DISABLE_OWN_TEL,
   State_CALLER_ID_MODE,
+  State_ENABLE_OEM_HANDS_FREE_INTEGRATION,
   State_INPUT
 } State;
 
@@ -87,6 +87,11 @@ static void initState(State newState) {
       HANDSET_PrintString("CALL ID      ");
       HANDSET_PrintChar('0' + STORAGE_GetCallerIdMode());
       break;
+      
+    case State_ENABLE_OEM_HANDS_FREE_INTEGRATION:  
+      HANDSET_PrintString("OEM HF UNIT  ");
+      HANDSET_PrintChar('0' + STORAGE_GetOemHandsFreeIntegrationEnabled());
+      break;
   }
   
   HANDSET_SetTextBlink(true);
@@ -113,7 +118,8 @@ static bool storeInput(void) {
   switch (module.inputReason) {
     case State_ENABLE_DUAL_NUMBER:
     case State_DISABLE_CUMULATIVE_RESET:
-    case State_DISABLE_OWN_TEL: {
+    case State_DISABLE_OWN_TEL:
+    case State_ENABLE_OEM_HANDS_FREE_INTEGRATION: {
       char firstDigit = module.input[0];
       bool isOnOffInput = (module.inputLength == 1) && ((firstDigit == '0') || (firstDigit == '1'));
       
@@ -125,18 +131,19 @@ static bool storeInput(void) {
       
       switch (module.inputReason) {
         case State_ENABLE_DUAL_NUMBER:
-          printf("[PROG] Store DUAL NO: %d\r\n", isOn);
           STORAGE_SetDualNumberEnabled(isOn);
           break;
           
         case State_DISABLE_CUMULATIVE_RESET:
-          printf("[PROG] Store DIS CU RESET: %d\r\n", isOn);
           STORAGE_SetCumulativeTimerResetEnabled(!isOn);
           break;
           
         case State_DISABLE_OWN_TEL:
-          printf("[PROG] Store DIS OWN TEL: %d\r\n", isOn);
           STORAGE_SetShowOwnNumberEnabled(!isOn);
+          break;
+          
+        case State_ENABLE_OEM_HANDS_FREE_INTEGRATION:
+          STORAGE_SetOemHandsFreeIntegrationEnabled(isOn);
           break;
       }
       
@@ -150,7 +157,6 @@ static bool storeInput(void) {
         return false;
       }
       
-      printf("[PROG] Store CALL ID: %d\r\n", value);
       STORAGE_SetCallerIdMode(value);
       break;
     }
@@ -166,7 +172,6 @@ static bool storeInput(void) {
       
       uint8_t index = (module.inputReason - State_SET_TEL_NUMBER1);
       
-      printf("[PROG] Store TEL%d: %s\r\n", index + 1, module.input);
       STORAGE_SetOwnNumber(index, module.input);
     }
     break;
@@ -176,7 +181,6 @@ static bool storeInput(void) {
         return false;
       }
 
-      printf("[PROG] Store SEC: %s\r\n", module.input);
       STORAGE_SetSecurityCode(module.input);
       break;
   }

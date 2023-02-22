@@ -25,7 +25,7 @@ typedef struct {
 typedef struct {
   bool statusBeepEnabled: 1;
   bool oneMinuteBeepEnabled: 1;
-  bool vehicleModeEnabled: 1;
+  bool oemHandsFreeIntegrationEnabled: 1;
   bool showOwnNumberEnabled: 1;
   bool reserved: 1;
   bool dualNumbersEnabled: 1;
@@ -199,7 +199,7 @@ static void initializeDefaultStorageData(void) {
   storage.callTime.totalCallSeconds = 0;
   storage.toggles.statusBeepEnabled = true;
   storage.toggles.oneMinuteBeepEnabled = false;
-  storage.toggles.vehicleModeEnabled = false;
+  storage.toggles.oemHandsFreeIntegrationEnabled = false;
   storage.toggles.showOwnNumberEnabled = true;
   storage.toggles.dualNumbersEnabled = false;
   storage.toggles.cumulativeTimerResetEnabled = true;
@@ -674,12 +674,12 @@ void STORAGE_SetOneMinuteBeepEnabled(bool enabled) {
   EEPROM_AsyncWriteBytes(offsetof(storage_t, toggles), &storage.toggles, sizeof(toggles_t));
 }
 
-bool STORAGE_GetVehicleModeEnabled(void) {
-  return storage.toggles.vehicleModeEnabled;
+bool STORAGE_GetOemHandsFreeIntegrationEnabled(void) {
+  return storage.toggles.oemHandsFreeIntegrationEnabled;
 }
 
-void STORAGE_SetVehicleModeEnabled(bool enabled) {
-  storage.toggles.vehicleModeEnabled = enabled;
+void STORAGE_SetOemHandsFreeIntegrationEnabled(bool enabled) {
+  storage.toggles.oemHandsFreeIntegrationEnabled = enabled;
   EEPROM_AsyncWriteBytes(offsetof(storage_t, toggles), &storage.toggles, sizeof(toggles_t));
 }
 

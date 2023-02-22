@@ -94,6 +94,20 @@ static struct {
    */
   bool isBatteryLevelLow;
   /**
+   * This timeout is used to keep track of when a simulated button press was 
+   * recently sent to the transceiver so that certain commands from the 
+   * transceiver may be assumed to be a result of the button press, rather
+   * than an unsolicited "event".
+   */
+  timeout_t recentSimulatedButtonPressTimeout;
+  /**
+   * True if the transceiver is connected to external power.
+   * 
+   * Assumed to be true during initialization until evidence of no external 
+   * power is received.
+   */
+  bool isConnectedToExternalPower;
+  /**
    * True if the PWR button is currently pressed.
    * 
    * NOTE: This is maintained by handling HANDSET button events, which means
@@ -109,6 +123,30 @@ static struct {
   bool isPoweringOff;
 } module;
 
+/**
+ * Send Handset events to the Transceiver to simulate a complete press and
+ * release of a Handset button.
+ * 
+ * Also starts (or restarts) the `recentSimulatedButtonPressTimeout` so 
+ * certain subsequent commands from the Transceiver can be ignored as being a 
+ * direct consequence of the simulated button press.
+ * 
+ * @param button - The button to simulate.
+ */
+static void simulateButtonPress(HANDSET_Button button) {
+  UART4_Write(button);
+  UART4_Write(HANDSET_UartEvent_RELEASE);
+  TIMEOUT_Start(&module.recentSimulatedButtonPressTimeout, 50);
+}
+
+/**
+ * Check if a button press was recently simulated.
+ * @return True if a button press was recently simulated.
+ */
+static bool wasButtonPressRecentlySimulated(void) {
+  return TIMEOUT_IsPending(&module.recentSimulatedButtonPressTimeout);
+}
+
 void TRANSCEIVER_Initialize(TRANSCEIVER_EventHandler eventHandler) {
   module.eventHandler = eventHandler;
   TIMEOUT_Start(&module.transceiverReadyTimeout, TRANSCEIVER_READY_TIMOUT);
@@ -118,6 +156,8 @@ void TRANSCEIVER_Initialize(TRANSCEIVER_EventHandler eventHandler) {
   module.batteryLevel = 0;
   TIMEOUT_Cancel(&module.deferBatteryLevelOkEventTimeout);
   module.isBatteryLevelLow = false;
+  TIMEOUT_Cancel(&module.recentSimulatedButtonPressTimeout);
+  module.isConnectedToExternalPower = true;
   module.isPowerButtonPressed = false;
   module.isPoweringOff = false;
 }
@@ -149,6 +189,18 @@ void TRANSCEIVER_Task(void) {
       if (module.isBatteryLevelLow) {
         TIMEOUT_Start(&module.deferBatteryLevelOkEventTimeout, DEFER_BATTERY_LEVEL_OK_EVENT_TIMEOUT);
       }
+    } else if ((cmd == HANDSET_UartCmd_BACKLIGHT_OFF) && module.isConnectedToExternalPower) {
+      printf("[TSCVR] Disconnected from external power.\r\n");
+      module.isConnectedToExternalPower = false;
+      module.eventHandler(TRANSCEIVER_EventType_DISCONNECTED_FROM_EXTERNAL_POWER);
+    } else if (
+        (cmd == HANDSET_UartCmd_BACKLIGHT_ON) && 
+        !module.isConnectedToExternalPower &&
+        !wasButtonPressRecentlySimulated()
+        ) {
+      printf("[TSCVR] Connected to external power.\r\n");
+      module.isConnectedToExternalPower = true;
+      module.eventHandler(TRANSCEIVER_EventType_CONNECTED_TO_EXTERNAL_POWER);
     } else if ((cmd == HANDSET_UartCmd_SET_SIGNAL_STRENGTH_0) && TIMEOUT_IsPending(&module.transceiverReadyTimeout)) {
       // SET_SIGNAL_STRENGTH_0 is one of the final commands sent by the
       // Transceiver during its power-on sequence, after which the Transceiver
@@ -202,8 +254,7 @@ void TRANSCEIVER_Task(void) {
 
         // Clear the battery level display so we're ready to request battery 
         // voltage again later
-        UART4_Write(HANDSET_UartEvent_CLR);
-        UART4_Write(HANDSET_UartEvent_RELEASE);
+        simulateButtonPress(HANDSET_Button_CLR);
       } else if (cmd == HANDSET_UartCmd_PRINT_HYPHEN) {
         // When reporting the battery level, the Transceiver prints "BATERYV:"
         // to the handset, followed by 1-5 hyphens to represent the battery level.
@@ -213,6 +264,8 @@ void TRANSCEIVER_Task(void) {
     }    
   }
   
+  TIMEOUT_Task(&module.recentSimulatedButtonPressTimeout);
+  
   if (TIMEOUT_Task(&module.transceiverReadyTimeout)) {
     // We didn't get indication from the Transceiver that it is "ready" within 
     // the expected amount of time. Assume it must be ready and we just missed
@@ -220,6 +273,11 @@ void TRANSCEIVER_Task(void) {
     // Start polling the battery level now.
     printf("[TSCVR] Transceiver Ready Timed Out; Assuming Ready\r\n");
     INTERVAL_Start(&module.batteryLevelRequestInterval, true);
+
+    // Simulate an innocuous button press to ensure that we get a BACKLIGHT_OFF
+    // command after initialization if the transceiver is not connected to external
+    // power.
+    simulateButtonPress(HANDSET_Button_CLR);
   }
     
   if (TIMEOUT_Task(&module.deferBatteryLevelOkEventTimeout)) {
@@ -242,12 +300,9 @@ void TRANSCEIVER_Task(void) {
       module.pendingBatteryLevel = 0;
 
       // Send button commands to display battery level: FCN * 5
-      UART4_Write(HANDSET_UartEvent_FCN);
-      UART4_Write(HANDSET_UartEvent_RELEASE);
-      UART4_Write(HANDSET_UartEvent_ASTERISK);
-      UART4_Write(HANDSET_UartEvent_RELEASE);
-      UART4_Write(HANDSET_UartEvent_5);
-      UART4_Write(HANDSET_UartEvent_RELEASE);
+      simulateButtonPress(HANDSET_Button_FCN);
+      simulateButtonPress(HANDSET_Button_ASTERISK);
+      simulateButtonPress(HANDSET_Button_5);
 
       TIMEOUT_Start(&module.batteryLevelRequestTimeout, BATTERY_LEVEL_REQUEST_TIMEOUT);
     }
@@ -260,8 +315,7 @@ void TRANSCEIVER_Task(void) {
     
     // Try clearing out of whatever may have interfered with displaying 
     // the battery level and hope the next attempt will succeed;
-    UART4_Write(HANDSET_UartEvent_CLR);
-    UART4_Write(HANDSET_UartEvent_RELEASE);
+    simulateButtonPress(HANDSET_Button_CLR);
     // Retry polling the battery level now.
     TRANSCEIVER_PollBatteryLevelNow();
   }  
@@ -281,7 +335,8 @@ void TRANSCEIVER_Timer10MS_Interrupt(void) {
   TIMEOUT_Timer_Interrupt(&module.transceiverReadyTimeout);
   TIMEOUT_Timer_Interrupt(&module.batteryLevelRequestTimeout);
   TIMEOUT_Timer_Interrupt(&module.deferBatteryLevelOkEventTimeout);
-  INTERVAL_Timer_Interrupt(&module.batteryLevelRequestInterval);
+  TIMEOUT_Timer_Interrupt(&module.recentSimulatedButtonPressTimeout);
+  INTERVAL_Timer_Interrupt(&module.batteryLevelRequestInterval);  
 }
 
 void TRANSCEIVER_PollBatteryLevelNow(void) {
@@ -297,3 +352,6 @@ bool TRANSCEIVER_IsBatteryLevelLow(void) {
   return module.isBatteryLevelLow;
 }
 
+bool TRANSCEIVER_IsConnectedToExternalPower(void) {
+  return module.isConnectedToExternalPower;
+}

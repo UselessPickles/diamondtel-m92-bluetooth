@@ -39,6 +39,7 @@
         <itemPath>src/sound/volume.h</itemPath>
         <itemPath>src/sound/tone.h</itemPath>
         <itemPath>src/sound/ringtone.h</itemPath>
+        <itemPath>src/sound/external_mic.h</itemPath>
       </logicalFolder>
       <logicalFolder name="f2" displayName="Storage" projectFiles="true">
         <itemPath>src/storage/eeprom.h</itemPath>
@@ -111,6 +112,7 @@
         <itemPath>src/sound/ringtone.c</itemPath>
         <itemPath>src/sound/volume.c</itemPath>
         <itemPath>src/sound/tone.c</itemPath>
+        <itemPath>src/sound/external_mic.c</itemPath>
       </logicalFolder>
       <logicalFolder name="f5" displayName="Storage" projectFiles="true">
         <itemPath>src/storage/eeprom.c</itemPath>
