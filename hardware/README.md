@@ -9,14 +9,15 @@ NOTE: The Bluetooth Module, Microcontroller, and Telephone all have dedicated to
   - [Major Circuit Components](#major-circuit-components)
     - [Microcontroller (PIC18F27Q43)](#microcontroller-pic18f27q43)
     - [Bluetooth Module (BM62)](#bluetooth-module-bm62)
+    - [Hands-Free Microphone Jack (STX3120)](#hands-free-microphone-jack-stx3120)
     - [Analog Switches (MAX4619)](#analog-switches-max4619)
-    - [Op Amp Buffer (NJU7031)](#op-amp-buffer-nju7031)
+    - [Op Amp (NJU7031)](#op-amp-nju7031)
     - [Low-Pass Filter](#low-pass-filter)
     - [Digital Potentiometer (MCP4151)](#digital-potentiometer-mcp4151)
     - [Differential Amplifier (INA105)](#differential-amplifier-ina105)
     - [5V Voltage Regulator (L7805CV)](#5v-voltage-regulator-l7805cv)
     - [Negative Voltage Converter (TL7660)](#negative-voltage-converter-tl7660)
-  - [Detailed Circuit Diagrams](#detailed-circuit-diagrams)
+  - [Detailed Circuit Diagrams](#detailed-circuit-diagrams)  
   
 ## Basic Circuit Design
 
@@ -44,16 +45,26 @@ This handles all the Bluetooth communication with a modern cell phone, as comman
 
 See the top-level `/bluetooth` directory for more details.
 
+### Hands-Free Microphone Jack (STX3120)
+
+This 3.5mm audio jack is used for connecting an external microphone for hands-free conversation.
+
+The jack includes disconnect switches that are used to trigger a digital input to the MCU, indicating when
+an external microphone is connected.
+
 ### Analog Switches (MAX4619)
 
 This component is a set of 3 analog SPDT switches in one component. This is used to allow the Microcontroller to control the routing of audio:
 
-- Choose between sending incoming voice audio or Microcontroller-generated sounds to the Handset.
-- Disable the microphone connection between the Handset and the Bluetooth Module.
+- Choose between sending incoming voice audio or MCU-generated sounds to the Handset.
+- Choose between sending the handset microphone audio or external hands-free microphone audio to the Bluetooth Module.
+- Disable the microphone connection to the Bluetooth Module to temporarily "mute" the microphone while the MCU is generating sound output to the Handset.
 
-### Op Amp Buffer (NJU7031)
+### Op Amp (NJU7031)
 
 This Op Amp is used to buffer the raw DAC sound output from the Microcontroller before passing it through any further circuitry.
+
+Another is used to amplify the incoming audio from the external hands-free microphone jack.
 
 ### Low-Pass Filter
 

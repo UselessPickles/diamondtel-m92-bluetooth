@@ -16,7 +16,9 @@ This directory is a complete [MPLAB X](https://www.microchip.com/en-us/tools-res
     - [DAC1 - Sound Sample Output Value](#dac1---sound-sample-output-value)
     - [SPI1, RC0 (SPI1_CS_DPOT) - Volume Control Communication](#spi1-rc0-spi1_cs_dpot---volume-control-communication)
     - [RB0 (IO_VOICE_IN) - Incoming Voice Audio Switching](#rb0-io_voice_in---incoming-voice-audio-switching)
-    - [RB1 (IO_MIC_OUT_DISABLE) - Outgoing Microphone Audio Disable](#rb1-io_mic_out_disable---outgoing-microphone-audio-disable)
+    - [RB1 (IO_MIC_OUT_DISABLE) - Microphone Audio Disable](#rb1-io_mic_out_disable---microphone-audio-disable)
+    - [RA4 (IO_MIC_HF_SELECT) - Microphone Audio Switching](#ra4-io_mic_hf_select---microphone-audio-switching)
+    - [RA5 (IO_MIC_HF_DETECT) - External Hands-Free Microphone Detection](#ra5-io_mic_hf_detect---external-hands-free-microphone-detection)
     - [UART1 - Handset Communication](#uart1---handset-communication)
     - [UART2 - Bluetooth Module Communication](#uart2---bluetooth-module-communication)
     - [UART3 - STDIO Logging/Debugging](#uart3---stdio-loggingdebugging)
@@ -24,7 +26,7 @@ This directory is a complete [MPLAB X](https://www.microchip.com/en-us/tools-res
     - [RC4 (IO_BT_RESET) - Bluetooth Module Reset](#rc4-io_bt_reset---bluetooth-module-reset)
     - [RC7 (IO_BT_MFB) - Bluetooth Module UART Rx Indicator](#rc7-io_bt_mfb---bluetooth-module-uart-rx-indicator)
     - [RA0 (IO_PWR) - Handset Power Button](#ra0-io_pwr---handset-power-button)
-    
+
 ## General 
 
 ### Sloppy Prototype Under Construction
@@ -89,9 +91,17 @@ This is used to communicate with a digital potentiometer via SPI for sound volum
 
 This digital output pin is used to control an analog switch that chooses whether to use incoming voice audio from the Bluetooth Module, or generated sounds from the MCU, as the source of sound to be provided to the phone handset.
 
-### RB1 (IO_MIC_OUT_DISABLE) - Outgoing Microphone Audio Disable
+### RB1 (IO_MIC_OUT_DISABLE) - Microphone Audio Disable
 
 This digital output pin is used to control an analog switch that disconnects the handset microphone output from the Bluetooth module. This is used to quickly mute the microphone when generating a sound (e.g., a button press beep) so that the generated sound does not feed back into the microphone.
+
+### RA4 (IO_MIC_HF_SELECT) - Microphone Audio Switching
+
+This digital output pin is used to control an analog switch that switches between using the handset microphone audio or the external hands-free mcirophone audio.
+
+### RA5 (IO_MIC_HF_DETECT) - External Hands-Free Microphone Detection
+
+This digital input pin is used to detect when an external hands-free microphone is connected to the audio jack.
 
 ### UART1 - Handset Communication
 
