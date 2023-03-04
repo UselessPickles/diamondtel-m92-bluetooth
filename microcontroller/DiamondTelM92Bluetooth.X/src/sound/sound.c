@@ -282,13 +282,14 @@ static bool soundEffectStateTask(SOUND_Channel channel) {
 void SOUND_Initialize(void) {
   defaultAudioSource = SOUND_AudioSource_MCU;
   currentTarget = SOUND_Target_SPEAKER;
-  currentSpeakerMode = SpeakerMode_IDLE;
+  currentSpeakerMode = SpeakerMode_NONE;
   currentVolumeMode = VOLUME_Mode_SPEAKER;
   currentButtonBeep = HANDSET_Button_NONE;
   isOnHook = true;
   isInitialized = true;
   isDisabled = false;
   isButtonsMuted = false;
+  forceNextSetHandsetAudioOutput = false;
   
   SOUND_PlayEffect(
       SOUND_Channel_FOREGROUND, 
