@@ -125,9 +125,9 @@ void VOLUME_Initialize(void) {
   SPI1_Open(SPI1_DEFAULT);
   module.currentLevel = 0xFF;
   module.currentMode = 0xFF;
+  TIMEOUT_Cancel(&module.deferredStoreTimeout);
   VOLUME_Disable();
   VOLUME_SetMode(VOLUME_Mode_SPEAKER);
-  TIMEOUT_Cancel(&module.deferredStoreTimeout);
 }
 
 void VOLUME_Task(void) {
