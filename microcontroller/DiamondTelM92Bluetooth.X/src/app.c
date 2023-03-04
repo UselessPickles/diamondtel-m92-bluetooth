@@ -2623,12 +2623,14 @@ void handle_HANDSET_Event(HANDSET_Event const* event) {
               appState = APP_State_NUMBER_INPUT;
             }
             
-            bool const redraw = numberInputIsStale || wasDisplayingNonNumberInput || CALL_TIMER_IsDisplayEnabled();
-            
             if (numberInputIsStale) {
               NumberInput_Clear();
             }
             
+            bool const redraw = numberInputLength == 0 
+                || wasDisplayingNonNumberInput 
+                || CALL_TIMER_IsDisplayEnabled();
+
             NumberInput_PushDigit(button);
             
             if (redraw) {
