@@ -13,14 +13,14 @@
 
 /** 
  * Number of indicators defined by HANDSET_Indicator 
- * (not including the special HANDSET_Indicator_NO_SVC)
+ * (not including any "synthetic" indicators)
  */ 
 #define INDICATOR_COUNT (14)
 
 /**
  * Lookup table of HANDSET_Indicator -> UART command for turning the 
  * indicator on.
- * (not including the special HANDSET_Indicator_NO_SVC)
+ * (not including any "synthetic" indicators)
  * 
  * Add one (1) to the command to get the "off" command.
  */
@@ -158,7 +158,7 @@ static struct {
   bool isMicrophoneOn;
   /*
    * Mapping of HANDSET_Indicator -> current indicator "on" state.
-   * (not including the special HANDSET_Indicator_NO_SVC)
+   * (not including any "synthetic" indicators)
    */
   bool indicatorState[INDICATOR_COUNT];
 } handset;
@@ -699,9 +699,15 @@ void HANDSET_SetAllIndicators(bool on) {
 void HANDSET_SetIndicator(HANDSET_Indicator indicator, bool on) {
   uint8_t offset = on ? 0 : 1;
   
-  if (indicator == HANDSET_Indicator_NO_SVC) {
+  if (indicator == HANDSET_Indicator_SIGNAL_BARS) {
+    // The SIGNAL_BARS indicator is a special "synthetic" indicator ID that maps
+    // to all SIGNAL_BAR_X indicators simultaneously, so it must be converted 
+    // to a command for setting the signal strength to 0 or maximum.
+    
+    HANDSET_SetSignalStrength(on ? HANDSET_MAX_SIGNAL_STRENGTH : 0);
+  } else if (indicator == HANDSET_Indicator_NO_SVC) {
     // The NO_SVC indicator is a special "synthetic" indicator ID that maps
-    // to bot the NO and SVC indicators simultaneously, so it must be converted 
+    // to both the NO and SVC indicators simultaneously, so it must be converted 
     // to individual commands to turn each of the two indicators on/off.
 
     if (!handset.isCommandOptimizationEnabled || (on != handset.indicatorState[HANDSET_Indicator_NO])) {

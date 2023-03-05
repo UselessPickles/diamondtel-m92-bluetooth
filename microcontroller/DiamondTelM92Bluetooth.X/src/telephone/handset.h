@@ -549,7 +549,12 @@ typedef enum HANDSET_Indicator {
    * Special "synthetic" indicator to conveniently control 
    * both NO + SVC indicators together    
    */
-  HANDSET_Indicator_NO_SVC
+  HANDSET_Indicator_NO_SVC,
+  /** 
+   * Special "synthetic" indicator to conveniently control 
+   * all signal strength bars together as a single indicator.
+   */
+  HANDSET_Indicator_SIGNAL_BARS
 } HANDSET_Indicator;
 
 /**
