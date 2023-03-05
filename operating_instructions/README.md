@@ -36,12 +36,11 @@ Bluetooth to the DiamondTel Model 92 via Bluetooth Adapter.
 
 This section clarifies which of the DiamondTel Model 92's original features are
 supported. What follows is a replica of the much of the table of contents from
-the original
-[DiamondTel Model 92 Operating Instructions](../telephone/DiamondTel Model%2092%20Operating%20Instructions.pdf)
-with indication of which features are replicated/supported by the Bluetooth
-Adapter (✔️), and which features are not replicated/supported (❌). Supported
-features may have additional notes about differences compared to the original
-phone. Otherwise, refer to the original operating instructions for full details.
+the original `DiamondTel Model 92 Operating Instructions` with indication of
+which features are replicated/supported by the Bluetooth Adapter (✔️), and which features are not replicated/supported (❌). Supported features may have
+additional notes about differences compared to the original phone. Otherwise,
+refer to the original operating instructions (found in the `telephone` directory
+of this project) for full details.
 
  - ✔️ STATUS INDICATORS
     - The `||||||` signal strength indicator has additional meanings for the
@@ -103,7 +102,7 @@ phone. Otherwise, refer to the original operating instructions for full details.
       displayed on the top row.
     - ✔️ LOW BATTERY INDICATOR
     - ✔️ BACKLIGHTING
-- ⭕ EXTENDED FEATURE OPERATIONS
+- EXTENDED FEATURE OPERATIONS
     - ❌ ~~SYSTEM A/B SELECTION (FCN/1)~~
       - Irrelevant for modern phone service/tech.
     - ❌ ~~FORCING SYSTEM A/B OPERATION~~
