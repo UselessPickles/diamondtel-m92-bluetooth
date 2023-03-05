@@ -1696,8 +1696,8 @@ void APP_Task(void) {
       if (!TIMEOUT_IsPending(&appStateTimeout) && BT_isReady) {
         BT_SetEventMask();
         BT_LinkBackToLastDevice();
-        INDICATOR_StartFlashing(HANDSET_Indicator_NO_SVC);
-        HANDSET_SetSignalStrength(0);
+        INDICATOR_StartFlashing(HANDSET_Indicator_SIGNAL_BARS);
+        HANDSET_SetIndicator(HANDSET_Indicator_NO_SVC, true);
         
         HANDSET_ClearText();
         HANDSET_RequestHookStatus();
@@ -1722,7 +1722,7 @@ void APP_Task(void) {
         );
         BT_ExitPairingMode();
         INDICATOR_StopSignalStrengthSweep(0);
-        INDICATOR_StartFlashing(HANDSET_Indicator_NO_SVC);
+        INDICATOR_StartFlashing(HANDSET_Indicator_SIGNAL_BARS);
         
         HANDSET_DisableTextDisplay();
         HANDSET_PrintString("PAIRINGTIMEOUT");
@@ -2698,7 +2698,7 @@ void handle_HANDSET_Event(HANDSET_Event const* event) {
         BT_ExitPairingMode();
         BT_LinkBackToLastDevice();
         INDICATOR_StopSignalStrengthSweep(0);
-        INDICATOR_StartFlashing(HANDSET_Indicator_NO_SVC);
+        INDICATOR_StartFlashing(HANDSET_Indicator_SIGNAL_BARS);
         returnToNumberInput(false);
         // Prevent short hold of CLR from clearing input
         HANDSET_CancelCurrentButtonHoldEvents();
@@ -3115,15 +3115,15 @@ void APP_BT_EventHandler(uint8_t event, uint16_t para, uint8_t* para_full) {
       
     case BT_EVENT_SYS_PAIRING_START:
       printf("[PAIR] Start\r\n");
+      INDICATOR_StopFlashing(HANDSET_Indicator_SIGNAL_BARS, false);
       INDICATOR_StartSignalStrengthSweep();
-      INDICATOR_StopFlashing(HANDSET_Indicator_NO_SVC, false);
       break;
 
     case BT_EVENT_SYS_PAIRING_FAILED:
       printf("[PAIR] Failed\r\n");
-      INDICATOR_StartFlashing(HANDSET_Indicator_NO_SVC);
-      TIMEOUT_Start(&idleTimeout, IDLE_TIMEOUT);
       INDICATOR_StopSignalStrengthSweep(0);
+      INDICATOR_StartFlashing(HANDSET_Indicator_SIGNAL_BARS);
+      TIMEOUT_Start(&idleTimeout, IDLE_TIMEOUT);
       
       if (appState == APP_State_PAIRING) {
         HANDSET_DisableTextDisplay();
@@ -3165,8 +3165,9 @@ void APP_BT_EventHandler(uint8_t event, uint16_t para, uint8_t* para_full) {
       
       playBluetoothConnectionStatusBeep(true);
       
-      INDICATOR_StopFlashing(HANDSET_Indicator_NO_SVC, !cellPhoneState.hasService);
+      INDICATOR_StopFlashing(HANDSET_Indicator_SIGNAL_BARS, false);
       INDICATOR_StopSignalStrengthSweep(cellPhoneState.signalStrength);
+      HANDSET_SetIndicator(HANDSET_Indicator_NO_SVC, !cellPhoneState.hasService);
 
       if (appState == APP_State_PAIRING) {
         BT_ExitPairingMode();
@@ -3184,9 +3185,10 @@ void APP_BT_EventHandler(uint8_t event, uint16_t para, uint8_t* para_full) {
       printf("[HFP] Disconnected\r\n");
       playBluetoothConnectionStatusBeep(false);
      
-      INDICATOR_StartFlashing(HANDSET_Indicator_NO_SVC);
+      INDICATOR_StartFlashing(HANDSET_Indicator_SIGNAL_BARS);
+      HANDSET_SetIndicator(HANDSET_Indicator_NO_SVC, true);
       HANDSET_SetIndicator(HANDSET_Indicator_ROAM, false);
-      HANDSET_SetSignalStrength(0);
+      HANDSET_SetIndicator(HANDSET_Indicator_IN_USE, false);
       cellPhoneState.isConnected = false;
       cellPhoneState.hasService = false;
       cellPhoneState.maxSignalStrength = 0;
@@ -3213,7 +3215,7 @@ void APP_BT_EventHandler(uint8_t event, uint16_t para, uint8_t* para_full) {
       printf("[PHONE] %s\r\n", para ? "Has Service" : "No Service");
       playStatusBeep();
       cellPhoneState.hasService = (bool)para;
-      INDICATOR_StopFlashing(HANDSET_Indicator_NO_SVC, !cellPhoneState.hasService);
+      HANDSET_SetIndicator(HANDSET_Indicator_NO_SVC, !cellPhoneState.hasService);
       
       if (!cellPhoneState.hasService) {
         cellPhoneState.signalStrength = 0;
