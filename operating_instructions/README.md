@@ -2,8 +2,22 @@
 
 - [Operating Instructions](#operating-instructions)
   - [Introduction](#introduction)
+    - [Terminology](#terminology)
   - [Original DiamondTel Model 92 Functionality](#original-diamondtel-model-92-functionality)
-  
+  - [Programming / Setup](#programming--setup)
+    - [Entering Programming Mode](#entering-programming-mode)
+    - [Viewing/Editing Programming Options](#viewingediting-programming-options)
+    - [Programming Options](#programming-options)
+      - [DUAL NO](#dual-no)
+      - [NO1](#no1)
+      - [NO2](#no2)
+      - [SECURITY](#security)
+      - [DIS CU RESET](#dis-cu-reset)
+      - [DIS OWN TEL](#dis-own-tel)
+      - [CALLER ID](#caller-id)
+      - [OEM HF UNIT](#oem-hf-unit)
+    - [Exiting Programming Mode](#exiting-programming-mode)
+    
 ## Introduction
 
 The DiamondTel Model 92 Bluetooth Adapter connects in between the handset and
@@ -134,7 +148,7 @@ of this project) for full details.
     - ✔️ BATTERY VOLTAGE DISPLAY (FCN/*/5)
       - While viewing battery voltage, press `FCN` to toggle between viewing the
       phone's own battery voltage ("BATTERY") and viewing the host phone's
-      battery voltage ("CELLBAT"). 
+      approximate battery level ("CELLBAT").
     - ❌ ~~RF OUTPUT POWER CHANGE (FCN/*/6)~~
       - Irrelevant for modern phone service/tech.
     - ✔️ AUTOMATIC ANSWER (FCN/*/7)
@@ -142,11 +156,11 @@ of this project) for full details.
       - Technical limitations and complexity make this impractical to replicate.
     - ✔️ SILENT SCRATCH PAD (FCN/MUTE)
     - ✔️ AUTO STORE (FCN/STO)
-    - ✔️ ONE TOUCH DIAL NUMBER STORE/RECALL (STO, RCL P1 /P2/P3)
+    - ✔️ ONE TOUCH DIAL NUMBER STORE/RECALL (STO, RCL P1/P2/P3)
     - ✔️ AUTOMATIC DTMF (FCN/SEND)
     - ✔️ RESET CUMULATIVE TIMER (FCN/CLR)
     - ✔️ LCD VIEW ANGLE CONTROL (FCN/2sec)
-    - ✔️ OWN TELEPHONE NUMBER DISPLAY/DUAL NAM (RCU#)
+    - ✔️ OWN TELEPHONE NUMBER DISPLAY/DUAL NAM (RCL/#)
     - ✔️ MEMORY SCAN (RCL/↑/↓)
     - ✔️ DTMF OVERDIALLING FROM MEMORY
       - Original instructions seem incorrect and did not work on the original
@@ -175,3 +189,161 @@ of this project) for full details.
       hardware that is not described anywhere.
     - ❌ ~~ROAM INHIBIT~~
       - Irrelevant for modern phone service/tech.
+
+## Programming / Setup
+
+The Bluetooth Adapter supports a "programming mode" for configuring core options
+of the phone, much like the original DiamondTel Model 92. However, it is much
+simpler than the original programming mode because there is no need to setup
+cell phone carrier settings.
+
+### Entering Programming Mode
+
+Entering programming mode is done the same as the original phone:
+
+1. Turn the phone on.
+1. After the initial startup sequence (as soon as the `||||||` indicators start,
+flashing), Press and hold the `CLR` key while entering the code `1591426`. This
+must be completed within 10 seconds of startup.
+    - NOTE: This code can only be used to enter programming mode up to 3 times.
+    An alternate "programming reset" code (`8291112`) can ALWAYS be used to
+    enter programming mode, and will also reset the ability to use the `1591426`
+    code. This just mimics the original phone behavior for maximum authenticity.
+    The standard (3-times-only) code is included in the original Operating
+    Instructions, while the "programming reset" code was "secret" code known to
+    "authorized" personnel only. The "prgramming reset" code is therefore the 
+    more convenient code to use for programming.
+1. If successful, the Bluetooth Adapter will disconnect from the host phone, and 
+you will see the first programming option flashing on the screen.
+
+### Viewing/Editing Programming Options
+
+When first entering programming programming mode, you will see the first
+option's label and value flashing on the screen. Each programming option has a 
+simple numeric value. From here, you can either advance to the next option by
+pressing `SEND`, or enter a new value for the current option.
+
+While a programming option is flashing on the screen, begin entering a
+numeric value to edit its value. The display will clear and stop flashing,
+showing only the value you are entering.
+
+Press `CLR` to cancel editing and return to viewing the current value of the
+programming option.
+
+Press `SEND` to save the new value. If the entered value is valid, it will be 
+saved and programming will advance to the next option. If the entered value is
+invalid, you will remain in editing mode. From here, you can either continue 
+typing more digits if necessary to make the value valid, or cancel editing and 
+start over.
+
+### Programming Options
+
+#### DUAL NO
+
+If enabled, then two phone numbers are associated with this phone instead of 
+only one. See the `OWN TELEPHONE NUMBER DISPLAY/DUAL NAM` section of the
+original `DiamondTel Model 92 Operating Instructions` for details about
+switching between between dual numbers.
+
+**Valid Values**:
+- `0`: Dual Number disabled.
+- `1`: Dual Number enabled.
+
+**Default Value**: `0`
+
+#### NO1
+
+This is the primary phone number associated with this phone. This is entirely
+cosmetic and has no impact on functionality (it does not need to match your
+actual phone number). This number may be displayed during the power-on sequence,
+or manually recalled (See the `OWN TELEPHONE NUMBER DISPLAY/DUAL NAM` section of
+the original `DiamondTel Model 92 Operating Instructions`).
+
+**Valid Values**: Any 7-digit or 10-digit number.
+
+**Default Value**: `0000000000`
+
+#### NO2
+
+Only available if the `DUAL NO` programming option is enabled.
+
+This is the secondary phone number associated with this phone. This is entirely
+cosmetic and has no impact on functionality (it does not need to match your
+actual phone number). This number may be displayed during the power-on sequence,
+or manually recalled (See the `OWN TELEPHONE NUMBER DISPLAY/DUAL NAM` section of
+the original `DiamondTel Model 92 Operating Instructions`).
+
+**Valid Values**: Any 7-digit or 10-digit number.
+
+**Default Value**: `0000000000`
+
+#### SECURITY
+
+This is a 4-digit security code that must be entered to access certain features
+of the phone.
+
+**Valid Values**: Any 4-digit number.
+
+**Default Value**: `0000`
+
+#### DIS CU RESET
+
+Disables the ability to reset the cumulative talk timer. See the 
+`RESET CUMULATIVE TIMER` section of the original
+`DiamondTel Model 92 Operating Instructions`.
+
+**Valid Values**:
+- `0`: Cumulative timer reset is enabled.
+- `1`: Cumulative timer reset is disabled.
+
+**Default Value**: `0`
+
+#### DIS OWN TEL
+
+Disables the display of the phone's own configured phone number (`NO1` or `NO2`
+programming option) during the phone's power-on sequence.
+
+**Valid Values**:
+- `0`: Own telephone number display is enabled.
+- `1`: Own telephone number display is disabled.
+
+**Default Value**: `0`
+
+#### CALLER ID
+
+Enables Caller ID for incoming calls.
+
+**Valid Values**:
+- `0`: Caller ID is disabled (authentic original behavior).
+- `1`: Caller ID is enabled: display name (number is displayed if name is
+unavailable).
+- `2`: Caller ID is enabled: display number.
+
+**Default Value**: `0`
+
+#### OEM HF UNIT
+
+Adjusts some behavior for compatibility with the OEM Hands-Free Controller Unit
+that was available for some Mitsubishi vehicles as part of a fully integrated
+car phone accessory. When enabled, the adjusted behavior is only applied when
+an external microphone connection is detected. For example, Caller ID (if 
+enabled) is automatically disabled to avoid interfering with the Hands-Free
+Controller's ability to properly detect the start and end of an incoming call.
+
+This option should be enabled only if you are using the Bluetooth Adapter
+together with the OEM Hands-Free Controller Unit.
+
+**Valid Values**:
+- `0`: OEM Hands-Free Controller compatibility is disabled.
+- `1`: OEM Hands-Free Controller compatibility is enabled.
+
+**Default Value**: `0`
+
+### Exiting Programming Mode
+
+While viewing (not editing) a programming option, press the `END` key. The
+phone will restart with the new programming options applied.
+
+NOTE: Each change to a programming option is saved immediately. There is no way
+to cancel/exit programming mode without applying the changes you have already
+made.
