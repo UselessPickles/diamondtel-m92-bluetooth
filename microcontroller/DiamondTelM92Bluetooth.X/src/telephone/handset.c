@@ -1003,7 +1003,7 @@ void HANDSET_SendArbitraryCommand(uint8_t cmd) {
 }
 
 void HANDSET_FlushWriteBuffer(void) {
-  while ((uart1TxBufferRemaining != 64) && !UART1_is_tx_done());
+  while (!UART1_is_tx_done());
 }
 
 void HANDSET_EnableCommandOptimization(void) {
