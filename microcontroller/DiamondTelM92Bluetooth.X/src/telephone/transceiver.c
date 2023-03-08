@@ -193,6 +193,9 @@ void TRANSCEIVER_Task(void) {
       printf("[TSCVR] Disconnected from external power.\r\n");
       module.isConnectedToExternalPower = false;
       module.eventHandler(TRANSCEIVER_EventType_DISCONNECTED_FROM_EXTERNAL_POWER);
+      // Request battery level right away, because external power disconnect will
+      // cause a change.
+      TRANSCEIVER_PollBatteryLevelNow();
     } else if (
         (cmd == HANDSET_UartCmd_BACKLIGHT_ON) && 
         !module.isConnectedToExternalPower &&
@@ -201,6 +204,9 @@ void TRANSCEIVER_Task(void) {
       printf("[TSCVR] Connected to external power.\r\n");
       module.isConnectedToExternalPower = true;
       module.eventHandler(TRANSCEIVER_EventType_CONNECTED_TO_EXTERNAL_POWER);
+      // Request battery level right away, because external power connect will
+      // cause a change.
+      TRANSCEIVER_PollBatteryLevelNow();
     } else if ((cmd == HANDSET_UartCmd_SET_SIGNAL_STRENGTH_0) && TIMEOUT_IsPending(&module.transceiverReadyTimeout)) {
       // SET_SIGNAL_STRENGTH_0 is one of the final commands sent by the
       // Transceiver during its power-on sequence, after which the Transceiver
