@@ -61,6 +61,7 @@
         <itemPath>src/ui/view_adjust.h</itemPath>
         <itemPath>src/ui/volume_adjust.h</itemPath>
         <itemPath>src/ui/indicator.h</itemPath>
+        <itemPath>src/ui/sound_test.h</itemPath>
       </logicalFolder>
       <logicalFolder name="f7" displayName="Util" projectFiles="true">
         <itemPath>src/util/interval.h</itemPath>
@@ -134,6 +135,7 @@
         <itemPath>src/ui/view_adjust.c</itemPath>
         <itemPath>src/ui/volume_adjust.c</itemPath>
         <itemPath>src/ui/indicator.c</itemPath>
+        <itemPath>src/ui/sound_test.c</itemPath>
       </logicalFolder>
       <logicalFolder name="f7" displayName="Util" projectFiles="true">
         <itemPath>src/util/interval.c</itemPath>

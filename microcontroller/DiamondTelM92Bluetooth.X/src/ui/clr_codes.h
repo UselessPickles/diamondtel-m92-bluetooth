@@ -13,6 +13,7 @@ extern "C" {
 #endif
 
 typedef enum CLR_CODES_EventType {
+  CLR_CODES_EventType_SOUND_TEST,
   CLR_CODES_EventType_PROGRAM,
   CLR_CODES_EventType_PROGRAM_RESET,
   CLR_CODES_EventType_SELF_DIAGNOSTICS,

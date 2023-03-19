@@ -18,6 +18,17 @@ static struct {
   uint8_t inputLength;
 } module;
 
+static char const SOUND_TEST_CODE[] = {
+  HANDSET_Button_CLR_7,
+  HANDSET_Button_CLR_4,
+  HANDSET_Button_CLR_6,
+  HANDSET_Button_CLR_9,
+  HANDSET_Button_CLR_2,
+  HANDSET_Button_CLR_8,
+  HANDSET_Button_CLR_3,
+  0
+};
+
 static char const PROGRAM_CODE[] = {
   HANDSET_Button_CLR_1,
   HANDSET_Button_CLR_5,
@@ -109,6 +120,8 @@ void CLR_CODES_HANDSET_EventHandler(HANDSET_Event const* event) {
         module.eventHandler(CLR_CODES_EventType_PROGRAM);
       } else if (strcmp(module.input, PROGRAM_RESET_CODE) == 0) {
         module.eventHandler(CLR_CODES_EventType_PROGRAM_RESET);
+      } else if (strcmp(module.input, SOUND_TEST_CODE) == 0) {
+        module.eventHandler(CLR_CODES_EventType_SOUND_TEST);
       } else if (strcmp(module.input, SELF_DIAGNOSTICS_CODE) == 0) {
         module.eventHandler(CLR_CODES_EventType_SELF_DIAGNOSTICS);
       } else if (strcmp(module.input, FACTORY_RESET_CODE) == 0) {

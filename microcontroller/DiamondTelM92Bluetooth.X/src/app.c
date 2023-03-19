@@ -26,6 +26,7 @@
 #include "ui/ringtone_select.h"
 #include "ui/marquee.h"
 #include "ui/programming.h"
+#include "ui/sound_test.h"
 #include "ui/security_code.h"
 #include "ui/view_adjust.h"
 #include "ui/char_input.h"
@@ -106,6 +107,7 @@ static enum {
   APP_State_MEMORY_GAME,
   APP_State_TETRIS_GAME,
   APP_State_PROGRAMMING,
+  APP_State_SOUND_TEST,
   APP_State_REBOOT_AFTER_DELAY,
   APP_State_REBOOT
 } appState;
@@ -146,6 +148,7 @@ static char const* const appStateLabel[] = {
   "MEMORY_GAME",
   "TETRIS_GAME",
   "PROGRAMMING",
+  "SOUND_TEST",
   "REBOOT_AFTER_DELAY",
   "REBOOT"
 };
@@ -1495,6 +1498,11 @@ static void handle_CLR_CODES_Event(CLR_CODES_EventType event) {
       PROGRAMMING_Start(reboot);
       break;
     
+    case CLR_CODES_EventType_SOUND_TEST: 
+      appState = APP_State_SOUND_TEST;
+      SOUND_TEST_Start(reboot);
+      break;
+    
     case CLR_CODES_EventType_FACTORY_RESET: 
       HANDSET_DisableTextDisplay();
       HANDSET_PrintString("FACTORY RESET ");
@@ -1555,15 +1563,25 @@ void APP_Task(void) {
   EEPROM_Task();
   VOLUME_Task();
   SOUND_Task();
-  CALL_TIMER_Task();
   INDICATOR_Task();
   MARQUEE_Task();
-  ATCMD_Task();
   BT_CommandDecode_Task();
   BT_CommandSend_Task();
   HANDSET_Task();
   TRANSCEIVER_Task();
   EXTERNAL_MIC_Task();
+  
+  switch (appState) {
+    case APP_State_PROGRAMMING:
+      return;
+      
+    case APP_State_SOUND_TEST:
+      SOUND_TEST_Task();
+      return;
+  }
+
+  CALL_TIMER_Task();
+  ATCMD_Task();
   CLR_CODES_Task();
   
   TIMEOUT_Task(&appStateTimeout);
@@ -1847,8 +1865,13 @@ void APP_Timer1MS_Interrupt(void) {
 }
 
 void APP_Timer10MS_Interrupt(void) {
-  if (appState == APP_State_PROGRAMMING) {
-    return;
+  switch (appState) {
+    case APP_State_PROGRAMMING:
+      return;
+      
+    case APP_State_SOUND_TEST:
+      SOUND_TEST_Timer10MS_Interrupt();
+      return;
   }
 
   TIMEOUT_Timer_Interrupt(&appStateTimeout);
@@ -2010,6 +2033,10 @@ void handle_HANDSET_Event(HANDSET_Event const* event) {
     switch (appState) {
       case APP_State_PROGRAMMING: 
         PROGRAMMING_HANDSET_EventHandler(event);
+        return;
+
+      case APP_State_SOUND_TEST: 
+        SOUND_TEST_HANDSET_EventHandler(event);
         return;
 
       case APP_State_ADJUST_VOLUME:
@@ -3070,7 +3097,7 @@ void APP_BT_EventHandler(uint8_t event, uint16_t para, uint8_t* para_full) {
         printf("[ACK ERROR] cmd=%X; status=%X\r\n", para, (int)para_full[1]);
       }
       
-      if ((appState == APP_State_PROGRAMMING) || (appState == APP_State_REBOOT)) {
+      if ((appState == APP_State_PROGRAMMING) || (appState == APP_State_SOUND_TEST) || (appState == APP_State_REBOOT)) {
         // Ignore BT errors, because we specifically turn BT off during 
         // programming, all BT commands are expected to fail.
         printf("[ACK ERROR] Ignoring during %s\r\n", appStateLabel[appState]);
