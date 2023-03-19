@@ -968,6 +968,20 @@ void HANDSET_SetMasterAudio(bool on) {
   }
   
   UART1_Write(on ? HANDSET_UartCmd_MASTER_AUDIO_ON : HANDSET_UartCmd_MASTER_AUDIO_OFF);
+
+  // Sometimes a loud audio "pop" occurs while turning the master audio on, and 
+  // it is sometimes able to cause a false "logic high" reading on the UART TX 
+  // line, which corrupts the subsequent command.
+  //
+  // Sending a "sacrificial" null command avoids this corruption:
+  // * The null/zero command does nothing on the handset.
+  // * The handset uses inverted UART, so the start bit and "0" data bits are 
+  //   both "logic high". So an unwanted voltage spike during the null command
+  //   does not corrupt the command.
+  if (on) {
+    UART1_Write(0);
+  }
+  
   handset.isMasterAudioOn = on;
 }
 
@@ -985,7 +999,16 @@ void HANDSET_SetLoudSpeaker(bool on) {
     return;
   }
   
-  UART1_Write(on ? HANDSET_UartCmd_LOUD_SPEAKER_ON : HANDSET_UartCmd_LOUD_SPEAKER_OFF);
+  if (on) {
+    UART1_Write(HANDSET_UartCmd_LOUD_SPEAKER_ON);
+  } else {
+    // When turning the loudspeaker off, send the UART command immediately 
+    // rather than adding to the end of the UART write buffer to help minimize
+    // unwanted noise when a sound is not actively being played through the
+    // loudspeaker.
+    UART1_WriteImmediately(HANDSET_UartCmd_LOUD_SPEAKER_OFF);
+  }
+
   handset.isLoudSpeakerOn = on;
 }
 

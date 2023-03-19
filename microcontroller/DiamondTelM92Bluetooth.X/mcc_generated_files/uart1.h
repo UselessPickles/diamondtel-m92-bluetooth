@@ -380,6 +380,14 @@ uint8_t UART1_Read(void);
 void UART1_Write(uint8_t txData);
 
 /**
+ * CUSTOM FUNCTION!
+ * 
+ * Similar to UART1_Write(), except that the byte is placed at the front
+ * of the write buffer to ensure that it is the next byte written.
+ */
+void UART1_WriteImmediately(uint8_t txData);
+
+/**
   @Summary
     Maintains the driver's transmitter state machine and implements its ISR.
 

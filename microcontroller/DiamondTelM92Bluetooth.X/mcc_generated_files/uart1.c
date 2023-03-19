@@ -222,6 +222,30 @@ void UART1_Write(uint8_t txData)
     PIE4bits.U1TXIE = 1;
 }
 
+void UART1_WriteImmediately(uint8_t txData) {
+    while(0 == uart1TxBufferRemaining)
+    {
+    }
+
+    if(0 == PIE4bits.U1TXIE)
+    {
+        U1TXB = txData;
+    }
+    else
+    {
+        PIE4bits.U1TXIE = 0;
+        if (uart1TxTail == 0) {
+          uart1TxTail = sizeof(uart1TxBuffer) - 1;
+        } else {
+          --uart1TxTail;
+        }
+        
+        uart1TxBuffer[uart1TxTail] = txData;
+        uart1TxBufferRemaining--;
+    }
+    PIE4bits.U1TXIE = 1;
+}
+
 void __interrupt(irq(U1TX),base(8),low_priority) UART1_tx_vect_isr()
 {   
     if(UART1_TxInterruptHandler)

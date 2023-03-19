@@ -174,7 +174,7 @@ static void continueVolumeAdjust(bool up) {
 }
 
 
-void VOLUME_ADJUST_Start(VOLUME_Mode volumeMode,  bool isSilent, bool isInitialAdjustUp,VOLUME_ADJUST_ReturnCallback returnCallback) {
+void VOLUME_ADJUST_Start(VOLUME_Mode volumeMode,  bool isSilent, bool isInitialAdjustUp, VOLUME_ADJUST_ReturnCallback returnCallback) {
   module.volumeAdjustMode = volumeMode;
   module.returnCallback = returnCallback;
   module.isSilent = isSilent;
