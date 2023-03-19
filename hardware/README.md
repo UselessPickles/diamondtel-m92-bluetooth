@@ -14,7 +14,7 @@ NOTE: The Bluetooth Module, Microcontroller, and Telephone all have dedicated to
     - [Op Amp (NJU7031)](#op-amp-nju7031)
     - [Low-Pass Filter](#low-pass-filter)
     - [Digital Potentiometer (MCP4151)](#digital-potentiometer-mcp4151)
-    - [Differential Amplifier (INA105)](#differential-amplifier-ina105)
+    - [Differential Audio Driver (DRV134)](#differential-audio-driver-drv134)
     - [5V Voltage Regulator (L7805CV)](#5v-voltage-regulator-l7805cv)
     - [Negative Voltage Converter (TL7660)](#negative-voltage-converter-tl7660)
   - [Detailed Circuit Diagrams](#detailed-circuit-diagrams)  
@@ -74,9 +74,9 @@ A 2-stage RC network is used to smooth out the 10KHz sample rate DAC audio outpu
 
 This digital potentiometer allows the Microcontroller to control the volume of audio output the the Handset.
 
-### Differential Amplifier (INA105)
+### Differential Audio Driver (DRV134)
 
-A pair of precision amplifiers is used to produce the [differential](https://en.wikipedia.org/wiki/Differential_signalling) audio output to the Handset. One amplifier is configured as an inverting unity gain amplifier, and the other is configured as an non-inverting unity gain buffer.
+A differential audio driver is used to produce [differential](https://en.wikipedia.org/wiki/Differential_signalling) audio output to the Handset.
 
 NOTE: This component requires a +5V and -5V power supply.
 
