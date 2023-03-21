@@ -305,6 +305,10 @@ static void sleepHandset(void) {
       !HANDSET_IsAnyButtonDown() &&
       (BT_CallStatus == BT_CALL_IDLE) &&
       (appState != APP_State_PAIRING) && 
+      (appState != APP_State_TETRIS_GAME) && 
+      (appState != APP_State_SNAKE_GAME) && 
+      (appState != APP_State_MEMORY_GAME) && 
+      (appState != APP_State_SELECT_RINGTONE) && 
       !callFailedTimer &&
       !TRANSCEIVER_IsConnectedToExternalPower()
       ) {
