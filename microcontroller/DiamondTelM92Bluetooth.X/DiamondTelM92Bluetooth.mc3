@@ -112,7 +112,7 @@
       </entry>
       <entry>
          <key class="com.microchip.mcc.core.tokenManager.CustomKey" moduleName="DAC1" name="fvr_key"/>
-         <value>4x</value>
+         <value>1x</value>
       </entry>
       <entry>
          <key class="com.microchip.mcc.core.tokenManager.CustomKey" moduleName="DAC1" name="output1Enable"/>
@@ -7568,7 +7568,7 @@
       </entry>
       <entry>
          <key class="com.microchip.mcc.core.tokenManager.CustomKey" moduleName="FVR" name="cdafvrVoltage"/>
-         <value>4.096 V</value>
+         <value>1.024 V</value>
       </entry>
       <entry>
          <key class="com.microchip.mcc.core.tokenManager.OptionKey" moduleName="FVR" registerAlias="FVRCON" settingAlias="ADFVR" alias="1x"/>
@@ -7636,7 +7636,7 @@
       </entry>
       <entry>
          <key class="com.microchip.mcc.core.tokenManager.RegisterKey" moduleName="FVR" registerAlias="FVRCON"/>
-         <value>140</value>
+         <value>132</value>
       </entry>
       <entry>
          <key class="com.microchip.mcc.core.tokenManager.SettingKey" moduleName="FVR" registerAlias="FVRCON" settingAlias="ADFVR"/>
@@ -7644,7 +7644,7 @@
       </entry>
       <entry>
          <key class="com.microchip.mcc.core.tokenManager.SettingKey" moduleName="FVR" registerAlias="FVRCON" settingAlias="CDAFVR"/>
-         <value>4x</value>
+         <value>1x</value>
       </entry>
       <entry>
          <key class="com.microchip.mcc.core.tokenManager.SettingKey" moduleName="FVR" registerAlias="FVRCON" settingAlias="FVREN"/>
@@ -20218,7 +20218,7 @@
       </entry>
       <entry>
          <file>mcc_generated_files\fvr.c</file>
-         <hash>9156c40fd7db939de55120294c14606dc8b60ac3e63c3b23390bf74e85f053c9</hash>
+         <hash>c75a7c594561bb5feaa5229717dca7a8ceb47d0fcd0d13e72d11ed8f901b1f4b</hash>
       </entry>
       <entry>
          <file>mcc_generated_files\mcc.c</file>
