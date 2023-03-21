@@ -1675,7 +1675,7 @@ void APP_Task(void) {
       
     case APP_State_INIT_ALL_DISPLAY_ON:
       if (!TIMEOUT_IsPending(&appStateTimeout)) {
-        TIMEOUT_Start(&appStateTimeout, 50);
+        TIMEOUT_Start(&appStateTimeout, 60);
         SOUND_Initialize();       
         HANDSET_SetTextBlink(false);
         HANDSET_DisableTextDisplay();
