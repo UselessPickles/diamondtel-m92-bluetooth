@@ -7,6 +7,7 @@
   - [Programming / Setup](#programming--setup)
     - [Entering Programming Mode](#entering-programming-mode)
     - [Viewing/Editing Programming Options](#viewingediting-programming-options)
+    - [Exiting Programming Mode](#exiting-programming-mode)
     - [Programming Options](#programming-options)
       - [DUAL NO](#dual-no)
       - [NO1](#no1)
@@ -16,7 +17,6 @@
       - [DIS OWN TEL](#dis-own-tel)
       - [CALLER ID](#caller-id)
       - [OEM HF UNIT](#oem-hf-unit)
-    - [Exiting Programming Mode](#exiting-programming-mode)
     
 ## Introduction
 
@@ -63,7 +63,7 @@ of this project) for full details.
       - One bar sweeping back and forth: Bluetooth pairing.
  - ✔️ CONTROL KEYS
     - `STO`/`RCL`: Due to limited storage on the Bluetooth Adapter, only 24
-    digits and 29 locations are supported
+    digits per phone number and 29 storage locations are supported (from 01 to 29).
  - EXTENDED BASIC FEATURES
     - See the EXTENDED FEATURE OPERATIONS section for per-feature details.
  - ✔️ BASIC OPERATION
@@ -82,20 +82,21 @@ of this project) for full details.
       the ignition is turned off.
       - If the phone turns off during a call, then the call audio is simply
       transferred to the host phone.
+      - If in-vehicle use with the ignition off is desired, consider setting the `DIS IGN SENSE` programming option on the original car phone to prevent the original transceiver from powering on/off automatically with the vehicle ignition. However, be aware that you must always manually turn the phone on/off.
 - ✔️ OTHER BASIC OPERATION
     - ✔️ VOLUME ADJUSTMENT
       - There is a 6th volume adjustment supported by the Bluetooth Adapter:
       Game Music volume. Press the `↑`/`↓` keys while in a game to adjust Game
       Music volume.
     - ✔️ STORING OFTEN-USED NUMBERS
-      - Due to limited storage on the Bluetooth Adapter, only 24 digits and 29
-      locations are supported (from 01 to 29). 
+      - Due to limited storage on the Bluetooth Adapter, only 24
+      digits per phone number and 29 storage locations are supported (from 01 to 29).
       - NOTE: Original instructions for erasing an entry are misleading. There's
       no specific need to press the `CLR` key for 0.5 seconds. That is only
       needed to clear the current number if the display is not empty.
     - ✔️ RECALLING OFTEN-USED NUMBERS
-      - Due to limited storage on the Bluetooth Adapter, only 24 digits and 29
-      locations are supported (from 01 to 29). 
+      - Due to limited storage on the Bluetooth Adapter, only 24
+      digits per phone number and 29 storage locations are supported (from 01 to 29).
     - ✔️ HOOK-FLASH REQUEST
       - Modern cell phone service has no concept of a "hook-flash request".
       Instead, this is now used place a call on hold or take a call off hold.
@@ -208,10 +209,10 @@ must be completed within 10 seconds of startup.
     - NOTE: This code can only be used to enter programming mode up to 3 times.
     An alternate "programming reset" code (`8291112`) can ALWAYS be used to
     enter programming mode, and will also reset the ability to use the `1591426`
-    code. This just mimics the original phone behavior for maximum authenticity.
+    code. This mimics the original phone behavior for maximum authenticity.
     The standard (3-times-only) code is included in the original Operating
-    Instructions, while the "programming reset" code was "secret" code known to
-    "authorized" personnel only. The "prgramming reset" code is therefore the 
+    Instructions, while the "programming reset" code was a "secret" code known to
+    "authorized" personnel only. The "programming reset" code is therefore the 
     more convenient code to use for programming.
 1. If successful, the Bluetooth Adapter will disconnect from the host phone, and 
 you will see the first programming option flashing on the screen.
@@ -235,6 +236,15 @@ saved and programming will advance to the next option. If the entered value is
 invalid, you will remain in editing mode. From here, you can either continue 
 typing more digits if necessary to make the value valid, or cancel editing and 
 start over.
+
+### Exiting Programming Mode
+
+While viewing (not editing) a programming option, press the `END` key. The
+phone will restart with the new programming options applied.
+
+NOTE: Each change to a programming option is saved immediately. There is no way
+to cancel/exit programming mode without applying the changes you have already
+made.
 
 ### Programming Options
 
@@ -315,9 +325,9 @@ Enables Caller ID for incoming calls.
 
 **Valid Values**:
 - `0`: Caller ID is disabled (authentic original behavior).
-- `1`: Caller ID is enabled: display name (number is displayed if name is
+- `1`: Caller ID is enabled: display name (phone number is displayed if name is
 unavailable).
-- `2`: Caller ID is enabled: display number.
+- `2`: Caller ID is enabled: display phone number.
 
 **Default Value**: `0`
 
@@ -338,12 +348,3 @@ together with the OEM Hands-Free Controller Unit.
 - `1`: OEM Hands-Free Controller compatibility is enabled.
 
 **Default Value**: `0`
-
-### Exiting Programming Mode
-
-While viewing (not editing) a programming option, press the `END` key. The
-phone will restart with the new programming options applied.
-
-NOTE: Each change to a programming option is saved immediately. There is no way
-to cancel/exit programming mode without applying the changes you have already
-made.
