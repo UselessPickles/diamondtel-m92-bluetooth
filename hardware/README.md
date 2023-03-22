@@ -87,7 +87,7 @@ This voltage regulator produces a +5V power supply for the circuit. The ~12V pow
 
 ### Negative Voltage Converter (TL7660)
 
-This component produces a -5V power supply from the main +5V power supply. This is necessary for the [Differential Amplifier](#differential-amplifier-ina105).
+This component produces a -5V power supply from the main +5V power supply. This is necessary for the [Differential Audio Driver](#differential-audio-driver-drv134).
 
 ## Detailed Circuit Diagrams
 
