@@ -105,6 +105,10 @@ This is a layout of the circuit for a pad-per-hole perf board, designed with [Ve
 
 
 Notes:
+- The general approach to the layout is:
+  - Power and ground are traces on the bottom of the board, with priority given to ground as unbroken traces (power crosses over ground with jumper wires on top of the board as needed).
+  - All signals are generally routed as wires on top of the board with attempts to minimize crossing other signal wires.
+- VeroRoute has a limitation that wires are always straight. The only way to represent a bend in a wire is to terminate a wire at a hole, then share that hole with another wire that continues the path in the desired direction. This is obnoxious, because every bend of wire "occupies" a hole that cannot be used by a trace on the bottom of the board.
 - The perf board is a [15x20 cm prototype board I found on Amazon](https://www.amazon.com/gp/product/B08WJDP144), trimmed down to size to fit in a [Radioshack 5x7x3 project enclosure box](https://www.radioshack.com/products/project-enclosure-7x5x3).
 - I use this [BM62 Breadboard Adapter](https://www.tindie.com/products/tomaskovacik/bm20bm62-breadboard-adapter/) and a pair of female socket strips to both easily adapt the Bluetooth chip to the 0.1" hole spacing, and allow the Bluetooth chip to be removed from the prototype board for configuration updates on a breadboard.
 - I use RJ45 socket breakout boards that I found on [ebay from a company called MDFLY](https://www.ebay.com/itm/304544572432). In retrospect, I think another form of breakout board with all pins arranged in a single row may have been more convenient for routing traces. But maybe I'll come up with a good reason to use the LEDs on these sockets.
