@@ -14,19 +14,19 @@ This directory is a complete [MPLAB X](https://www.microchip.com/en-us/tools-res
     - [TMR6 - Sound Sample Output Timer](#tmr6---sound-sample-output-timer)
     - [FVR - Fixed Voltage Reference](#fvr---fixed-voltage-reference)
     - [DAC1 - Sound Sample Output Value](#dac1---sound-sample-output-value)
-    - [SPI1, RC0 (SPI1_CS_DPOT) - Volume Control Communication](#spi1-rc0-spi1_cs_dpot---volume-control-communication)
-    - [RB0 (IO_VOICE_IN) - Incoming Voice Audio Switching](#rb0-io_voice_in---incoming-voice-audio-switching)
-    - [RB1 (IO_MIC_OUT_DISABLE) - Microphone Audio Disable](#rb1-io_mic_out_disable---microphone-audio-disable)
-    - [RA4 (IO_MIC_HF_SELECT) - Microphone Audio Switching](#ra4-io_mic_hf_select---microphone-audio-switching)
-    - [RA5 (IO_MIC_HF_DETECT) - External Hands-Free Microphone Detection](#ra5-io_mic_hf_detect---external-hands-free-microphone-detection)
-    - [UART1 - Handset Communication](#uart1---handset-communication)
+    - [SPI1, RC3 (SPI1_CS_DPOT) - Volume Control Communication](#spi1-rc3-spi1_cs_dpot---volume-control-communication)
+    - [RA6 (IO_VOICE_IN) - Incoming Voice Audio Switching](#ra6-io_voice_in---incoming-voice-audio-switching)
+    - [RA5 (IO_MIC_OUT_DISABLE) - Microphone Audio Disable](#ra5-io_mic_out_disable---microphone-audio-disable)
+    - [RA7 (IO_MIC_HF_SELECT) - Microphone Audio Switching](#ra7-io_mic_hf_select---microphone-audio-switching)
+    - [RA3 (IO_MIC_HF_DETECT) - External Hands-Free Microphone Detection](#ra3-io_mic_hf_detect---external-hands-free-microphone-detection)
+    - [UART3 - Handset Communication](#uart3---handset-communication)
     - [UART2 - Bluetooth Module Communication](#uart2---bluetooth-module-communication)
-    - [UART3 - STDIO Logging/Debugging](#uart3---stdio-loggingdebugging)
+    - [UART1 - STDIO Logging/Debugging](#uart1---stdio-loggingdebugging)
     - [UART4 - Transceiver Communication](#uart4---transceiver-communication)
     - [RC4 (IO_BT_RESET) - Bluetooth Module Reset](#rc4-io_bt_reset---bluetooth-module-reset)
-    - [RC7 (IO_BT_MFB) - Bluetooth Module UART Rx Indicator](#rc7-io_bt_mfb---bluetooth-module-uart-rx-indicator)
-    - [RA0 (IO_PWR) - Handset Power Button](#ra0-io_pwr---handset-power-button)
-
+    - [RC5 (IO_BT_MFB) - Bluetooth Module UART Rx Indicator](#rc5-io_bt_mfb---bluetooth-module-uart-rx-indicator)
+    - [RB5 (IO_PWR) - Handset Power Button](#rb5-io_pwr---handset-power-button)
+    
 ## General 
 
 ### Sloppy Prototype Under Construction
@@ -77,33 +77,33 @@ This timer's interrupt is the only high-priority interrupt, to guarantee consist
 
 ### FVR - Fixed Voltage Reference
 
-The FVR is setup to provide a 2.048V reference to [DAC1](#dac1---sound-sample-output-value). This conveniently limits the analog sound output to a level that produces the maximum desired audio volume level, and keeps the signal well within the full-swing range of the Op Amp that buffers the signal.
+The FVR is setup to provide a 1.024V reference to [DAC1](#dac1---sound-sample-output-value). This conveniently limits the analog sound output to a level that produces the maximum desired audio volume level, and keeps the signal well within the full-swing range of the Op Amp that buffers the signal.
 
 ### DAC1 - Sound Sample Output Value
 
 This is used together with [TMR6](#tmr6---sound-sample-output-timer) and [FVR](#fvr---fixed-voltage-reference) to output sound samples (see `tone.c`).
 
-### SPI1, RC0 (SPI1_CS_DPOT) - Volume Control Communication
+### SPI1, RC3 (SPI1_CS_DPOT) - Volume Control Communication
 
 This is used to communicate with a digital potentiometer via SPI for sound volume control (see `volume.c`). The `RC0` pin is a digital output used for the Chip Select (CS) line.
 
-### RB0 (IO_VOICE_IN) - Incoming Voice Audio Switching
+### RA6 (IO_VOICE_IN) - Incoming Voice Audio Switching
 
 This digital output pin is used to control an analog switch that chooses whether to use incoming voice audio from the Bluetooth Module, or generated sounds from the MCU, as the source of sound to be provided to the phone handset.
 
-### RB1 (IO_MIC_OUT_DISABLE) - Microphone Audio Disable
+### RA5 (IO_MIC_OUT_DISABLE) - Microphone Audio Disable
 
 This digital output pin is used to control an analog switch that disconnects the handset microphone output from the Bluetooth module. This is used to quickly mute the microphone when generating a sound (e.g., a button press beep) so that the generated sound does not feed back into the microphone.
 
-### RA4 (IO_MIC_HF_SELECT) - Microphone Audio Switching
+### RA7 (IO_MIC_HF_SELECT) - Microphone Audio Switching
 
 This digital output pin is used to control an analog switch that switches between using the handset microphone audio or the external hands-free mcirophone audio.
 
-### RA5 (IO_MIC_HF_DETECT) - External Hands-Free Microphone Detection
+### RA3 (IO_MIC_HF_DETECT) - External Hands-Free Microphone Detection
 
 This digital input pin is used to detect when an external hands-free microphone is connected to the audio jack.
 
-### UART1 - Handset Communication
+### UART3 - Handset Communication
 
 This UART is used to communicate with the DiamondTel Model 92 telephone handset (see `handset.c`). It runs at 800 baud.
 
@@ -111,7 +111,7 @@ This UART is used to communicate with the DiamondTel Model 92 telephone handset 
 
 This UART is used to communicate with the BM62 Bluetooth Module (see `bt_command.c` and `bt_command_decode.c`). It runs at 115,200 baud.
 
-### UART3 - STDIO Logging/Debugging
+### UART1 - STDIO Logging/Debugging
 
 This UART is used for general terminal logging/debugging. STDIO is redirected to this UART. It runs at 9600 baud.
 
@@ -125,10 +125,10 @@ This UART is used to communicate with the DiamondTel Model 92 telephone transcei
 
 This digital output pin is used to turn the BM62 Bluetooth module on/off via the BM62 `#reset` pin.
 
-### RC7 (IO_BT_MFB) - Bluetooth Module UART Rx Indicator
+### RC5 (IO_BT_MFB) - Bluetooth Module UART Rx Indicator
 
 This digital output pin is used to toggle the BM62's `MFB` pin to to indicate that it should be prepared to receive UART commands.
 
-### RA0 (IO_PWR) - Handset Power Button
+### RB5 (IO_PWR) - Handset Power Button
 
 This digital input pin detects when the DiamondTel Model 92's handset power button is pressed (see `handset.c`).
