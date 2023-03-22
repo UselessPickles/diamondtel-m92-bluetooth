@@ -54,7 +54,7 @@
 /**
   Section: Macro Declarations
 */
-#define UART3_TX_BUFFER_SIZE 128
+#define UART3_TX_BUFFER_SIZE 64
 #define UART3_RX_BUFFER_SIZE 8
 
 /**
@@ -109,14 +109,14 @@ void UART3_Initialize(void)
     // RXBIMD Set RXBKIF on rising RX input; BRKOVR disabled; WUE disabled; SENDB disabled; ON enabled; 
     U3CON1 = 0x80;
 
-    // TXPOL not inverted; FLO off; RXPOL not inverted; RUNOVF RX input shifter stops all activity; STP Transmit 1Stop bit, receiver verifies first Stop bit; 
-    U3CON2 = 0x00;
+    // TXPOL not inverted; FLO off; RXPOL inverted; RUNOVF RX input shifter stops all activity; STP Transmit 1Stop bit, receiver verifies first Stop bit; 
+    U3CON2 = 0x40;
 
-    // BRGL 64; 
-    U3BRGL = 0x40;
+    // BRGL 15; 
+    U3BRGL = 0x0F;
 
-    // BRGH 3; 
-    U3BRGH = 0x03;
+    // BRGH 39; 
+    U3BRGH = 0x27;
 
     // STPMD in middle of first Stop bit; TXWRE No error; 
     U3FIFO = 0x00;
@@ -213,14 +213,28 @@ void UART3_Write(uint8_t txData)
     PIE9bits.U3TXIE = 1;
 }
 
-char getch(void)
-{
-    return UART3_Read();
-}
+void UART3_WriteImmediately(uint8_t txData) {
+    while(0 == uart3TxBufferRemaining)
+    {
+    }
 
-void putch(char txData)
-{
-    UART3_Write(txData);
+    if(0 == PIE9bits.U3TXIE)
+    {
+        U3TXB = txData;
+    }
+    else
+    {
+        PIE9bits.U3TXIE = 0;
+        if (uart3TxTail == 0) {
+          uart3TxTail = sizeof(uart3TxBuffer) - 1;
+        } else {
+          --uart3TxTail;
+        }
+        
+        uart3TxBuffer[uart3TxTail] = txData;
+        uart3TxBufferRemaining--;
+    }
+    PIE9bits.U3TXIE = 1;
 }
 
 void __interrupt(irq(U3TX),base(8),low_priority) UART3_tx_vect_isr()

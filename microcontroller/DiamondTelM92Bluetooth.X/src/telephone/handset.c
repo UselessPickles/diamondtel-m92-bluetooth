@@ -353,7 +353,7 @@ void HANDSET_Initialize(HANDSET_EventHandler eventHandler) {
   handset.currentButtonDownDuration = HANDSET_HoldDuration_MAX + 1;
   handset.isOnHook = true;
   
-  IOCAF0_SetInterruptHandler(pwrButtonInterruptHandler);
+  IOCBF5_SetInterruptHandler(pwrButtonInterruptHandler);
 }
 
 void HANDSET_Task(void) {
@@ -413,8 +413,8 @@ void HANDSET_Task(void) {
   }
   
   // UART handset command pass-through for testing
-  if (UART3_is_rx_ready()) {
-    uint8_t cmd = UART3_Read();
+  if (UART1_is_rx_ready()) {
+    uint8_t cmd = UART1_Read();
     
     switch(cmd) {
       case HANDSET_UartCmd_BLINKING_TEXT_ON:
@@ -443,8 +443,8 @@ void HANDSET_Task(void) {
     
   }
   
-  if (UART1_is_rx_ready()) {
-    uint8_t input = UART1_Read();
+  if (UART3_is_rx_ready()) {
+    uint8_t input = UART3_Read();
     
     switch (input) {
       case HANDSET_UartEvent_ON_HOOK:
@@ -592,7 +592,7 @@ uint8_t HANDSET_GetDisplayPos(int8_t col, int8_t row) {
 }
 
 void HANDSET_RequestHookStatus(void) {
-  UART1_Write(HANDSET_UartCmd_REQUEST_HOOK_STATUS);
+  UART3_Write(HANDSET_UartCmd_REQUEST_HOOK_STATUS);
 }
 
 bool HANDSET_IsOnHook(void) {
@@ -642,30 +642,30 @@ void HANDSET_SetBacklight(bool on) {
   }
   
   handset.isBacklightOn = on;
-  UART1_Write(on ? HANDSET_UartCmd_BACKLIGHT_ON : HANDSET_UartCmd_BACKLIGHT_OFF);
+  UART3_Write(on ? HANDSET_UartCmd_BACKLIGHT_ON : HANDSET_UartCmd_BACKLIGHT_OFF);
 }
 
 void HANDSET_SetLcdViewAngle(uint8_t angle) {
   if (angle <= HANDSET_MAX_LCD_VIEW_ANGLE) {
-    UART1_Write(HANDSET_UartCmd_SET_LCD_ANGLE_0 + angle);
+    UART3_Write(HANDSET_UartCmd_SET_LCD_ANGLE_0 + angle);
   }
 }
 
 void HANDSET_DisableTextDisplay(void) {
   if (!handset.textDisplayDisableCount++ || !handset.isCommandOptimizationEnabled) {
     if (handset.isTextBlinkOn) {
-      UART1_Write(HANDSET_UartCmd_BLINKING_TEXT_OFF);
+      UART3_Write(HANDSET_UartCmd_BLINKING_TEXT_OFF);
     }
-    UART1_Write(HANDSET_UartCmd_TEXT_DISPLAY_OFF);
+    UART3_Write(HANDSET_UartCmd_TEXT_DISPLAY_OFF);
   }
 }
 
 void HANDSET_EnableTextDisplay(void) {
   if ((handset.textDisplayDisableCount == 1) || !handset.isCommandOptimizationEnabled) {
     handset.textDisplayDisableCount = 0;
-    UART1_Write(HANDSET_UartCmd_TEXT_DISPLAY_ON);
+    UART3_Write(HANDSET_UartCmd_TEXT_DISPLAY_ON);
     if (handset.isTextBlinkOn) {
-      UART1_Write(HANDSET_UartCmd_BLINKING_TEXT_ON);
+      UART3_Write(HANDSET_UartCmd_BLINKING_TEXT_ON);
     }
   } else if (handset.textDisplayDisableCount) {
     --handset.textDisplayDisableCount;
@@ -677,7 +677,7 @@ void HANDSET_SetTextBlink(bool on) {
       ((handset.isTextBlinkOn != on) && !handset.textDisplayDisableCount) || 
       !handset.isCommandOptimizationEnabled
       ) {
-    UART1_Write(on ? HANDSET_UartCmd_BLINKING_TEXT_ON : HANDSET_UartCmd_BLINKING_TEXT_OFF);
+    UART3_Write(on ? HANDSET_UartCmd_BLINKING_TEXT_ON : HANDSET_UartCmd_BLINKING_TEXT_OFF);
     // This command forces the text display to be enabled, so keep the
     // disabled count in sync if this was called with command optimization
     // disabled.
@@ -687,12 +687,12 @@ void HANDSET_SetTextBlink(bool on) {
 }
 
 void HANDSET_SetTextAllPixels(bool on) {
-  UART1_Write(on ? HANDSET_UartCmd_ALL_TEXT_PIXELS_ON : HANDSET_UartCmd_ALL_TEXT_PIXELS_OFF);
+  UART3_Write(on ? HANDSET_UartCmd_ALL_TEXT_PIXELS_ON : HANDSET_UartCmd_ALL_TEXT_PIXELS_OFF);
   handset.charAtPos0 = on ? HANDSET_Symbol_RECTANGLE : BLANK_PRINTABLE_CHAR;
 }
 
 void HANDSET_SetAllIndicators(bool on) {
-  UART1_Write(on ? HANDSET_UartCmd_ALL_INDICATORS_ON : HANDSET_UartCmd_ALL_INDICATORS_OFF); 
+  UART3_Write(on ? HANDSET_UartCmd_ALL_INDICATORS_ON : HANDSET_UartCmd_ALL_INDICATORS_OFF); 
   memset(handset.indicatorState, on, INDICATOR_COUNT);
 }
 
@@ -711,19 +711,19 @@ void HANDSET_SetIndicator(HANDSET_Indicator indicator, bool on) {
     // to individual commands to turn each of the two indicators on/off.
 
     if (!handset.isCommandOptimizationEnabled || (on != handset.indicatorState[HANDSET_Indicator_NO])) {
-      UART1_Write(HANDSET_UartCmd_INDICATOR_NO_ON + offset);
+      UART3_Write(HANDSET_UartCmd_INDICATOR_NO_ON + offset);
       handset.indicatorState[HANDSET_Indicator_NO] = on;
     }
     
     if (!handset.isCommandOptimizationEnabled || (on != handset.indicatorState[HANDSET_Indicator_SVC])) {
-      UART1_Write(HANDSET_UartCmd_INDICATOR_SVC_ON + offset);
+      UART3_Write(HANDSET_UartCmd_INDICATOR_SVC_ON + offset);
       handset.indicatorState[HANDSET_Indicator_SVC] = on;
     }
   } else if (!handset.isCommandOptimizationEnabled || (on != handset.indicatorState[indicator])) {
     // All indicators aside from NO_SVC are individual indicators according
     // to the handset.
     
-    UART1_Write(indicatorCmdLookup[indicator] + offset);
+    UART3_Write(indicatorCmdLookup[indicator] + offset);
     handset.indicatorState[indicator] = on;
   }
 }
@@ -734,7 +734,7 @@ void HANDSET_SetSignalStrength(uint8_t signalStrength) {
     signalStrength = HANDSET_MAX_SIGNAL_STRENGTH;
   }
   
-  UART1_Write(HANDSET_UartCmd_SET_SIGNAL_STRENGTH_0 + signalStrength);
+  UART3_Write(HANDSET_UartCmd_SET_SIGNAL_STRENGTH_0 + signalStrength);
 
   memset(
       handset.indicatorState + HANDSET_Indicator_SIGNAL_BAR_1, 
@@ -766,7 +766,7 @@ void HANDSET_SetSignalBarAtIndex(uint8_t index, bool on) {
 }
 
 void HANDSET_ClearText(void) {
-  UART1_Write(HANDSET_UartCmd_DELETE_ALL_TEXT);
+  UART3_Write(HANDSET_UartCmd_DELETE_ALL_TEXT);
   handset.charAtPos0 = BLANK_PRINTABLE_CHAR;
 }
 
@@ -783,7 +783,7 @@ bool HANDSET_IsCharPrintable(char c) {
 void HANDSET_PrintChar(char c) {
   c = ensurePrintableChar(c);
 
-  UART1_Write(c);
+  UART3_Write(c);
   handset.charAtPos0 = c;
 }
 
@@ -795,7 +795,7 @@ void HANDSET_PrintCharN(char c, size_t n) {
   }
   
   while(n > 0) {
-    UART1_Write(c);
+    UART3_Write(c);
     --n;
   }
   
@@ -839,8 +839,8 @@ void HANDSET_PrintCharAt(char c, uint8_t pos) {
   if (isValidCharPos(pos)) {
     c = ensurePrintableChar(c);
 
-    UART1_Write(HANDSET_UartCmd_SET_PRINT_POS_0 + pos);
-    UART1_Write(c);
+    UART3_Write(HANDSET_UartCmd_SET_PRINT_POS_0 + pos);
+    UART3_Write(c);
     
     if (pos == 0) {
       handset.charAtPos0 = c;
@@ -863,8 +863,8 @@ void HANDSET_PrintCharNAt(char c, size_t n, uint8_t pos) {
   c = ensurePrintableChar(c);
 
   while(n > 0) {
-    UART1_Write(HANDSET_UartCmd_SET_PRINT_POS_0 + pos);
-    UART1_Write(c);
+    UART3_Write(HANDSET_UartCmd_SET_PRINT_POS_0 + pos);
+    UART3_Write(c);
     
     if (pos == 0) {
       handset.charAtPos0 = c;
@@ -940,11 +940,11 @@ void HANDSET_ShowFlashingCursorAt(uint8_t pos) {
     // then sending the command to hide the flashing cursor (in that order only),
     // somehow guarantees that the cursor can be reliably shown, then reliably 
     // repositioned or hidden later.
-    UART1_Write(HANDSET_UartCmd_SET_PRINT_POS_0);
-    UART1_Write(handset.charAtPos0);
-    UART1_Write(HANDSET_UartCmd_HIDE_CURSOR);
+    UART3_Write(HANDSET_UartCmd_SET_PRINT_POS_0);
+    UART3_Write(handset.charAtPos0);
+    UART3_Write(HANDSET_UartCmd_HIDE_CURSOR);
 
-    UART1_Write(HANDSET_UartCmd_SHOW_CURSOR_POS_0 + pos);
+    UART3_Write(HANDSET_UartCmd_SHOW_CURSOR_POS_0 + pos);
     // This command forces the text display to be enabled, so keep the
     // disabled count in sync if this was called with command optimization
     // disabled.
@@ -954,7 +954,7 @@ void HANDSET_ShowFlashingCursorAt(uint8_t pos) {
 
 void HANDSET_HideFlashingCursor(void) {
   if (!handset.isCommandOptimizationEnabled || !handset.textDisplayDisableCount) {
-    UART1_Write(HANDSET_UartCmd_HIDE_CURSOR);
+    UART3_Write(HANDSET_UartCmd_HIDE_CURSOR);
     // This command forces the text display to be enabled, so keep the
     // disabled count in sync if this was called with command optimization
     // disabled.
@@ -967,7 +967,7 @@ void HANDSET_SetMasterAudio(bool on) {
     return;
   }
   
-  UART1_Write(on ? HANDSET_UartCmd_MASTER_AUDIO_ON : HANDSET_UartCmd_MASTER_AUDIO_OFF);
+  UART3_Write(on ? HANDSET_UartCmd_MASTER_AUDIO_ON : HANDSET_UartCmd_MASTER_AUDIO_OFF);
 
   // Sometimes a loud audio "pop" occurs while turning the master audio on, and 
   // it is sometimes able to cause a false "logic high" reading on the UART TX 
@@ -979,7 +979,7 @@ void HANDSET_SetMasterAudio(bool on) {
   //   both "logic high". So an unwanted voltage spike during the null command
   //   does not corrupt the command.
   if (on) {
-    UART1_Write(0);
+    UART3_Write(0);
   }
   
   handset.isMasterAudioOn = on;
@@ -990,7 +990,7 @@ void HANDSET_SetMicrophone(bool on) {
     return;
   }
   
-  UART1_Write(on ? HANDSET_UartCmd_MICROPHONE_ON : HANDSET_UartCmd_MICROPHONE_OFF);
+  UART3_Write(on ? HANDSET_UartCmd_MICROPHONE_ON : HANDSET_UartCmd_MICROPHONE_OFF);
   handset.isMicrophoneOn = on;
 }
 
@@ -1000,13 +1000,13 @@ void HANDSET_SetLoudSpeaker(bool on) {
   }
   
   if (on) {
-    UART1_Write(HANDSET_UartCmd_LOUD_SPEAKER_ON);
+    UART3_Write(HANDSET_UartCmd_LOUD_SPEAKER_ON);
   } else {
     // When turning the loudspeaker off, send the UART command immediately 
     // rather than adding to the end of the UART write buffer to help minimize
     // unwanted noise when a sound is not actively being played through the
     // loudspeaker.
-    UART1_WriteImmediately(HANDSET_UartCmd_LOUD_SPEAKER_OFF);
+    UART3_WriteImmediately(HANDSET_UartCmd_LOUD_SPEAKER_OFF);
   }
 
   handset.isLoudSpeakerOn = on;
@@ -1017,16 +1017,16 @@ void HANDSET_SetEarSpeaker(bool on) {
     return;
   }
   
-  UART1_Write(on ? HANDSET_UartCmd_EAR_SPEAKER_ON : HANDSET_UartCmd_EAR_SPEAKER_OFF);
+  UART3_Write(on ? HANDSET_UartCmd_EAR_SPEAKER_ON : HANDSET_UartCmd_EAR_SPEAKER_OFF);
   handset.isEarSpeakerOn = on;
 }
 
 void HANDSET_SendArbitraryCommand(uint8_t cmd) {
-  UART1_Write(cmd);
+  UART3_Write(cmd);
 }
 
 void HANDSET_FlushWriteBuffer(void) {
-  while (!UART1_is_tx_done());
+  while (!UART3_is_tx_done());
 }
 
 void HANDSET_EnableCommandOptimization(void) {
