@@ -4,6 +4,19 @@
   - [Introduction](#introduction)
     - [Terminology](#terminology)
   - [Original DiamondTel Model 92 Functionality](#original-diamondtel-model-92-functionality)
+  - [Enhanced Bluetooth Adapter Functionality](#enhanced-bluetooth-adapter-functionality)
+    - [Bluetooth Connection Status Indicator](#bluetooth-connection-status-indicator)
+    - [Bluetooth Connection Status Change Beep](#bluetooth-connection-status-change-beep)
+    - [Bluetooth Automatic Reconnect](#bluetooth-automatic-reconnect)
+    - [Bluetooth Pairing (FCN / \* / \*)](#bluetooth-pairing-fcn----)
+    - [View Bluetooth Device Name (RCL / \* / \*)](#view-bluetooth-device-name-rcl----)
+    - [Change Bluetooth Device Name (RCL / \* / \* / STO)](#change-bluetooth-device-name-rcl------sto)
+    - [View Paired Host Phone Name (RCL / \* / #)](#view-paired-host-phone-name-rcl----)
+    - [Reset Bluetooth Pairing Memory (RCL / \* / # / STO)](#reset-bluetooth-pairing-memory-rcl------sto)
+    - [Ringtone Selection (FCN / 3)](#ringtone-selection-fcn--3)
+    - [Alphanumeric Input](#alphanumeric-input)
+    - [Caller ID Display](#caller-id-display)
+    - [Call Waiting](#call-waiting)
   - [Programming / Setup](#programming--setup)
     - [Entering Programming Mode](#entering-programming-mode)
     - [Viewing/Editing Programming Options](#viewingediting-programming-options)
@@ -61,6 +74,8 @@ of this project) for full details.
     Bluetooth Adapter:
       - All bars flashing: No Bluetooth connection.
       - One bar sweeping back and forth: Bluetooth pairing.
+    - The `HORN` indicator is not used.
+    - All other indicators work as expected. For example, the `NO SVC` and `ROAM` indicators accurately represent whether the host phone has no service or is roaming, and the `||||||` signal strength indicator represents the host phone's signal strength.    
  - ✔️ CONTROL KEYS
     - `STO`/`RCL`: Due to limited storage on the Bluetooth Adapter, only 24
     digits per phone number and 29 storage locations are supported (from 01 to 29).
@@ -118,51 +133,52 @@ of this project) for full details.
     - ✔️ LOW BATTERY INDICATOR
     - ✔️ BACKLIGHTING
 - EXTENDED FEATURE OPERATIONS
-    - ❌ ~~SYSTEM A/B SELECTION (FCN/1)~~
+    - ❌ ~~SYSTEM A/B SELECTION (FCN / 1)~~
       - Irrelevant for modern phone service/tech.
     - ❌ ~~FORCING SYSTEM A/B OPERATION~~
       - Irrelevant for modern phone service/tech.
-    - ❌ ~~LOCKING/UNLOCKING THE PHONE (FCN/2)~~
+    - ❌ ~~LOCKING/UNLOCKING THE PHONE (FCN / 2)~~
       - Chose not to replicate (high complexity, low value).
-    - ❌ ~~EXTERNAL HORN ALERT (FCN/3)~~
+    - ❌ ~~EXTERNAL HORN ALERT (FCN / 3)~~
       - Technical limitations and complexity make this impractical to replicate.
-    - ✔️ ACCUMULATED TALK TIME (FCN/4)
-    - ❌ ~~DISCONTINUOUS TRANSMISSION MODE (FCN/5)~~
+    - ✔️ ACCUMULATED TALK TIME (FCN / 4)
+    - ❌ ~~DISCONTINUOUS TRANSMISSION MODE (FCN / 5)~~
       - Irrelevant for modern phone service/tech.
-    - ❌ ~~CALL RESTRICTION (FCN/6)~~
+    - ❌ ~~CALL RESTRICTION (FCN / 6)~~
       - Chose not to replicate (high complexity, low value).
-    - ❌ ~~PROGRAMMING OF UNLOCK CODE (FCN/7)~~
+    - ❌ ~~PROGRAMMING OF UNLOCK CODE (FCN / 7)~~
       - Chose not to replicate (high complexity, low value).
-    - ✔️ ALPHABET NAME AND NUMBER STORE (FCN/8)
-    - ✔️ ALPHABET SCAN (FCN/9)
-    - ✔️ PAUSE FUNCTION (FCN/0)
-    - ❌ ~~AUTOMATIC RETRY ON/OFF (FCN/#)~~
+    - ✔️ ALPHABET NAME AND NUMBER STORE (FCN / 8)
+      - See the [Alphanumeric Input](#alphanumeric-input) section for details about how name input is improved.
+    - ✔️ ALPHABET SCAN (FCN / 9)
+    - ✔️ PAUSE FUNCTION (FCN / 0)
+    - ❌ ~~AUTOMATIC RETRY ON/OFF (FCN / #)~~
       - Chose not to replicate (unlikely to ever be used).
-    - ✔️ CREDIT CARD NUMBER SECURITY (FCN/RCL)
-    - ✔️ ANNOUNCE BEEP ON/OFF (FCN/*/1)
-    - ✔️ STATUS CHANGE BEEP ON/OFF (FCN/*/2)
-    - ❌ ~~STATUS MONITOR ON/OFF (FCN/*/3)~~
+    - ✔️ CREDIT CARD NUMBER SECURITY (FCN / RCL)
+    - ✔️ ANNOUNCE BEEP ON/OFF (FCN / \* / 1)
+    - ✔️ STATUS CHANGE BEEP ON/OFF (FCN / \* / 2)
+    - ❌ ~~STATUS MONITOR ON/OFF (FCN / \* / 3)~~
       - Irrelevant for modern phone service/tech.
-    - ❌ ~~USER PROGRAMMABLE AREA CODE (FCN/*/4)~~
+    - ❌ ~~USER PROGRAMMABLE AREA CODE (FCN / \* / 4)~~
       - Irrelevant for modern phone service/tech (always dial full phone numbers
       with area code).
-    - ✔️ BATTERY VOLTAGE DISPLAY (FCN/*/5)
+    - ✔️ BATTERY VOLTAGE DISPLAY (FCN / \* / 5)
       - While viewing battery voltage, press `FCN` to toggle between viewing the
       phone's own battery voltage ("BATTERY") and viewing the host phone's
       approximate battery level ("CELLBAT").
-    - ❌ ~~RF OUTPUT POWER CHANGE (FCN/*/6)~~
+    - ❌ ~~RF OUTPUT POWER CHANGE (FCN / \* / 6)~~
       - Irrelevant for modern phone service/tech.
-    - ✔️ AUTOMATIC ANSWER (FCN/*/7)
-    - ❌ ~~DATA INTERFACE (RJ-11) (FCN/*/8)~~
+    - ✔️ AUTOMATIC ANSWER (FCN / \* / 7)
+    - ❌ ~~DATA INTERFACE (RJ-11) (FCN / \* / 8)~~
       - Technical limitations and complexity make this impractical to replicate.
-    - ✔️ SILENT SCRATCH PAD (FCN/MUTE)
-    - ✔️ AUTO STORE (FCN/STO)
+    - ✔️ SILENT SCRATCH PAD (FCN / MUTE)
+    - ✔️ AUTO STORE (FCN / STO)
     - ✔️ ONE TOUCH DIAL NUMBER STORE/RECALL (STO, RCL P1/P2/P3)
-    - ✔️ AUTOMATIC DTMF (FCN/SEND)
-    - ✔️ RESET CUMULATIVE TIMER (FCN/CLR)
-    - ✔️ LCD VIEW ANGLE CONTROL (FCN/2sec)
-    - ✔️ OWN TELEPHONE NUMBER DISPLAY/DUAL NAM (RCL/#)
-    - ✔️ MEMORY SCAN (RCL/↑/↓)
+    - ✔️ AUTOMATIC DTMF (FCN / SEND)
+    - ✔️ RESET CUMULATIVE TIMER (FCN / CLR)
+    - ✔️ LCD VIEW ANGLE CONTROL (FCN / 2sec)
+    - ✔️ OWN TELEPHONE NUMBER DISPLAY/DUAL NAM (RCL / #)
+    - ✔️ MEMORY SCAN (RCL / ↑/↓)
     - ✔️ DTMF OVERDIALLING FROM MEMORY
       - Original instructions seem incorrect and did not work on the original
       phone when simulating a call with a Mobile Service Tester. Recalling a
@@ -191,6 +207,139 @@ of this project) for full details.
     - ❌ ~~ROAM INHIBIT~~
       - Irrelevant for modern phone service/tech.
 
+## Enhanced Bluetooth Adapter Functionality
+
+This section explains all of the new functionality provided by the Bluetooth adapter that is not a replica of original DiamondTel Model 92 functionality.
+
+### Bluetooth Connection Status Indicator
+
+When the Bluetooth adapter is not connected to a host phone, all 6 bars of the `||||||` signal strength indicator will flash, and the `NO SVC` indicator will also be displayed.
+
+If the `||||||` signal strength indicator is not flashing, then the Bluetooth adapter is connected to a host phone. The `||||||` and `NO SVC` indicators now represent the true status of the host phone.
+
+### Bluetooth Connection Status Change Beep
+
+If the `STATUS CHANGE BEEP` feature is enabled (refer to the original `DiamondTel Model 92 Operating Instructions`), then a sequence of 2 tones will indicate when the Bluetooth adapter connects to or disconnects from a host phone:
+- Low tone, high tone: Bluetooth connected.
+- High tone, low tone: Bluetooth disconnected.
+
+### Bluetooth Automatic Reconnect
+
+In the following situations, the Bluetooth adapter will automatically attempt to reconnect to the host phone that it was most recently paired to:
+- Power on.
+- Bluetooth connection lost (e.g., if you move the host phone out of range, then it will attempt to reconnect when brough back in range).
+- Bluetooth pairing is canceled or timed out.
+
+### Bluetooth Pairing (FCN / \* / \*)
+
+Press `FCN`, `*`, `*` to enter Bluetooth pairing mode and make the Bluetooth adapter discoverable to modern cell phones as a Bluetooth device.
+
+The handset will display "PAIRING" and the Bluetooth adapter will disconnect from any host phone that it is currently connected to.
+
+When a single bar of the `||||||` signal strength indicator begins sweeping back and forth, the Bluetooth adapter has successfully entered pairing mode, and you should be able to soon find the Bluetooth adapter on your modern cell phone's Bluetooth menu.
+
+If you are unsure of the Bluetooth device name you should be looking for on the modern cell phone, then you may [view](#view-bluetooth-device-name-rcl----), or even [change](#change-bluetooth-device-name-rcl------sto), the Bluetooth adapter's device name before entering pairing mode.
+
+You may cancel pairing by pressing the `CLR` button.
+
+If pairing is not successful within about 1 minute, then the Bluetooth adapter will automaticall cancel pairing and the handset will display "PAIRING TIMEOUT".
+
+When pairing is successful, the handset will display "PAIRED:", followed by the name of the paired host phone.
+
+### View Bluetooth Device Name (RCL / \* / \*)
+
+Press `RCL`, `*`, `*` to view the current name of the Bluetooth adapter. This is the name that will appear on modern cell phones when pairing or connected to the Bluetooth adapter.
+
+The handset will display "NAME:", followed by the Bluetooth device name.
+
+NOTE: The default name is "DiamondTel Model 92".
+
+### Change Bluetooth Device Name (RCL / \* / \* / STO)
+
+While [viewing the Bluetooth device name](#view-bluetooth-device-name-rcl----), press `STO` to begin entering a new name.
+
+The handset will display "INPUT CODE". Enter your 4-digit security code (as configured during [Programming / Setup](#programming--setup)) to confirm and proceed.
+
+The handset will now display "BT NAME ?" and you may begin [Alphanumeric Input](#alphanumeric-input) of the new Bluetooth device name, up to 32 characters.
+
+Press `STO` to save the new name.
+
+Clear out the entered name to return to the input ptompt, then press `CLR` again to cancel the name change.
+
+### View Paired Host Phone Name (RCL / \* / #)
+
+Press `RCL`, `*`, `#` to view the name of the most recently paired host phone. 
+
+NOTE: The Bluetooth adapter does not need to be currently connected to a host phone. 
+
+The handset will display "PAIRED:" followed by the name of the paired host phone, or "[none]" if the Bluetooth adapter is not currently.
+
+Press `CLR` to exit.
+
+### Reset Bluetooth Pairing Memory (RCL / \* / # / STO)
+
+While [viewing the paired host phone name](#view-paired-host-phone-name-rcl----), press `STO` to reset Bluetooth pairing memory. This causes the Bluetooth adapter to "forget" the most recently aired host phone so that it will no longer try to automatically reconnect to that host phone.
+
+The handset will display "INPUT CODE". Enter your 4-digit security code (as configured during [Programming / Setup](#programming--setup)) to confirm and proceed.
+
+### Ringtone Selection (FCN / 3)
+
+Press `FCN`, `3` to select your preferred ringtone.
+
+The handset will display "RINGER" followed by the name of the currently selected ringtone.
+
+Press a number to select a ringtone as follows:
+- `1`: `CLASSIC` (default) - A replica of the original DiamondTel Model 92 ringtone.
+- `2`: `SMOOTH` - A "smoother" alternative to the `CLASSIC` ringtone.
+- `3`: `NOKIA` - The classic [Nokia ringtone](https://www.youtube.com/watch?v=Vk4KK-gh0FM).
+- `4`: `AXEL F` - The intro to the song ["Axel F" by Harold Faltermeyer](https://www.youtube.com/watch?v=Qx2gvHjNhQ0), made famous by the 1985 movie "Beverly Hills Cop".
+- `5`: `SANS` - The catchy part of the song ["Megalovania" from the game "Undertale"](https://www.youtube.com/watch?v=0FCvzsVlXpQ) (music for the boss fight with Sans).
+- `6`: `C.PHONE` - The chorus of the song ["Car Phone" by Julian Smith](https://www.youtube.com/watch?v=crm79j1qeqA).
+- `7`: `TETRIS` - The [theme song from the game "Tetris"](https://www.youtube.com/watch?v=NmCCQxVBfyM).
+
+
+While in the ringtone selection mode:
+- Press `RCL` to toggle a preview of the selected ringtone.
+- Press `↑`/`↓` to adjust the `ALERT` (ringer) volume.
+
+Press `CLR` to exit ringtone selection.
+
+### Alphanumeric Input
+
+See the `ALPHABET NAME AND NUMBER STORE` section of the original `DiamondTel Model 92 Operating Instructions` (specifically the section about entering a name) for a complete explanation of how alphanumeric input generally works.
+
+The Bluetooth adapter extends this functionality by allowing lowercase letters to be entered. Each button now cycles through 6 possibilities instead of only 3.
+
+For example, the `2` button now cycles through `A`, `B`, `C`, `a`, `b`, `c`.
+
+### Caller ID Display
+
+If [enabled during Programming / Setup](#programming--setup), then caller ID text (either a name or phone number) will be displayed on the handset above the "CALL" text during an incoming call, or when a missed call is displayed.
+
+### Call Waiting
+
+If a second call is received while you are already in a call, then you will hear your host phone's standard "call waiting" tones through the call audio, and the handset will display "CALL" just like a normal incoming call (and [Caller ID](#caller-id-display), if enabled), but the `IN USE` indicator will be displayed due to the current active call.
+
+You have 4 options to deal with an incoming call waiting:
+1. Panic and do nothing, because Call Waiting is confusing. The second caller will eventually give up or be sent to voice mail.
+1. Press `SEND` to place the current call on hold and answer the incoming call.
+1. Press `END` to end the current call and answer the incoming call.
+1. Press `FCN`, `END` to remain in the current call and reject the incoming call.
+
+If you chose to place the current call on hold and answer the incoming call, then the letter `W` will now be displayed to the left of the call timer display, indicating that there is another call waiting on hold.
+
+While in a call with a second call on hold, you can manage the two calls as follows:
+1. Press `SEND` to swap between the two calls.
+1. Press `END` to end the current call and swap to the on-hold call.
+1. Press `FCN`, `END` to end the on-hold call.
+
+If the current call is ended by the other particpant, then the on-hold call will remain on hold. Press `SEND` to take the call off hold.
+
+Tips for remembering how to deal with call waiting:
+- The `SEND` button consistently always swaps calls without ending either call.
+- The `END` button consistently always ends the current call.
+- The `FCN`, `END` button sequence consistently always ends the "other" call.
+
 ## Programming / Setup
 
 The Bluetooth Adapter supports a "programming mode" for configuring core options
@@ -203,7 +352,7 @@ cell phone carrier settings.
 Entering programming mode is done the same as the original phone:
 
 1. Turn the phone on.
-1. After the initial startup sequence (as soon as the `||||||` indicators start,
+1. After the initial startup sequence (as soon as the `||||||` signal strength indicators start,
 flashing), Press and hold the `CLR` key while entering the code `1591426`. This
 must be completed within 10 seconds of startup.
     - NOTE: This code can only be used to enter programming mode up to 3 times.
