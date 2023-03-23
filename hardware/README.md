@@ -71,7 +71,7 @@ Another is used to amplify the incoming audio from the external hands-free micro
 
 A single stage RC network is used to *partially* smooth out the 10KHz sample rate DAC audio output from the Microcontroller.
 
-The original car phone appears to intentionally retainsome high-frequency overtones in the sounds it produces. This gives the sounds a more harsh/piercing sound quality, which probably helps ensure the ringer is heard when there's an incoming call.
+The original car phone appears to intentionally retain some high-frequency overtones in the sounds it produces. This gives the sounds a more harsh/piercing sound quality, which probably helps ensure the ringer is heard when there's an incoming call.
 
 I similarly intentionally setup the low-pass filter to only partially smooth over the sharp corners of the DAC output. It's not an exact match to the original phone, but it sounds similar enough.
 
