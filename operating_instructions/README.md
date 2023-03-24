@@ -284,7 +284,7 @@ If you are unsure of the Bluetooth device name you should be looking for on the 
 
 You may cancel pairing by pressing the `CLR` button.
 
-If pairing is not successful within about 1 minute, then the Bluetooth adapter will automaticall cancel pairing and the handset will display "PAIRING TIMEOUT".
+If pairing is not successful within about 1 minute, then the Bluetooth adapter will automatically cancel pairing and the handset will display "PAIRING TIMEOUT".
 
 When pairing is successful, the handset will display "PAIRED:", followed by the name of the paired host phone.
 
