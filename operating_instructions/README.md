@@ -314,15 +314,17 @@ Press `RCL`, `*`, `#` to view the name of the most recently paired host phone.
 
 NOTE: The Bluetooth adapter does not need to be currently connected to a host phone. 
 
-The handset will display "PAIRED:" followed by the name of the paired host phone, or "[none]" if the Bluetooth adapter is not currently.
+The handset will display "PAIRED:" followed by the name of the paired host phone, or "[none]" if the Bluetooth adapter is not currently paired to any host phone.
 
 Press `CLR` to exit.
 
 ### Reset Bluetooth Pairing Memory (RCL / \* / # / STO)
 
-While [viewing the paired host phone name](#view-paired-host-phone-name-rcl----), press `STO` to reset Bluetooth pairing memory. This causes the Bluetooth adapter to "forget" the most recently aired host phone so that it will no longer try to automatically reconnect to that host phone.
+While [viewing the paired host phone name](#view-paired-host-phone-name-rcl----), press `STO` to reset Bluetooth pairing memory. This causes the Bluetooth adapter to "forget" the most recently paired host phone so that it will no longer try to automatically reconnect to that host phone.
 
 The handset will display "INPUT CODE". Enter your 4-digit security code (as configured during [Programming / Setup](#programming--setup)) to confirm and proceed.
+
+The handset will display the paired host phone name again (as "[none]") as confirmation that the Bluetooth adapter is no longer paired to any host phone.
 
 ### Voice Dialing/Assistant (END / 1sec)
 
