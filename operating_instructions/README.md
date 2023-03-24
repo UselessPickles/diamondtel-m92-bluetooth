@@ -306,7 +306,7 @@ The handset will now display "BT NAME ?" and you may begin [Alphanumeric Input](
 
 Press `STO` to save the new name.
 
-Clear out the entered name to return to the input ptompt, then press `CLR` again to cancel the name change.
+Clear out the entered name to return to the input prompt, then press `CLR` again to cancel the name change.
 
 ### View Paired Host Phone Name (RCL / \* / #)
 
