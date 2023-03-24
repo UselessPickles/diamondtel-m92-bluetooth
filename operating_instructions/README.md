@@ -374,10 +374,10 @@ Common features/controls in all games:
 - In general, press `CLR` on any screen within the game to back out one level toward the title screen, or press and hold `CLR` to completely exit the game.
 - When prompted to choose a level, press a numbered button within the specified range. Lower numbered levels are easier. Higher numbered levels are more difficult. 
 - While playing a game, press `CLR` to pause the game and exit out to a menu that allows you to choose between continuing the game, or starting a new game. Pressing `CLR` again will back out to the game's title screen.
-- When an in-progress game is exited, progress is remembered until the phone is powered off. When entering the game again later, you will be promted to choose between continuing the current game, or starting a new game.
+- When an in-progress game is exited, progress is remembered until the phone is powered off. When entering the game again later, you will be prompted to choose between continuing the current game, or starting a new game.
   - Press `1` to continue the in-progress game.
   - Press `2` to start a new game.
-- Press `↑`/`↓` to adjust speaker volume, which controls the volume in sound effects. `Snake` and `Tetris` have sound effects.
+- Press `↑`/`↓` to adjust speaker volume, which controls the volume of sound effects. `Snake` and `Tetris` have sound effects.
 - Press `FCN`, `↑`/`↓` to adjust background music in games that have background music. `Tetris` has background music.
   - Background music does not play while on the title screen. This gives you a chance to adjust music volume before it begins playing on the next screen.
 - When the the game ends due to a winning or losing condition, a sequence of screens will repeat to show details about the end of the game, such as your score, as well as instructions for playing another game.
@@ -420,7 +420,7 @@ Controls:
 - `1`/`3`: Move Left/Right, but skip over any revealed cards to the next face-down card, and wrap around to the next/previous row. This allows you to move around more quickly.
 - `5`: Reveal the selected face-down card.
 
-The first revealed card will remain revealed until you reveal a second face-down card. The pair of revealed cards will then flash a couple times. If the pair is a match, then they will remain revealed. Otherwise, they be turned face-down again.
+The first revealed card will remain revealed until you reveal a second face-down card. The pair of revealed cards will then flash a couple times. If the pair is a match, then they will remain revealed. Otherwise, they will be turned face-down again.
 
 The number of cards is determined by the difficulty level that was selected when starting the game.
 
@@ -461,7 +461,7 @@ The difficulty level that was selected when starting the game only determines th
 
 For maximum scoring, it is best to start at a higher level, and try to clear 3 lines at a time as much as possible, to maximize points per line cleared.
 
-The game ends when pieces have stacked up to the point that there is no room for the next piece to be placed on the board and begin falling from the right side.
+The game ends when pieces have stacked up to the point that there is no room for the next piece to be placed on the board.
 
 ##### High Score
 
