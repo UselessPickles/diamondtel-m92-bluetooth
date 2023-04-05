@@ -54,7 +54,6 @@
 #include <xc.h>
 #include <stdbool.h>
 #include <stdint.h>
-#include <stdio.h>
 
 #ifdef __cplusplus  // Provide C++ Compatibility
 
@@ -379,6 +378,14 @@ uint8_t UART3_Read(void);
       </code>
 */
 void UART3_Write(uint8_t txData);
+
+/**
+ * CUSTOM FUNCTION!
+ * 
+ * Similar to UART3_Write(), except that the byte is placed at the front
+ * of the write buffer to ensure that it is the next byte written.
+ */
+void UART3_WriteImmediately(uint8_t txData);
 
 /**
   @Summary

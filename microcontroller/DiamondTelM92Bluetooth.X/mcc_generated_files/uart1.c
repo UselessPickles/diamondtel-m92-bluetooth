@@ -54,7 +54,7 @@
 /**
   Section: Macro Declarations
 */
-#define UART1_TX_BUFFER_SIZE 64
+#define UART1_TX_BUFFER_SIZE 128
 #define UART1_RX_BUFFER_SIZE 8
 
 /**
@@ -118,14 +118,14 @@ void UART1_Initialize(void)
     // RXBIMD Set RXBKIF on rising RX input; BRKOVR disabled; WUE disabled; SENDB disabled; ON enabled; 
     U1CON1 = 0x80;
 
-    // TXPOL not inverted; FLO off; C0EN Checksum Mode 0; RXPOL inverted; RUNOVF RX input shifter stops all activity; STP Transmit 1Stop bit, receiver verifies first Stop bit; 
-    U1CON2 = 0x40;
+    // TXPOL not inverted; FLO off; C0EN Checksum Mode 0; RXPOL not inverted; RUNOVF RX input shifter stops all activity; STP Transmit 1Stop bit, receiver verifies first Stop bit; 
+    U1CON2 = 0x00;
 
-    // BRGL 15; 
-    U1BRGL = 0x0F;
+    // BRGL 64; 
+    U1BRGL = 0x40;
 
-    // BRGH 39; 
-    U1BRGH = 0x27;
+    // BRGH 3; 
+    U1BRGH = 0x03;
 
     // STPMD in middle of first Stop bit; TXWRE No error; 
     U1FIFO = 0x00;
@@ -222,30 +222,16 @@ void UART1_Write(uint8_t txData)
     PIE4bits.U1TXIE = 1;
 }
 
-void UART1_WriteImmediately(uint8_t txData) {
-    while(0 == uart1TxBufferRemaining)
+char getch(void)
     {
+    return UART1_Read();
     }
 
-    if(0 == PIE4bits.U1TXIE)
+void putch(char txData)
     {
-        U1TXB = txData;
+    UART1_Write(txData);
     }
-    else
-    {
-        PIE4bits.U1TXIE = 0;
-        if (uart1TxTail == 0) {
-          uart1TxTail = sizeof(uart1TxBuffer) - 1;
-        } else {
-          --uart1TxTail;
-        }
         
-        uart1TxBuffer[uart1TxTail] = txData;
-        uart1TxBufferRemaining--;
-    }
-    PIE4bits.U1TXIE = 1;
-}
-
 void __interrupt(irq(U1TX),base(8),low_priority) UART1_tx_vect_isr()
 {   
     if(UART1_TxInterruptHandler)

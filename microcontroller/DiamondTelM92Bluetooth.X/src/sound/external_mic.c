@@ -48,7 +48,7 @@ void EXTERNAL_MIC_Initialize(EXTERNAL_MIC_EventHandler eventHandler) {
   module.isConnected = IO_MIC_HF_DETECT_GetValue();
   printf("[EXTERNAL MIC] Initial: %s\r\n", module.isConnected ? "Connected" : "Disconnected");
   TIMEOUT_Cancel(&module.debounceTimeout);
-  IOCAF5_SetInterruptHandler(inputPinChangeHandler);
+  IOCAF3_SetInterruptHandler(inputPinChangeHandler);
 }
 
 void EXTERNAL_MIC_Task(void) {
