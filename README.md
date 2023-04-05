@@ -4,9 +4,9 @@
 
 This is an electronics/microcontroller project for adapting a DiamondTel Model 92 Portable Cellular Telephone to work as a fully functional phone by routing calls through a modern cell phone via the Bluetooth Hands-Free Profile (HFP).
 
-![Breadboard Prototype with DiamondTel Model 92 Telephone connected](readme/phone_connected_to_breadboard_prototype.JPG)
+![Prototype with DiamondTel Model 92 Telephone connected](readme/phone_connected_to_prototype.JPG)
 
-![Breadboard Prototype](readme/breadboard_prototype.JPG)
+![Prototype Board](readme/prototype_board.JPG)
 
 This project includes both a custom electronics circuit and custom microcontroller software.
 
