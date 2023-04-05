@@ -1096,7 +1096,7 @@ static void handle_SECURITY_CODE_Success_RESET_PAIRED_DEVICES(void) {
   BT_DisconnectAllProfile();
   BT_ResetEEPROM();
   STORAGE_SetPairedDeviceName("");
-  returnToNumberInput(false);
+  recallPairedDeviceName(false);
 }
 
 static void handleBluetoothNameStringInputReturn(STRING_INPUT_Result result, char const* name) {
