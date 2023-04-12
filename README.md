@@ -37,8 +37,8 @@ This repository is a work-in-progress. Check back often for more details and doc
 
 I have an old car phone in my early 90's car. It's impossible to activate service for these old phones. I made the old car phone actually work like a real phone.
 
-Click to view a YouTube video of the car phone making and receiving a call:
-[![YouTube video of my car phone making and receiving a call](https://img.youtube.com/vi/gLl7hv3KAa0/0.jpg)](https://www.youtube.com/watch?v=gLl7hv3KAa0)
+Click to view a YouTube video tour and demo of the complete car phone system with Bluetooth adapter:
+[![YouTube video tour and demo of the complete car phone system with Bluetooth adapter](https://img.youtube.com/vi/52AuhS5Jq0Q/0.jpg)](https://www.youtube.com/watch?v=52AuhS5Jq0Q)
 
 You can find all videos I have created about this project in [this YouTube playlist](https://www.youtube.com/playlist?list=PLOlio4FadqvQEWHDXaJHlkvHigROk-RNV).
 
