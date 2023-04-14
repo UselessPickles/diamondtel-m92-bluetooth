@@ -406,6 +406,11 @@ void BT_SetHFPGain(uint8_t gain)
 }
 
 /*------------------------------------------------------------*/
+void BT_SetAecEnabled(bool isEnabled) {
+  BT_MMI_ActionCommand(isEnabled ? ENABLE_AEC : DISABLE_AEC, BT_linkIndex);
+}
+
+/*------------------------------------------------------------*/
 void BT_CommandSend_Initialize( void )
 {
     UR_TxBufHead = 0;

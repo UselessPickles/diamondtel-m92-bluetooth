@@ -185,6 +185,7 @@ static void rebootAfterDelay(uint8_t delay) {
 static struct {
   bool isConnected;
   bool hasService;
+  bool isScoConnected;
   uint8_t maxSignalStrength;
   uint8_t signalStrength;
   uint8_t maxBatteryLevel;
@@ -277,6 +278,12 @@ static void playBluetoothConnectionStatusBeep(bool isConnected) {
         isConnected ? SOUND_Effect_BT_CONNECT : SOUND_Effect_BT_DISCONNECT, 
         false
       );
+}
+
+static void setAecEnabled(void) {
+  if (cellPhoneState.isScoConnected) {
+    BT_SetAecEnabled(HANDSET_IsOnHook());
+  }
 }
 
 #define CALL_FAILED_TIMEOUT (3000)
@@ -1950,6 +1957,10 @@ void handle_HANDSET_Event(HANDSET_Event const* event) {
   if (appState <= APP_State_INIT_CLEAR_PHONE_NUMBER) {
     return;
   }
+  
+  if (event->type == HANDSET_EventType_HOOK) {
+    setAecEnabled();
+  }
 
   if (isButtonUp || isButtonDown || (event->type == HANDSET_EventType_HOOK)) {
     wakeUpHandset(button != HANDSET_Button_PWR);
@@ -3221,6 +3232,7 @@ void APP_BT_EventHandler(uint8_t event, uint16_t para, uint8_t* para_full) {
       HANDSET_SetIndicator(HANDSET_Indicator_ROAM, false);
       HANDSET_SetIndicator(HANDSET_Indicator_IN_USE, false);
       cellPhoneState.isConnected = false;
+      cellPhoneState.isScoConnected = false;
       cellPhoneState.hasService = false;
       cellPhoneState.maxSignalStrength = 0;
       cellPhoneState.signalStrength = 0;
@@ -3236,10 +3248,13 @@ void APP_BT_EventHandler(uint8_t event, uint16_t para, uint8_t* para_full) {
       
     case BT_EVENT_SCO_CONNECTED:
       printf("[SCO] Connected\r\n");
+      cellPhoneState.isScoConnected = true;
+      setAecEnabled();
       break;
       
     case BT_EVENT_SCO_DISCONNECTED:
       printf("[SCO] Disconnected\r\n");
+      cellPhoneState.isScoConnected = false;
       break;
       
     case BT_EVENT_PHONE_SERVICE_STATUS:

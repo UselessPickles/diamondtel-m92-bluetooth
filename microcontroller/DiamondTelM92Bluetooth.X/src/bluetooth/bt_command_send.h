@@ -95,6 +95,18 @@ enum
   ACCEPT_WAITING_HOLD_CALL_RLS_ACTIVE_CALL = 0x12,
   INITIAL_HF_CONNECTION = 0x16,
   DISCONNECT_HF_LINK = 0x17,
+  ENABLE_RX_NR = 0x18,
+  DISABLE_RX_NR = 0x19,
+  TOGGLE_RX_NR = 0x1A,
+  ENABLE_TX_NR = 0x1B,
+  DISABLE_TX_NR = 0x1C,
+  TOGGLE_TX_NR = 0x1D,
+  ENABLE_AEC = 0x1E,
+  DISABLE_AEC = 0x1F,
+  TOGGLE_AEC = 0x20,
+  ENABLE_AEC_RX_NR = 0x21,
+  DISABLE_AEC_RX_NR = 0x22,
+  TOGGLE_AEC_RX_NR = 0x23,
   INC_MIC_GAIN = 0x24,
   DEC_MIC_GAIN = 0x25,
   SWITCH_PRIMARY_SECONDARY_HF_DEVICE = 0x26,
@@ -167,6 +179,8 @@ void BT_LinkBackToLastDevice(void);
 void BT_CancelLinkback(void);
 void BT_DisconnectAllProfile(void);
 void BT_SetHFPGain(uint8_t gain);
+
+void BT_SetAecEnabled(bool isEnabled);
 
 void BT_CommandSend_Initialize(void);
 void BT_CommandSend_Task( void );
