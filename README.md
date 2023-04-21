@@ -11,7 +11,6 @@ This is an electronics/microcontroller project for adapting a DiamondTel Model 9
 This project includes both a custom electronics circuit and custom microcontroller software.
 
 - [DiamondTel Model 92 Bluetooth Adapter](#diamondtel-model-92-bluetooth-adapter)
-  - [Under Construction](#under-construction)
   - [About This Project](#about-this-project)
     - [TL;DR (with demo videos)](#tldr-with-demo-videos)
     - [The DiamondTel Model 92 Portable Cellular Telephone](#the-diamondtel-model-92-portable-cellular-telephone)
@@ -26,10 +25,6 @@ This project includes both a custom electronics circuit and custom microcontroll
     - [Vintage Mobile Phone](#vintage-mobile-phone)
     - [Paired Modern Cell Phone](#paired-modern-cell-phone)
   - [About the Author](#about-the-author)
-
-## Under Construction
-
-This repository is a work-in-progress. Check back often for more details and documentation.
 
 ## About This Project
 
