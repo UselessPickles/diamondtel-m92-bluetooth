@@ -24,8 +24,8 @@ This project includes both a custom electronics circuit and custom microcontroll
   - [Compatibility](#compatibility)
     - [Vintage Mobile Phone](#vintage-mobile-phone)
     - [Paired Modern Cell Phone](#paired-modern-cell-phone)
+  - [Build Your Own Bluetooth Adapter](#build-your-own-bluetooth-adapter)
   - [About the Author](#about-the-author)
-
 ## About This Project
 
 ### TL;DR (with demo videos)
