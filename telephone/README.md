@@ -65,7 +65,7 @@ The handset has a backlit LCD display that can display 14 characters of arbitrar
 Most indicators are simply turned on/of via single UART commands. Special cases are:
 
 - `NO SVC`: This is actually two separate indicators, `NO` and `SVC`, although they are alays turned on/off togetehr in practice.
-- Signal Strength: Each of the 6 singal strenght bars is an individual indicator that can be turned on/off, but there are also special UART commands for setting them to represent a numeric signal strength in the range 0-6.
+- Signal Strength: Each of the 6 signal strength bars is an individual indicator that can be turned on/off, but there are also special UART commands for setting them to represent a numeric signal strength in the range 0-6.
 
 See [Indicators On/Off](#indicators-onoff) and [Set Signal Strength](#set-signal-strength) for more details.
 
