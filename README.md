@@ -128,6 +128,23 @@ These are the modern cell phones performed at least some basic testing with:
 - Apple iPhone 14
 - Google Pixel 3 XL
 
+## Build Your Own Bluetooth Adapter
+
+I don't have a complete detailed step-by-step guide, but all the information needed to build your own Bluetooth adapter should be here.
+
+Some prerequisites:
+- Soldering skills. There's a lot of soldering if you build a prototype like mine.
+- Attention to detail. There are countless opportunities to make mistakes if you are not careful, and it may be a very long time and a large amount of effort before you discover that something is not working correctly.
+- Basic understanding of electronics and how to use tools like a multimeter and an oscilloscope to verify your work along the way or troubleshoot when something doesn't work because you probably made a mistake while soldering everything together (I made several small mistakes while building my prototype that I had to troubleshoot and fix).
+- Computer/software competency. You will need to use a variety of software tools to load configuration and code onto the Bluetooth module and the microcontroller. These are not the most user-friendly software tools.
+
+Basic steps for building a Blutooth adapter:
+1. See the `/hardware` directory README and the VeroRoute circuit layout to find all the components/parts you'll need. VeroRoute can give you a BOM list of components and quantities of most components. The README has some additional details of other items/components used in my prototype.
+1. See the `/bluetooth/config` directory README for details about how to update/configure the BM62 Bluetooth module. If you use the same breadboard adapter as I did for the BM62, and you use female header sockets on your circuit, then you can easily update/configure the BM62 at any time either before or after the rest of the circuit is put together. If you want to solder the BM62 directly into your circuit, then you need to come up with a plan for how you will update/configure the BM62.
+1. Build the hardware based on the information found in the `/hardware` directory/README.
+1. Build the microcontroller software in the `/microcontroller/DiamondTelM92Bluetooth.X` directory and load it onto the microcontroller, using [MPLAB X](https://www.microchip.com/en-us/tools-resources/develop/mplab-x-ide) and a [PICKIT 4](https://www.microchip.com/en-us/development-tool/PG164140) or equivalent tool. Use the internet to learn how to do this if you don't already know.
+1. See the `/operating_instructions` for information about how to use the Bluetooth adapter.
+
 ## About the Author
 
 I'm a software engineer with primary professional expertise in front-end web app development, but I've also played around with some basic electronics and microcontoller programming for fun. This is by far my most ambitious electronics/microcontroller project. 
