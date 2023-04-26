@@ -143,7 +143,7 @@ Basic steps for building a Blutooth adapter:
 1. See the `/bluetooth/config` directory README for details about how to update/configure the BM62 Bluetooth module. If you use the same breadboard adapter as I did for the BM62, and you use female header sockets on your circuit, then you can easily update/configure the BM62 at any time either before or after the rest of the circuit is put together. If you want to solder the BM62 directly into your circuit, then you need to come up with a plan for how you will update/configure the BM62.
 1. Build the hardware based on the information found in the `/hardware` directory/README.
 1. Build the microcontroller software in the `/microcontroller/DiamondTelM92Bluetooth.X` directory and load it onto the microcontroller, using [MPLAB X](https://www.microchip.com/en-us/tools-resources/develop/mplab-x-ide) and a [PICKIT 4](https://www.microchip.com/en-us/development-tool/PG164140) or equivalent tool. Use the internet to learn how to do this if you don't already know.
-1. See the `/operating_instructions` for information about how to use the Bluetooth adapter.
+1. See the `/operating_instructions` directory README for information about how to use the Bluetooth adapter.
 
 ## About the Author
 
