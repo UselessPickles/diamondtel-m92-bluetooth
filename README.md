@@ -18,6 +18,7 @@ This project includes both a custom electronics circuit and custom microcontroll
     - [Project Forum Thread](#project-forum-thread)
     - [Discussion](#discussion)
     - [Documentation](#documentation)
+    - [Media Coverage](#media-coverage)
   - [Basic Design](#basic-design)
     - [High Level Design Summary](#high-level-design-summary)
     - [Design Pros/Cons](#design-proscons)
@@ -26,6 +27,7 @@ This project includes both a custom electronics circuit and custom microcontroll
     - [Paired Modern Cell Phone](#paired-modern-cell-phone)
   - [Build Your Own Bluetooth Adapter](#build-your-own-bluetooth-adapter)
   - [About the Author](#about-the-author)
+  
 ## About This Project
 
 ### TL;DR (with demo videos)
@@ -72,6 +74,17 @@ Do you have something to ask/say about this project? You can reach out to me in 
 ### Documentation
 
 There's too much information to put in one README. Most directories of this project have a README containing relevant documentation for that portion of the project. So explore the directory structure and use the READMEs to get familiar with it.
+
+### Media Coverage
+
+There's been a bit of media coverage of my project. Here's some links:
+
+- [Hackaday](https://hackaday.com/2023/04/13/custom-bluetooth-adapter-brings-1990s-car-phone-back-online/)
+- [Jalopnik](https://jalopnik.com/vintage-factory-car-phone-connects-to-smartphone-1850329711)
+- [CarBuzz](https://carbuzz.com/news/genius-turns-30-year-old-mitsubishi-3000gt-into-a-smartphone)
+- [Japanese Nastolgic Car](https://japanesenostalgiccar.com/mitsubishi-3000gt-car-phone-functional-with-iphone-bluetooth/)
+- [Hackster.io](https://www.hackster.io/news/jeff-lau-s-open-source-bluetooth-adapter-brings-a-mitsubishi-carphone-classic-back-from-the-dead-383864868529)
+- [The Drive](https://www.thedrive.com/news/clever-collector-mods-mitsubishi-3000gt-car-phone-to-work-like-an-iphone)
 
 ## Basic Design
 
