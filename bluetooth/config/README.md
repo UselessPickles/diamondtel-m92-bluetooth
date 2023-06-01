@@ -89,7 +89,7 @@ This section will guide you through installing the customized software/configura
 Installation instructions:
 1. [Prepare the BM62 for Firmware/Software Install](#prepare-the-bm62-for-firmwaresoftware-install)
 1. Launch the `DSPK v2.1.5 Package\Tools\FlashUpdate Tool\isupdate.exe` tool.
-    - Again, the readme for these tools claims that `isupdate` is not for use with the BM62, but this seems to be the only way to install a full EEPROM file on to the BM62. These instructions are thanks to [Tomas Kovacik's blog](#https://github.com/tomaskovacik/IS2020/wiki/Upgrading-firmware-on-BM62) (the second section of the instructions about installing the `MCHP_DSPKv2.1.3_BM62_StandAlone` file; but don't install that file!).
+    - Again, the readme for these tools claims that `isupdate` is not for use with the BM62, but this seems to be the only way to install a full EEPROM file on to the BM62. These instructions are thanks to [Tomas Kovacik's blog](https://github.com/tomaskovacik/IS2020/wiki/Upgrading-firmware-on-BM62) (the second section of the instructions about installing the `MCHP_DSPKv2.1.3_BM62_StandAlone` file; but don't install that file!).
 1. Select the following options:
     - `port`: The port that your USB-UART adapter maps to.
     - `baudrate`: 115200
