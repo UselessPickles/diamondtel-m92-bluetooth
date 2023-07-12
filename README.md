@@ -82,6 +82,9 @@ There's been a bit of media coverage of my project. Here's some links:
 - [Hackaday](https://hackaday.com/2023/04/13/custom-bluetooth-adapter-brings-1990s-car-phone-back-online/)
 - [Jalopnik](https://jalopnik.com/vintage-factory-car-phone-connects-to-smartphone-1850329711)
 - [CarBuzz](https://carbuzz.com/news/genius-turns-30-year-old-mitsubishi-3000gt-into-a-smartphone)
+- Hagerty: Piston Slap
+    - [Part 1](https://www.hagerty.com/media/advice/piston-slap/piston-slap-new-tricks-for-an-old-car-phone-part-iv/)
+    - [Part 2](https://www.hagerty.com/media/advice/piston-slap/piston-slap-new-tricks-for-an-old-car-phone-part-v/)
 - [Japanese Nastolgic Car](https://japanesenostalgiccar.com/mitsubishi-3000gt-car-phone-functional-with-iphone-bluetooth/)
 - [Hackster.io](https://www.hackster.io/news/jeff-lau-s-open-source-bluetooth-adapter-brings-a-mitsubishi-carphone-classic-back-from-the-dead-383864868529)
 - [The Drive](https://www.thedrive.com/news/clever-collector-mods-mitsubishi-3000gt-car-phone-to-work-like-an-iphone)
