@@ -107,7 +107,7 @@ of this project) for full details.
 - ✔️ OTHER BASIC OPERATION
     - ✔️ VOLUME ADJUSTMENT
       - There is a 6th volume adjustment supported by the Bluetooth Adapter:
-      Game Music volume. Press the `↑`/`↓` keys while in a game to adjust Game
+      Game Music volume. Press `FCN` then the `↑`/`↓` keys while in a game with music to adjust Game
       Music volume.
     - ✔️ STORING OFTEN-USED NUMBERS
       - Due to limited storage on the Bluetooth Adapter, only 24
@@ -161,6 +161,7 @@ of this project) for full details.
     - ❌ ~~AUTOMATIC RETRY ON/OFF (FCN / #)~~
       - Chose not to replicate (unlikely to ever be used).
     - ✔️ CREDIT CARD NUMBER SECURITY (FCN / RCL)
+      - Due to limited storage on the Bluetooth Adapter, only 6 storage locations are supported (from \*1 to \*6).
     - ✔️ ANNOUNCE BEEP ON/OFF (FCN / \* / 1)
     - ✔️ STATUS CHANGE BEEP ON/OFF (FCN / \* / 2)
     - ❌ ~~STATUS MONITOR ON/OFF (FCN / \* / 3)~~
