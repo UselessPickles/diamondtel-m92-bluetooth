@@ -1982,7 +1982,7 @@ void handle_HANDSET_Event(HANDSET_Event const* event) {
   
   SOUND_HANDSET_EventHandler(event);
 
-  // Common behavior END button behavior that needs to work no matter what the 
+  // Common END button behavior that needs to work no matter what the 
   // app state is (e.g., user can end a call or initiate voice command while 
   // browsing the directory or playing Tetris).
   if ((button == HANDSET_Button_END) && !isFcn) {
@@ -1999,7 +1999,7 @@ void handle_HANDSET_Event(HANDSET_Event const* event) {
         numberInputIsStale = true;
         returnToNumberInput(false);
         return;
-      } else if ((BT_CallStatus >= BT_CALL_INCOMING) && (APP_CallAction == APP_CALL_IDLE)) {
+      } else if ((BT_CallStatus >= BT_CALL_ACTIVE) && (APP_CallAction == APP_CALL_IDLE)) {
         // End active call
         SOUND_PlayButtonBeep(button, false);
 
