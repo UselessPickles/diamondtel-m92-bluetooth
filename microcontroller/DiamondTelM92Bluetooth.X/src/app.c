@@ -1270,35 +1270,50 @@ static void handleCallStatusChange(int newCallStatus) {
 
   int prevCallStatus = BT_CallStatus;
   BT_CallStatus = newCallStatus;
+  
+  bool const isOemHandsFreeControllerConnected = 
+        STORAGE_GetOemHandsFreeIntegrationEnabled() && EXTERNAL_MIC_IsConnected();
 
   switch (BT_CallStatus) {
     case BT_CALL_IDLE:
       TIMEOUT_Start(&idleTimeout, IDLE_TIMEOUT);
       CALL_TIMER_Stop();
       
-      // The following sequence of commands is what seems to be necessary
-      // to reliably trigger the Hands-Free Controller to believe that the phone
-      // is no longer in a call (works when coming from an active call, or
-      // an incoming call that was missed or explicitly rejected).
-      // This MUST be done before any SOUND commands to ensure that the SOUND
-      // commands are not intercepted by the Hands-Free Controller.
-      HANDSET_DisableCommandOptimization();
-      HANDSET_SetLoudSpeaker(false);
-      HANDSET_SetEarSpeaker(true);
-      HANDSET_SetMicrophone(true);
+      // Perform extra steps only if the OEM Hands-Free Controller is connected...
+      if (isOemHandsFreeControllerConnected) {
+        // The following sequence of commands is what seems to be necessary
+        // to reliably trigger the Hands-Free Controller to believe that the phone
+        // is no longer in a call (works when coming from an active call, or
+        // an incoming call that was missed or explicitly rejected).
+        // This MUST be done before any SOUND commands to ensure that the SOUND
+        // commands are not intercepted by the Hands-Free Controller.
+        HANDSET_DisableCommandOptimization();
+        HANDSET_SetLoudSpeaker(false);
+        HANDSET_SetEarSpeaker(true);
+        HANDSET_SetMicrophone(true);
+      }
+
+      // These commands are necessary regardless of whether the OEM Hands-Free
+      // Controller is connected or not. But when connected, the exact order
+      // of these commands (and relative to other commands) is important.
       HANDSET_SetIndicator(HANDSET_Indicator_IN_USE, false);
       HANDSET_SetTextBlink(false);
       HANDSET_SetIndicator(HANDSET_Indicator_MUTE, false);
-      HANDSET_EnableCommandOptimization();
+      
+      // Perform extra steps only if the OEM Hands-Free Controller is connected...
+      if (isOemHandsFreeControllerConnected) {
+        HANDSET_EnableCommandOptimization();
 
-      // Force the next update to handset audio output to send commands to the 
-      // handset regardless of whether we believe the handset is already in the
-      // desired state or not. This is necessary for compatibility with the 
-      // Hands-Free Controller Unit, which may disable sound output on the 
-      // handset during a call to redirect sound to the car radio speakers,
-      // which causes our assumptions about the handset audio state to be out 
-      // of sync with the actual handset audio state.
-      SOUND_ForceNextSetHandsetAudioOutput();
+        // Force the next update to handset audio output to send commands to the 
+        // handset regardless of whether we believe the handset is already in the
+        // desired state or not. This is necessary for compatibility with the 
+        // Hands-Free Controller Unit, which may disable sound output on the 
+        // handset during a call to redirect sound to the car radio speakers,
+        // which causes our assumptions about the handset audio state to be out 
+        // of sync with the actual handset audio state.
+        SOUND_ForceNextSetHandsetAudioOutput();
+      }
+      
       SOUND_SetDefaultAudioSource(SOUND_AudioSource_MCU);
       SOUND_SetButtonsMuted(false);
 
@@ -1439,10 +1454,7 @@ static void handleCallStatusChange(int newCallStatus) {
       // NOTE: Ignore Caller ID when a microphone is detected while OEM Hands-Free 
       //       integration is enabled.
       //       This is because Caller ID is incompatible with the Hands-Free Controller.  
-      if (
-          STORAGE_GetCallerIdMode() && 
-          !(STORAGE_GetOemHandsFreeIntegrationEnabled() && EXTERNAL_MIC_IsConnected())
-          ) {
+      if (STORAGE_GetCallerIdMode() && !isOemHandsFreeControllerConnected) {
         ATCMD_Send("+CLCC", handleCallListAtResponse);
       }
       break;
