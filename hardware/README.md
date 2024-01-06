@@ -14,7 +14,7 @@ NOTE: The Bluetooth Module, Microcontroller, and Telephone all have dedicated to
     - [Op Amp (NJU7031)](#op-amp-nju7031)
     - [Low-Pass Filter](#low-pass-filter)
     - [Digital Potentiometer (MCP4151)](#digital-potentiometer-mcp4151)
-    - [Differential Audio Driver (DRV134)](#differential-audio-driver-drv134)
+    - [Differential Audio Driver (INA105)](#differential-audio-driver-ina105)
     - [5V Voltage Regulator (L7805CV)](#5v-voltage-regulator-l7805cv)
     - [Negative Voltage Converter (TL7660)](#negative-voltage-converter-tl7660)
   - [Detailed Circuit Diagrams](#detailed-circuit-diagrams)
@@ -79,9 +79,9 @@ I similarly intentionally setup the low-pass filter to only partially smooth ove
 
 This digital potentiometer allows the Microcontroller to control the volume of audio output the the Handset.
 
-### Differential Audio Driver (DRV134)
+### Differential Audio Driver (INA105)
 
-A differential audio driver is used to produce [differential](https://en.wikipedia.org/wiki/Differential_signalling) audio output to the Handset.
+A pair of INA105 precision unity gain opamps is used to produce [differential](https://en.wikipedia.org/wiki/Differential_signalling) audio output to the Handset. One is setup as unity gain, while the other is setup as inverting unity gain.
 
 NOTE: This component requires a +5V and -5V power supply.
 
@@ -91,7 +91,7 @@ This voltage regulator produces a +5V power supply for the circuit. The ~12V pow
 
 ### Negative Voltage Converter (TL7660)
 
-This component produces a -5V power supply from the main +5V power supply. This is necessary for the [Differential Audio Driver](#differential-audio-driver-drv134).
+This component produces a -5V power supply from the main +5V power supply. This is necessary for the [Differential Audio Driver](#differential-audio-driver-ina105).
 
 ## Detailed Circuit Diagrams
 
