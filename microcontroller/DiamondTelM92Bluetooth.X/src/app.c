@@ -76,6 +76,7 @@ static char const* const BT_CallStatusLabel[] = {
 };
 
 static enum {
+  APP_State_BOOT,
   APP_State_SLEEP,
   APP_State_INIT_START,
   APP_State_INIT_SET_LCD_ANGLE,
@@ -118,6 +119,7 @@ static enum {
 static int lastAppState;
 
 static char const* const appStateLabel[] = {
+  "BOOT",
   "SLEEP",
   "INIT_START",
   "INIT_SET_LCD_ANGLE",
@@ -1604,29 +1606,37 @@ void APP_Initialize(void) {
   lastAppState = -1;
   BT_CallStatus = BT_CALL_IDLE;
 
-  EEPROM_Initialize();
-  STORAGE_Initialize();
-  EXTERNAL_POWER_Initialize(handle_EXTERNAL_POWER_Event);
-  BATTERY_Initialize(handle_BATTERY_Event);
-  IGNITION_Initialize(handle_IGNITION_Event);
-  HANDSET_Initialize(handle_HANDSET_Event);  
-  
-  if (STORAGE_GetPowerOnAtStartupEnabled()) {
-    STORAGE_SetPowerOnAtStartupEnabled(false);
-    powerOn();
-  } else {
-    appState = APP_State_SLEEP;
-  }  
+  appState = APP_State_BOOT;
+  TIMEOUT_Start(&appStateTimeout, 10);
 }
 
 void APP_Task(void) {
+  TIMEOUT_Task(&appStateTimeout);
+
+  if (appState == APP_State_BOOT) {
+    if (!TIMEOUT_IsPending(&appStateTimeout)) {
+      EEPROM_Initialize();
+      STORAGE_Initialize();
+      EXTERNAL_POWER_Initialize(handle_EXTERNAL_POWER_Event);
+      BATTERY_Initialize(handle_BATTERY_Event);
+      IGNITION_Initialize(handle_IGNITION_Event);
+      HANDSET_Initialize(handle_HANDSET_Event);  
+
+      if (STORAGE_GetPowerOnAtStartupEnabled()) {
+        STORAGE_SetPowerOnAtStartupEnabled(false);
+        powerOn();
+      } else {
+        appState = APP_State_SLEEP;
+      }  
+    }
+    return;
+  }
+  
   if (appState != lastAppState) {
     lastAppState = appState;
     printf("[App State] %s\r\n", appStateLabel[appState]);
   }
   
-  TIMEOUT_Task(&appStateTimeout);
-
   EXTERNAL_POWER_Task();
   BATTERY_Task();
   IGNITION_Task();

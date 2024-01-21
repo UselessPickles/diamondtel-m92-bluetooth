@@ -16,7 +16,7 @@
 #include <stdio.h>
 
 #define MARKER (0b10101100)
-#define VERSION (25)
+#define VERSION (30)
 
 typedef struct {
   uint8_t number[MAX_EXTENDED_PHONE_NUMBER_LENGTH >> 1];
@@ -481,10 +481,10 @@ uint8_t STORAGE_GetNextPopulatedDirectoryIndex(uint8_t startIndex, bool forward)
       --i;
     }
     
-    if (i >= STORAGE_DIRECTORY_SIZE) {
-      i = 0;
-    } else if (i == 0xFF) {
+    if (i == 0xFF) {
       i = STORAGE_DIRECTORY_SIZE - 1;
+    } else if (i >= STORAGE_DIRECTORY_SIZE) {
+      i = 0;
     }
   } while((i != startIndex) && STORAGE_IsDirectoryEntryEmpty(i));
   
