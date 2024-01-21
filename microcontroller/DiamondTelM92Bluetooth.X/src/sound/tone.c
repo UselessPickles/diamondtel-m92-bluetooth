@@ -12,6 +12,7 @@
 #include "tone.h"
 #include "../../mcc_generated_files/interrupt_manager.h"
 #include "../../mcc_generated_files/tmr6.h"
+#include "../../mcc_generated_files/fvr.h"
 #include "../../mcc_generated_files/dac1.h"
 #include <xc.h>
 #include <stddef.h>
@@ -229,6 +230,15 @@ static void outputSoundSampleAndCalculateNextSample(void) {
 }
 
 void TONE_Initialize(void) {
+  PMD0bits.FVRMD = 0;
+  FVR_Initialize();
+  
+  PMD3bits.DAC1MD = 0;
+  DAC1_Initialize();
+  
+  PMD1bits.TMR6MD = 0;
+  TMR6_Initialize();
+  
   stagedTones.isStaged = false;
   stagedTones.tone1 = 0;
   stagedTones.tone2 = 0;

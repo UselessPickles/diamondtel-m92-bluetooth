@@ -207,6 +207,7 @@ static void powerOn(void) {
   }
   
   IO_SWITCHED_PWR_ENABLE_SetHigh();
+  HANDSET_EnableUART();
   TIMEOUT_Start(&appStateTimeout, 10);
   appState = APP_State_INIT_START;
 }
@@ -1607,6 +1608,8 @@ void APP_Initialize(void) {
   BT_CallStatus = BT_CALL_IDLE;
 
   appState = APP_State_BOOT;
+  // Small delay allows things to stabilize before attempting to use 
+  // peripherals, etc.
   TIMEOUT_Start(&appStateTimeout, 10);
 }
 

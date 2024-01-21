@@ -9,6 +9,7 @@
 #include "../sound/sound.h"
 #include "../../mcc_generated_files/tmr0.h"
 #include <stdint.h>
+#include <xc.h>
 
 static struct {
   bool isRunning;
@@ -53,6 +54,9 @@ static void timer100MS_Interrupt(void) {
 }
 
 void CALL_TIMER_Initialize(void) {
+  PMD1bits.TMR0MD = 0;
+  TMR0_Initialize();
+  
   module.timerInterruptCount = 0;
   module.secondTimerExpired = false;
   module.isRunning = false;

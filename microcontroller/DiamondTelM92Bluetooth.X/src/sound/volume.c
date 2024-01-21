@@ -122,6 +122,8 @@ static void setPotentiometerLevel(VOLUME_Level level) {
 }
 
 void VOLUME_Initialize(void) {
+  PMD6bits.SPI1MD = 0;
+  SPI1_Initialize();
   SPI1_Open(SPI1_DEFAULT);
   module.currentLevel = 0xFF;
   module.currentMode = 0xFF;

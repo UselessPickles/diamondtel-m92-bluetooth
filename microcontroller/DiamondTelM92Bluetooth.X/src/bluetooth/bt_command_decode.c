@@ -175,6 +175,9 @@ static unsigned short BT_CmdBufferPt;                    //
 /*======================================*/
 void BT_CommandDecode_Initialize(void)
 {
+    PMD6bits.U2MD = 0;
+    UART2_Initialize();
+    
     BT_CmdDecodedFlag = 0;
     BT_CmdDecodeState = RX_DECODE_CMD_SYNC_AA;
     while(uart2RxCount)

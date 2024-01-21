@@ -9948,15 +9948,15 @@
       </entry>
       <entry>
          <key class="com.microchip.mcc.core.tokenManager.RegisterKey" moduleName="PMD" registerAlias="PMD0"/>
-         <value>40</value>
+         <value>104</value>
       </entry>
       <entry>
          <key class="com.microchip.mcc.core.tokenManager.RegisterKey" moduleName="PMD" registerAlias="PMD1"/>
-         <value>170</value>
+         <value>235</value>
       </entry>
       <entry>
          <key class="com.microchip.mcc.core.tokenManager.RegisterKey" moduleName="PMD" registerAlias="PMD3"/>
-         <value>135</value>
+         <value>199</value>
       </entry>
       <entry>
          <key class="com.microchip.mcc.core.tokenManager.RegisterKey" moduleName="PMD" registerAlias="PMD4"/>
@@ -9968,7 +9968,7 @@
       </entry>
       <entry>
          <key class="com.microchip.mcc.core.tokenManager.RegisterKey" moduleName="PMD" registerAlias="PMD6"/>
-         <value>197</value>
+         <value>247</value>
       </entry>
       <entry>
          <key class="com.microchip.mcc.core.tokenManager.RegisterKey" moduleName="PMD" registerAlias="PMD7"/>
@@ -9988,7 +9988,7 @@
       </entry>
       <entry>
          <key class="com.microchip.mcc.core.tokenManager.SettingKey" moduleName="PMD" registerAlias="PMD0" settingAlias="FVRMD"/>
-         <value>FVR enabled</value>
+         <value>FVR disabled</value>
       </entry>
       <entry>
          <key class="com.microchip.mcc.core.tokenManager.SettingKey" moduleName="PMD" registerAlias="PMD0" settingAlias="HLVDMD"/>
@@ -10012,7 +10012,7 @@
       </entry>
       <entry>
          <key class="com.microchip.mcc.core.tokenManager.SettingKey" moduleName="PMD" registerAlias="PMD1" settingAlias="TMR0MD"/>
-         <value>TMR0 enabled</value>
+         <value>TMR0 disabled</value>
       </entry>
       <entry>
          <key class="com.microchip.mcc.core.tokenManager.SettingKey" moduleName="PMD" registerAlias="PMD1" settingAlias="TMR1MD"/>
@@ -10036,7 +10036,7 @@
       </entry>
       <entry>
          <key class="com.microchip.mcc.core.tokenManager.SettingKey" moduleName="PMD" registerAlias="PMD1" settingAlias="TMR6MD"/>
-         <value>TMR6 enabled</value>
+         <value>TMR6 disabled</value>
       </entry>
       <entry>
          <key class="com.microchip.mcc.core.tokenManager.SettingKey" moduleName="PMD" registerAlias="PMD3" settingAlias="ACTMD"/>
@@ -10056,7 +10056,7 @@
       </entry>
       <entry>
          <key class="com.microchip.mcc.core.tokenManager.SettingKey" moduleName="PMD" registerAlias="PMD3" settingAlias="DAC1MD"/>
-         <value>DAC1 enabled</value>
+         <value>DAC1 disabled</value>
       </entry>
       <entry>
          <key class="com.microchip.mcc.core.tokenManager.SettingKey" moduleName="PMD" registerAlias="PMD3" settingAlias="ZCDMD"/>
@@ -10120,7 +10120,7 @@
       </entry>
       <entry>
          <key class="com.microchip.mcc.core.tokenManager.SettingKey" moduleName="PMD" registerAlias="PMD6" settingAlias="SPI1MD"/>
-         <value>SPI1 enabled</value>
+         <value>SPI1 disabled</value>
       </entry>
       <entry>
          <key class="com.microchip.mcc.core.tokenManager.SettingKey" moduleName="PMD" registerAlias="PMD6" settingAlias="SPI2MD"/>
@@ -10132,11 +10132,11 @@
       </entry>
       <entry>
          <key class="com.microchip.mcc.core.tokenManager.SettingKey" moduleName="PMD" registerAlias="PMD6" settingAlias="U2MD"/>
-         <value>UART2 enabled</value>
+         <value>UART2 disabled</value>
       </entry>
       <entry>
          <key class="com.microchip.mcc.core.tokenManager.SettingKey" moduleName="PMD" registerAlias="PMD6" settingAlias="U3MD"/>
-         <value>UART3 enabled</value>
+         <value>UART3 disabled</value>
       </entry>
       <entry>
          <key class="com.microchip.mcc.core.tokenManager.SettingKey" moduleName="PMD" registerAlias="PMD6" settingAlias="U4MD"/>
@@ -20890,7 +20890,7 @@
       </entry>
       <entry>
          <file>mcc_generated_files\mcc.c</file>
-         <hash>5b33b45cee4b5c9dc835a2c8b3c0fa0b6aea102914a7d619c228e40513618c7c</hash>
+         <hash>f39e6fda6f785200e865fe131a7ca3365b2e324bed2a1b5c1a552051c6bd61eb</hash>
       </entry>
       <entry>
          <file>mcc_generated_files\mcc.h</file>

@@ -356,6 +356,11 @@ void HANDSET_Initialize(HANDSET_EventHandler eventHandler) {
   IOCBF5_SetInterruptHandler(pwrButtonInterruptHandler);
 }
 
+void HANDSET_EnableUART(void) {
+  PMD6bits.U3MD = 0;
+  UART3_Initialize();
+}
+
 void HANDSET_Task(void) {
   HANDSET_Event event;
 

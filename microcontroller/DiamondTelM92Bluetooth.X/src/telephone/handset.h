@@ -579,9 +579,16 @@ typedef enum HANDSET_Symbol {
 /**
  * Initialize the HANDSET module.
  * 
+ * NOTE: UART communication is not enabled until HANDSET_EnableUART() is called.
+ * 
  * @param eventHandler - Event handler function pointer.
  */
 void HANDSET_Initialize(HANDSET_EventHandler eventHandler);
+
+/**
+ * Enable UART communication to the handset.
+ */
+void HANDSET_EnableUART(void);
 
 /**
  * Main task loop behavior for the HANDSET module.
