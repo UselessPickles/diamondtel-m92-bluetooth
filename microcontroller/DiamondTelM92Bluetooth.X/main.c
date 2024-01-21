@@ -41,6 +41,9 @@
     SOFTWARE.
 */
 
+// Disable "unused function" warning
+#pragma warning disable 520
+
 #include "mcc_generated_files/mcc.h"
 #include "src/app.h"
 
