@@ -188,6 +188,10 @@ static void setHandsetAudioOutput(void) {
 
     HANDSET_FlushWriteBuffer();
 
+    // Handset microphone should only be on if the handset is off-hook
+    // AND audio is coming from the Bluetooth module by default (e.g., in a call))
+    HANDSET_SetMicrophone(!isOnHook && (defaultAudioSource == SOUND_AudioSource_BT));
+    
     TIMEOUT_StartOrContinue(
         &finishSetHandsetAudioOutputTimeout,
         (newSpeakerMode == SpeakerMode_NONE) 
@@ -372,10 +376,6 @@ void SOUND_Task(void) {
 }
 
 void SOUND_HANDSET_EventHandler(HANDSET_Event const* event) {
-  if (event->type == HANDSET_EventType_HOOK) {
-    HANDSET_SetMicrophone(!event->isOnHook);
-  }
-
   if (event->type == HANDSET_EventType_BUTTON_UP) {
     if (event->button == currentButtonBeep) {
       SOUND_Stop(SOUND_Channel_FOREGROUND);

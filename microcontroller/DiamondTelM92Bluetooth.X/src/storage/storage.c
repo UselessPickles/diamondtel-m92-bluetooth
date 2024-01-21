@@ -13,6 +13,7 @@
 #include <stddef.h>
 #include <stdlib.h>
 #include <ctype.h>
+#include <stdio.h>
 
 #define MARKER (0b10101100)
 #define VERSION (25)
@@ -23,15 +24,22 @@ typedef struct {
 } directory_entry_t;
   
 typedef struct {
-  bool statusBeepEnabled: 1;
+  bool statusBeepDisabled: 1;
   bool oneMinuteBeepEnabled: 1;
   bool oemHandsFreeIntegrationEnabled: 1;
-  bool showOwnNumberEnabled: 1;
-  bool reserved: 1;
+  bool showOwnNumberDisabled: 1;
+  bool ignitionSenseDisabled: 1;
   bool dualNumbersEnabled: 1;
-  bool cumulativeTimerResetEnabled: 1;
+  bool cumulativeTimerResetDisabled: 1;
   bool autoAnswerEnabled: 1;
 } toggles_t;
+
+typedef struct {
+  bool powerOnAtStartup: 1;
+  bool powerOnByIgnitionEnabled: 1;
+  bool powerOffLockoutDisabled: 1;
+  uint8_t reserved: 5;
+} toggles2_t;
 
 typedef struct {
   uint8_t lastCallMinutes;
@@ -61,7 +69,8 @@ typedef struct {
   uint8_t speedDial[3][MAX_EXTENDED_PHONE_NUMBER_LENGTH >> 1];
   uint8_t securityCode[SECURITY_CODE_LENGTH >> 1];
   uint8_t callerIdMode;
-  uint8_t reserved[44];
+  toggles2_t toggles2;
+  uint8_t reserved[43];
   directory_entry_t directory[STORAGE_DIRECTORY_SIZE];
   uint8_t creditCardNumbers[STORAGE_CREDIT_CARD_COUNT][CREDIT_CARD_NUMBER_LENGTH >> 1];
 } storage_t;
@@ -197,12 +206,13 @@ static void initializeDefaultStorageData(void) {
   storage.callTime.accumulatedCallSeconds = 0;
   storage.callTime.totalCallMinutes = 0;
   storage.callTime.totalCallSeconds = 0;
-  storage.toggles.statusBeepEnabled = true;
+  storage.toggles.statusBeepDisabled = false;
   storage.toggles.oneMinuteBeepEnabled = false;
   storage.toggles.oemHandsFreeIntegrationEnabled = false;
-  storage.toggles.showOwnNumberEnabled = true;
+  storage.toggles.showOwnNumberDisabled = false;
+  storage.toggles.ignitionSenseDisabled = false;
   storage.toggles.dualNumbersEnabled = false;
-  storage.toggles.cumulativeTimerResetEnabled = true;
+  storage.toggles.cumulativeTimerResetDisabled = false;
   storage.toggles.autoAnswerEnabled = false;
   storage.activeOwnNumberIndex = 0;
   storage.programmingCount = 0;
@@ -214,7 +224,10 @@ static void initializeDefaultStorageData(void) {
   memset(storage.lastDialedNumber, 0xFF, MAX_EXTENDED_PHONE_NUMBER_LENGTH >> 1);
   memset(storage.speedDial, 0xFF, (MAX_EXTENDED_PHONE_NUMBER_LENGTH >> 1) * 3);
   memset(storage.securityCode, 0, (SECURITY_CODE_LENGTH >> 1));
-
+  storage.toggles2.powerOnAtStartup = false;  
+  storage.toggles2.powerOnByIgnitionEnabled = false;  
+  storage.toggles2.powerOffLockoutDisabled = false;
+  
   // Store everything except for the directory to EEPROM
   EEPROM_WriteBytes(0, &storage, offsetof(storage_t, reserved));
 
@@ -656,12 +669,12 @@ void STORAGE_ResetCallTime(void) {
   EEPROM_AsyncWriteBytes(offsetof(storage_t, callTime), &storage.callTime, sizeof(storage.callTime));
 }
 
-bool STORAGE_GetStatusBeepEnabled(void) {
-  return storage.toggles.statusBeepEnabled;
+bool STORAGE_GetStatusBeepDisabled(void) {
+  return storage.toggles.statusBeepDisabled;
 }
 
-void STORAGE_SetStatusBeepEnabled(bool enabled) {
-  storage.toggles.statusBeepEnabled = enabled;
+void STORAGE_SetStatusBeepDisabled(bool disabled) {
+  storage.toggles.statusBeepDisabled = disabled;
   EEPROM_AsyncWriteBytes(offsetof(storage_t, toggles), &storage.toggles, sizeof(toggles_t));
 }
 
@@ -692,13 +705,31 @@ void STORAGE_SetCallerIdMode(CALLER_ID_Mode mode) {
   EEPROM_AsyncWriteByte(offsetof(storage_t, callerIdMode), storage.callerIdMode);
 }
 
-bool STORAGE_GetShowOwnNumberEnabled(void) {
-  return storage.toggles.showOwnNumberEnabled;
+bool STORAGE_GetShowOwnNumberDisabled(void) {
+  return storage.toggles.showOwnNumberDisabled;
 }
 
-void STORAGE_SetShowOwnNumberEnabled(bool enabled) {
-  storage.toggles.showOwnNumberEnabled = enabled;
+void STORAGE_SetShowOwnNumberDisabled(bool disabled) {
+  storage.toggles.showOwnNumberDisabled = disabled;
   EEPROM_AsyncWriteBytes(offsetof(storage_t, toggles), &storage.toggles, sizeof(toggles_t));
+}
+
+bool STORAGE_GetIgnitionSenseDisabled(void) {
+  return storage.toggles.ignitionSenseDisabled;
+}
+
+void STORAGE_SetIgnitionSenseDisabled(bool disabled) {
+  storage.toggles.ignitionSenseDisabled = disabled;
+  EEPROM_AsyncWriteBytes(offsetof(storage_t, toggles), &storage.toggles, sizeof(toggles_t));
+}
+
+bool STORAGE_GetPowerOffLockoutDisabled(void) {
+  return storage.toggles2.powerOffLockoutDisabled;
+}
+
+void STORAGE_SetPowerOffLockoutDisabled(bool disabled) {
+  storage.toggles2.powerOffLockoutDisabled = disabled;
+  EEPROM_AsyncWriteBytes(offsetof(storage_t, toggles2), &storage.toggles2, sizeof(toggles2_t));
 }
 
 bool STORAGE_GetDualNumberEnabled(void) {
@@ -714,12 +745,12 @@ void STORAGE_SetDualNumberEnabled(bool enabled) {
   EEPROM_AsyncWriteBytes(offsetof(storage_t, toggles), &storage.toggles, sizeof(toggles_t));
 }
 
-bool STORAGE_GetCumulativeTimerResetEnabled(void) {
-  return storage.toggles.cumulativeTimerResetEnabled;
+bool STORAGE_GetCumulativeTimerResetDisabled(void) {
+  return storage.toggles.cumulativeTimerResetDisabled;
 }
 
-void STORAGE_SetCumulativeTimerResetEnabled(bool enabled) {
-  storage.toggles.cumulativeTimerResetEnabled = enabled;
+void STORAGE_SetCumulativeTimerResetDisabled(bool disabled) {
+  storage.toggles.cumulativeTimerResetDisabled = disabled;
   EEPROM_AsyncWriteBytes(offsetof(storage_t, toggles), &storage.toggles, sizeof(toggles_t));
 }
 
@@ -730,6 +761,24 @@ bool STORAGE_GetAutoAnswerEnabled(void) {
 void STORAGE_SetAutoAnswerEnabled(bool enabled) {
   storage.toggles.autoAnswerEnabled = enabled;
   EEPROM_AsyncWriteBytes(offsetof(storage_t, toggles), &storage.toggles, sizeof(toggles_t));
+}
+
+bool STORAGE_GetPowerOnAtStartupEnabled(void) {
+  return storage.toggles2.powerOnAtStartup;
+}
+
+void STORAGE_SetPowerOnAtStartupEnabled(bool enabled) {
+  storage.toggles2.powerOnAtStartup = enabled;
+  EEPROM_AsyncWriteBytes(offsetof(storage_t, toggles2), &storage.toggles2, sizeof(toggles2_t));
+}
+
+bool STORAGE_GetPowerOnByIgnitionEnabled(void) {
+  return storage.toggles2.powerOnByIgnitionEnabled;
+}
+
+void STORAGE_SetPowerOnByIgnitionEnabled(bool enabled) {
+  storage.toggles2.powerOnByIgnitionEnabled = enabled;
+  EEPROM_AsyncWriteBytes(offsetof(storage_t, toggles2), &storage.toggles2, sizeof(toggles2_t));
 }
 
 uint8_t STORAGE_GetActiveOwnNumberIndex(void) {

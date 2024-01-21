@@ -211,6 +211,18 @@ void BT_ReadLinkedDeviceName(void) {
   copySendingCommandToBuffer(command, 7);  
 }
 
+void BT_ReadLocalBDAddress(void) {
+  uint8_t command[7];
+  command[0] = 0xAA;                      //header byte 0
+  command[1] = 0x00;                      //header byte 1
+  command[2] = 3;                      //length
+  command[3] = READ_LOCAL_BD_ADDR;   	//command ID
+  command[4] = BT_linkIndex; // link_index, set to 0
+  command[5] = 0; // 0 = read device name
+  command[6] = BT_CalculateCmdChecksum(&command[2], &command[5]);
+  copySendingCommandToBuffer(command, 7);  
+}
+
 void BT_ReadDeviceName(void) {
   uint8_t command[6];
   command[0] = 0xAA;                      //header byte 0

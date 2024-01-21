@@ -349,7 +349,7 @@ void HANDSET_Initialize(HANDSET_EventHandler eventHandler) {
   handset.eventHandler = eventHandler;
   handset.charAtPos0 = BLANK_PRINTABLE_CHAR;
   handset.isPwrButtonChangeDetected = false;
-  handset.isPwrButtonDown = !IO_PWR_GetValue();
+  handset.isPwrButtonDown = !IO_PWR_BTN_GetValue();
   handset.currentButtonDownDuration = HANDSET_HoldDuration_MAX + 1;
   handset.isOnHook = true;
   
@@ -378,7 +378,7 @@ void HANDSET_Task(void) {
   if (handset.isPwrButtonChangeDetected) {
     handset.isPwrButtonChangeDetected = false;
 
-    bool const isPwrButtonDown = !IO_PWR_GetValue();
+    bool const isPwrButtonDown = !IO_PWR_BTN_GetValue();
     
     if (isPwrButtonDown) {
       PIE3bits.TMR2IE = 0;
@@ -620,6 +620,7 @@ bool HANDSET_IsAnyButtonDown(void) {
 void HANDSET_CancelCurrentButtonHoldEvents(void) {
   PIE3bits.TMR2IE = 0;
   handset.currentButtonDownDuration = HANDSET_HoldDuration_MAX + 1;
+  handset.currentButtonHold = 0;
   PIE3bits.TMR2IE = 1;
 }
 

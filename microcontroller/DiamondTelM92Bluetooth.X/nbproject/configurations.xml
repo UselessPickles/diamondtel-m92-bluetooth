@@ -27,12 +27,16 @@
         <itemPath>mcc_generated_files/uart1.h</itemPath>
         <itemPath>mcc_generated_files/uart2.h</itemPath>
         <itemPath>mcc_generated_files/uart3.h</itemPath>
-        <itemPath>mcc_generated_files/uart4.h</itemPath>
         <itemPath>mcc_generated_files/tmr2.h</itemPath>
         <itemPath>mcc_generated_files/tmr6.h</itemPath>
         <itemPath>mcc_generated_files/tmr4.h</itemPath>
         <itemPath>mcc_generated_files/tmr0.h</itemPath>
         <itemPath>mcc_generated_files/fvr.h</itemPath>
+        <itemPath>mcc_generated_files/adcc.h</itemPath>
+      </logicalFolder>
+      <logicalFolder name="f8" displayName="Power" projectFiles="true">
+        <itemPath>src/power/battery.h</itemPath>
+        <itemPath>src/power/external_power.h</itemPath>
       </logicalFolder>
       <logicalFolder name="f1" displayName="Sound" projectFiles="true">
         <itemPath>src/sound/sound.h</itemPath>
@@ -46,7 +50,6 @@
         <itemPath>src/storage/storage.h</itemPath>
       </logicalFolder>
       <logicalFolder name="f5" displayName="Telephone" projectFiles="true">
-        <itemPath>src/telephone/transceiver.h</itemPath>
         <itemPath>src/telephone/handset.h</itemPath>
       </logicalFolder>
       <logicalFolder name="f6" displayName="UI" projectFiles="true">
@@ -67,6 +70,9 @@
         <itemPath>src/util/interval.h</itemPath>
         <itemPath>src/util/string.h</itemPath>
         <itemPath>src/util/timeout.h</itemPath>
+      </logicalFolder>
+      <logicalFolder name="f9" displayName="Vehicle" projectFiles="true">
+        <itemPath>src/vehicle/ignition.h</itemPath>
       </logicalFolder>
       <itemPath>src/app.h</itemPath>
       <itemPath>src/constants.h</itemPath>
@@ -101,12 +107,16 @@
         <itemPath>mcc_generated_files/uart1.c</itemPath>
         <itemPath>mcc_generated_files/uart2.c</itemPath>
         <itemPath>mcc_generated_files/uart3.c</itemPath>
-        <itemPath>mcc_generated_files/uart4.c</itemPath>
         <itemPath>mcc_generated_files/tmr2.c</itemPath>
         <itemPath>mcc_generated_files/tmr4.c</itemPath>
         <itemPath>mcc_generated_files/tmr6.c</itemPath>
         <itemPath>mcc_generated_files/tmr0.c</itemPath>
         <itemPath>mcc_generated_files/fvr.c</itemPath>
+        <itemPath>mcc_generated_files/adcc.c</itemPath>
+      </logicalFolder>
+      <logicalFolder name="f8" displayName="Power" projectFiles="true">
+        <itemPath>src/power/battery.c</itemPath>
+        <itemPath>src/power/external_power.c</itemPath>
       </logicalFolder>
       <logicalFolder name="f1" displayName="Sound" projectFiles="true">
         <itemPath>src/sound/sound.c</itemPath>
@@ -120,7 +130,6 @@
         <itemPath>src/storage/storage.c</itemPath>
       </logicalFolder>
       <logicalFolder name="f2" displayName="Telephone" projectFiles="true">
-        <itemPath>src/telephone/transceiver.c</itemPath>
         <itemPath>src/telephone/handset.c</itemPath>
       </logicalFolder>
       <logicalFolder name="f6" displayName="UI" projectFiles="true">
@@ -141,6 +150,9 @@
         <itemPath>src/util/interval.c</itemPath>
         <itemPath>src/util/string.c</itemPath>
         <itemPath>src/util/timeout.c</itemPath>
+      </logicalFolder>
+      <logicalFolder name="f9" displayName="Vehicle" projectFiles="true">
+        <itemPath>src/vehicle/ignition.c</itemPath>
       </logicalFolder>
       <itemPath>main.c</itemPath>
       <itemPath>src/app.c</itemPath>

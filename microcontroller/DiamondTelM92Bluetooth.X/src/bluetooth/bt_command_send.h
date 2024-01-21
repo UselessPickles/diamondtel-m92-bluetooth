@@ -158,6 +158,7 @@ void BT_SendBytesAsCompleteCommand(uint8_t const* command, uint8_t command_lengt
 void BT_ResetEEPROM(void);
 void BT_SetEventMask(void);
 void BT_ReadLinkedDeviceName(void);
+void BT_ReadLocalBDAddress(void);
 void BT_ReadDeviceName(void);
 bool BT_SetDeviceName(char const* name);
 void BT_StartVoiceCommand(void);

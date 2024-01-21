@@ -58,11 +58,11 @@
 #include "tmr2.h"
 #include "tmr0.h"
 #include "fvr.h"
+#include "adcc.h"
 #include "dac1.h"
 #include "uart3.h"
 #include "uart2.h"
 #include "uart1.h"
-#include "uart4.h"
 #include "spi1.h"
 
 

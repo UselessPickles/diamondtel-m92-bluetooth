@@ -19,6 +19,8 @@ typedef enum State {
   State_SET_TEL_NUMBER2,
   State_SET_SECURITY_CODE,
   State_DISABLE_CUMULATIVE_RESET,
+  State_DISABLE_IGNITION_SENSE,
+  State_DISABLE_POWER_OFF_LOCKOUT,
   State_DISABLE_OWN_TEL,
   State_CALLER_ID_MODE,
   State_ENABLE_OEM_HANDS_FREE_INTEGRATION,
@@ -75,12 +77,22 @@ static void initState(State newState) {
       
     case State_DISABLE_CUMULATIVE_RESET:  
       HANDSET_PrintString("DIS CU RESET ");
-      HANDSET_PrintChar('0' + !STORAGE_GetCumulativeTimerResetEnabled());
+      HANDSET_PrintChar('0' + STORAGE_GetCumulativeTimerResetDisabled());
+      break;
+
+    case State_DISABLE_IGNITION_SENSE:  
+      HANDSET_PrintString("DIS IGNSENSE ");
+      HANDSET_PrintChar('0' + STORAGE_GetIgnitionSenseDisabled());
+      break;
+
+    case State_DISABLE_POWER_OFF_LOCKOUT:  
+      HANDSET_PrintString("DIS PWRLOCK  ");
+      HANDSET_PrintChar('0' + STORAGE_GetPowerOffLockoutDisabled());
       break;
 
     case State_DISABLE_OWN_TEL:  
       HANDSET_PrintString("DIS OWNTEL   ");
-      HANDSET_PrintChar('0' + !STORAGE_GetShowOwnNumberEnabled());
+      HANDSET_PrintChar('0' + STORAGE_GetShowOwnNumberDisabled());
       break;
       
     case State_CALLER_ID_MODE:  
@@ -118,6 +130,8 @@ static bool storeInput(void) {
   switch (module.inputReason) {
     case State_ENABLE_DUAL_NUMBER:
     case State_DISABLE_CUMULATIVE_RESET:
+    case State_DISABLE_IGNITION_SENSE:
+    case State_DISABLE_POWER_OFF_LOCKOUT:
     case State_DISABLE_OWN_TEL:
     case State_ENABLE_OEM_HANDS_FREE_INTEGRATION: {
       char firstDigit = module.input[0];
@@ -135,11 +149,19 @@ static bool storeInput(void) {
           break;
           
         case State_DISABLE_CUMULATIVE_RESET:
-          STORAGE_SetCumulativeTimerResetEnabled(!isOn);
+          STORAGE_SetCumulativeTimerResetDisabled(isOn);
+          break;
+          
+        case State_DISABLE_IGNITION_SENSE:
+          STORAGE_SetIgnitionSenseDisabled(isOn);
+          break;
+          
+        case State_DISABLE_POWER_OFF_LOCKOUT:
+          STORAGE_SetPowerOffLockoutDisabled(isOn);
           break;
           
         case State_DISABLE_OWN_TEL:
-          STORAGE_SetShowOwnNumberEnabled(!isOn);
+          STORAGE_SetShowOwnNumberDisabled(isOn);
           break;
           
         case State_ENABLE_OEM_HANDS_FREE_INTEGRATION:

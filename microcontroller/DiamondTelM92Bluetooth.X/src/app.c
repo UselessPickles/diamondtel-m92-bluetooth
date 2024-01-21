@@ -10,8 +10,10 @@
 #include "app.h"
 #include "constants.h"
 #include "../mcc_generated_files/pin_manager.h"
+#include "power/external_power.h"
+#include "power/battery.h"
+#include "vehicle/ignition.h"
 #include "telephone/handset.h"
-#include "telephone/transceiver.h"
 #include "sound/external_mic.h"
 #include "sound/tone.h"
 #include "sound/sound.h"
@@ -74,6 +76,7 @@ static char const* const BT_CallStatusLabel[] = {
 };
 
 static enum {
+  APP_State_SLEEP,
   APP_State_INIT_START,
   APP_State_INIT_SET_LCD_ANGLE,
   APP_State_INIT_ALL_DISPLAY_ON,
@@ -115,6 +118,7 @@ static enum {
 static int lastAppState;
 
 static char const* const appStateLabel[] = {
+  "SLEEP",
   "INIT_START",
   "INIT_SET_LCD_ANGLE",
   "INIT_ALL_DISPLAY_ON",
@@ -160,15 +164,28 @@ static timeout_t linkbackRetryTimeout;
 
 static timeout_t appStateTimeout;
 
-static void reboot(void) {
-  if (appState == APP_State_REBOOT) {
+static void reboot(bool powerOnAtStartup) {
+  if (appState >= APP_State_REBOOT) {
     return;
   }
   
-  HANDSET_SetTextBlink(false);
-  TIMEOUT_Start(&appStateTimeout, 10);
+  STORAGE_SetPowerOnAtStartupEnabled(powerOnAtStartup);
+  
   IO_BT_RESET_SetLow();
+  HANDSET_SetBacklight(false);
+  HANDSET_SetLoudSpeaker(false);
+  HANDSET_SetEarSpeaker(false);
+  HANDSET_SetMicrophone(false);
+  HANDSET_SetMasterAudio(false);
+  HANDSET_ClearText();
+  HANDSET_SetAllIndicators(false);
+  HANDSET_FlushWriteBuffer();
+  TIMEOUT_Start(&appStateTimeout, 10);
   appState = APP_State_REBOOT;
+}
+
+static void rebootAndPowerOn(void) {
+  reboot(true);
 }
 
 static void rebootAfterDelay(uint8_t delay) {
@@ -178,6 +195,29 @@ static void rebootAfterDelay(uint8_t delay) {
 
   TIMEOUT_Start(&appStateTimeout, delay);
   appState = APP_State_REBOOT_AFTER_DELAY;
+}
+
+static void powerOn(void) {
+  if (BATTERY_GetBatteryLevel() == 1) {
+    printf("[BATTERY] DEPLETED! Refusing to power ON!!!\r\n");
+    // Don't power on if battery is depleted
+    return;
+  }
+  
+  IO_SWITCHED_PWR_ENABLE_SetHigh();
+  TIMEOUT_Start(&appStateTimeout, 10);
+  appState = APP_State_INIT_START;
+}
+
+static void powerOff(bool byIgnition) {
+  STORAGE_SetPowerOnByIgnitionEnabled(byIgnition);
+  reboot(false);
+}
+
+static void powerOffIfIgnitionOff(void) {
+  if (!STORAGE_GetIgnitionSenseDisabled() && EXTERNAL_POWER_IsConnected() && !IGNITION_IsOn()) {
+    powerOff(true);
+  }
 }
 
 #define INITIAL_BATTERY_LEVEL_REPORT_DELAY (100)
@@ -190,6 +230,7 @@ static struct {
   uint8_t signalStrength;
   uint8_t maxBatteryLevel;
   uint8_t batteryLevel;
+  uint8_t lastSentCarPhoneBatteryLevel;
   timeout_t initialBatteryLevelReportTimeout;
 } cellPhoneState;
 
@@ -244,7 +285,7 @@ static void playStatusBeep(void) {
       // Bluetooth HFP. This prevents status beeps before HFP connection and
       // after HFP disconnection.
       !cellPhoneState.isConnected || 
-      !STORAGE_GetStatusBeepEnabled() || 
+      STORAGE_GetStatusBeepDisabled() || 
       TIMEOUT_IsPending(&statusBeepCooldownTimeout)
       ) {
     return;
@@ -263,7 +304,7 @@ static void playStatusBeep(void) {
  * @param isConnected - true if Bluetooth is now connected.
  */
 static void playBluetoothConnectionStatusBeep(bool isConnected) {
-  if (!STORAGE_GetStatusBeepEnabled()) {
+  if (STORAGE_GetStatusBeepDisabled()) {
     return;
   }
   
@@ -295,6 +336,10 @@ static timeout_t idleTimeout;
 static volatile bool isHandsetIdle;
 
 static void wakeUpHandset(bool backlight) {
+  if (appState < APP_State_NUMBER_INPUT) {
+    return;
+  }
+  
   TIMEOUT_Start(&idleTimeout, IDLE_TIMEOUT);
 
   isHandsetIdle = false;
@@ -306,6 +351,10 @@ static void wakeUpHandset(bool backlight) {
 }
 
 static void sleepHandset(void) {
+  if (appState < APP_State_NUMBER_INPUT) {
+    return;
+  }
+
   if (
       !TIMEOUT_IsPending(&idleTimeout) &&
       HANDSET_IsOnHook() && 
@@ -317,7 +366,7 @@ static void sleepHandset(void) {
       (appState != APP_State_MEMORY_GAME) && 
       (appState != APP_State_SELECT_RINGTONE) && 
       !callFailedTimer &&
-      !TRANSCEIVER_IsConnectedToExternalPower()
+      !EXTERNAL_POWER_IsConnected()
       ) {
     isHandsetIdle = true;
     HANDSET_SetBacklight(false);
@@ -395,7 +444,7 @@ static void NumberInput_PrintToHandset(void)  {
   CALL_TIMER_DisableDisplayUpdate();
 
   if (numberInputLength == 0) {
-    if (TRANSCEIVER_IsBatteryLevelLow()) {
+    if (BATTERY_IsBatteryLevelLow()) {
       HANDSET_DisableTextDisplay();
       HANDSET_ClearText();
       HANDSET_PrintString("  LOW  BATTERY");
@@ -785,17 +834,13 @@ static void setBluetoothName(char const* name) {
 static void displayBatteryLevel(bool showPairedBatteryLevel) {
   uint8_t batteryLevel = showPairedBatteryLevel 
       ? cellPhoneState.batteryLevel 
-      : TRANSCEIVER_GetBatteryLevel();
+      : BATTERY_GetBatteryLevelForHandset();
   
   uint8_t targetAppState = showPairedBatteryLevel
       ? APP_State_DISPLAY_PAIRED_BATTERY_LEVEL
       : APP_State_DISPLAY_BATTERY_LEVEL;
 
   if (appState != targetAppState) {
-    if (!showPairedBatteryLevel) {
-      TRANSCEIVER_PollBatteryLevelNow();
-    }
-    
     CALL_TIMER_DisableDisplayUpdate();
     HANDSET_DisableTextDisplay();
     HANDSET_PrintString(showPairedBatteryLevel ? "CELLBATV:" : "BATTERYV:");
@@ -1131,7 +1176,7 @@ static void handle_SECURITY_CODE_Success_SET_BT_DEVICE_NAME(void) {
 
 static void handle_SECURITY_CODE_Success_TOGGLE_DUAL_NUMBER(void) {
   STORAGE_SetActiveOwnNumberIndex(!STORAGE_GetActiveOwnNumberIndex());
-  reboot();
+  rebootAndPowerOn();
 }
 
 static SECURITY_CODE_Callback SECURITY_CODE_SUCCESS_CALLBACKS[] = {
@@ -1276,8 +1321,12 @@ static void handleCallStatusChange(int newCallStatus) {
 
   switch (BT_CallStatus) {
     case BT_CALL_IDLE:
+      powerOffIfIgnitionOff();
       TIMEOUT_Start(&idleTimeout, IDLE_TIMEOUT);
       CALL_TIMER_Stop();
+      
+      APP_CallAction = APP_CALL_IDLE;
+      TIMEOUT_Cancel(&callActionTimeout);
       
       // Perform extra steps only if the OEM Hands-Free Controller is connected...
       if (isOemHandsFreeControllerConnected) {
@@ -1481,20 +1530,13 @@ static void reportBatteryLevelToBT(void) {
     return;
   }
   
-  uint8_t batteryLevel;
+  uint8_t const batteryLevel = BATTERY_GetBatteryLevelForBT();
   
-  if (TRANSCEIVER_IsBatteryLevelLow()) {
-    batteryLevel = 0;
-  } else {
-    batteryLevel = TRANSCEIVER_GetBatteryLevel();
-    
-    if (batteryLevel == 0) {
-      // Battery level not known yet, so don't report it
-      return;
-    }
-    
-    batteryLevel = (batteryLevel << 1) - 1;
+  if (batteryLevel == cellPhoneState.lastSentCarPhoneBatteryLevel) {
+    return;
   }
+  
+  cellPhoneState.lastSentCarPhoneBatteryLevel = batteryLevel;
   
   char cmd[] = "+IPHONEACCEV=1,1, ";
   cmd[17] = '0' + batteryLevel;
@@ -1510,7 +1552,7 @@ static void handle_CLR_CODES_Event(CLR_CODES_EventType event) {
       if (count < 3) {
         STORAGE_SetProgrammingCount(count + 1);
         appState = APP_State_PROGRAMMING;
-        PROGRAMMING_Start(reboot);
+        PROGRAMMING_Start(rebootAndPowerOn);
       }
       break;
     }
@@ -1518,12 +1560,12 @@ static void handle_CLR_CODES_Event(CLR_CODES_EventType event) {
     case CLR_CODES_EventType_PROGRAM_RESET: 
       STORAGE_SetProgrammingCount(0);
       appState = APP_State_PROGRAMMING;
-      PROGRAMMING_Start(reboot);
+      PROGRAMMING_Start(rebootAndPowerOn);
       break;
     
     case CLR_CODES_EventType_SOUND_TEST: 
       appState = APP_State_SOUND_TEST;
-      SOUND_TEST_Start(reboot);
+      SOUND_TEST_Start(rebootAndPowerOn);
       break;
     
     case CLR_CODES_EventType_FACTORY_RESET: 
@@ -1553,28 +1595,28 @@ static uint8_t getCreditCardMemoryIndexFromButton(HANDSET_Button button) {
 }
 
 void handle_HANDSET_Event(HANDSET_Event const* event);
-void handle_TRANSCEIVER_Event(TRANSCEIVER_EventType event);
+void handle_EXTERNAL_POWER_Event(EXTERNAL_POWER_EventType event);
+void handle_BATTERY_Event(BATTERY_EventType event);
+void handle_IGNITION_Event(IGNITION_EventType event);
 void handle_ATCMD_UnsolicitedResult(char const* result);
 
 void APP_Initialize(void) {
-  IO_BT_RESET_SetLow();
-  
-  appState = APP_State_INIT_START;
   lastAppState = -1;
   BT_CallStatus = BT_CALL_IDLE;
 
   EEPROM_Initialize();
-  TONE_Initialize();
-  HANDSET_Initialize(handle_HANDSET_Event);
-  TRANSCEIVER_Initialize(handle_TRANSCEIVER_Event);
-  INDICATOR_Initialize();
-  CALL_TIMER_Initialize();
-  BT_CommandDecode_Initialize();
-  BT_CommandSend_Initialize();
-  ATCMD_Initialize(handle_ATCMD_UnsolicitedResult);
-  MARQUEE_Initialize();
-  CLR_CODES_Initialize();
-  INTERVAL_Initialize(&lowBatteryBeepInterval, LOW_BATTERY_BEEP_INTERVAL);
+  STORAGE_Initialize();
+  EXTERNAL_POWER_Initialize(handle_EXTERNAL_POWER_Event);
+  BATTERY_Initialize(handle_BATTERY_Event);
+  IGNITION_Initialize(handle_IGNITION_Event);
+  HANDSET_Initialize(handle_HANDSET_Event);  
+  
+  if (STORAGE_GetPowerOnAtStartupEnabled()) {
+    STORAGE_SetPowerOnAtStartupEnabled(false);
+    powerOn();
+  } else {
+    appState = APP_State_SLEEP;
+  }  
 }
 
 void APP_Task(void) {
@@ -1583,15 +1625,48 @@ void APP_Task(void) {
     printf("[App State] %s\r\n", appStateLabel[appState]);
   }
   
+  TIMEOUT_Task(&appStateTimeout);
+
+  EXTERNAL_POWER_Task();
+  BATTERY_Task();
+  IGNITION_Task();
   EEPROM_Task();
+  HANDSET_Task();
+
+  switch (appState) {
+    case APP_State_SLEEP:
+      return;
+      
+    case APP_State_INIT_START:
+      if (!TIMEOUT_IsPending(&appStateTimeout)) {
+        TIMEOUT_Start(&appStateTimeout, 25);
+        TONE_Initialize();
+        INDICATOR_Initialize();
+        CALL_TIMER_Initialize();
+        BT_CommandDecode_Initialize();
+        BT_CommandSend_Initialize();
+        ATCMD_Initialize(handle_ATCMD_UnsolicitedResult);
+        MARQUEE_Initialize();
+        CLR_CODES_Initialize();
+        INTERVAL_Initialize(&lowBatteryBeepInterval, LOW_BATTERY_BEEP_INTERVAL);
+        VOLUME_Initialize();
+
+        // Powering the handset on causes a false detection of the PWR button
+        // getting pressed again, so cancel the "hold" tracking to prevent a 
+        // long hold during power-on from causing a power-off.
+        HANDSET_CancelCurrentButtonHoldEvents();
+
+        appState = APP_State_INIT_SET_LCD_ANGLE;
+      }
+      return;
+  }
+  
   VOLUME_Task();
   SOUND_Task();
   INDICATOR_Task();
   MARQUEE_Task();
   BT_CommandDecode_Task();
   BT_CommandSend_Task();
-  HANDSET_Task();
-  TRANSCEIVER_Task();
   EXTERNAL_MIC_Task();
   
   switch (appState) {
@@ -1607,7 +1682,6 @@ void APP_Task(void) {
   ATCMD_Task();
   CLR_CODES_Task();
   
-  TIMEOUT_Task(&appStateTimeout);
   TIMEOUT_Task(&statusBeepCooldownTimeout);
 
   if (TIMEOUT_Task(&idleTimeout)) {
@@ -1674,14 +1748,6 @@ void APP_Task(void) {
   }
   
   switch(appState) {
-    case APP_State_INIT_START: 
-      TIMEOUT_Start(&appStateTimeout, 25);
-      STORAGE_Initialize();
-      VOLUME_Initialize();
-      
-      appState = APP_State_INIT_SET_LCD_ANGLE;
-      break;
-      
     case APP_State_INIT_SET_LCD_ANGLE: 
       if (!TIMEOUT_IsPending(&appStateTimeout)) {
         TIMEOUT_Start(&appStateTimeout, 25);
@@ -1689,8 +1755,8 @@ void APP_Task(void) {
         IO_BT_RESET_SetHigh();
         
         appState = APP_State_INIT_ALL_DISPLAY_ON;
-        break;
       }
+      break;
       
     case APP_State_INIT_ALL_DISPLAY_ON:
       if (!TIMEOUT_IsPending(&appStateTimeout)) {
@@ -1719,7 +1785,7 @@ void APP_Task(void) {
         HANDSET_SetIndicator(HANDSET_Indicator_HORN, false);
         HANDSET_SetIndicator(HANDSET_Indicator_MUTE, false);
 
-        if (STORAGE_GetShowOwnNumberEnabled()) {
+        if (!STORAGE_GetShowOwnNumberDisabled()) {
           TIMEOUT_Start(&appStateTimeout, 150);
           STORAGE_GetOwnNumber(STORAGE_GetActiveOwnNumberIndex(), tempNumberBuffer);
           HANDSET_DisableTextDisplay();
@@ -1748,6 +1814,13 @@ void APP_Task(void) {
         EXTERNAL_MIC_Initialize(NULL);
   
         appState = APP_State_NUMBER_INPUT;        
+        
+        // If battery level is low immediately upon powering on,
+        // then simulate the battery low event to trigger indication
+        // to the user.
+        if (BATTERY_IsBatteryLevelLow()) {
+          handle_BATTERY_Event(BATTERY_EventType_BATTERY_LEVEL_IS_LOW);
+        }
       }
       break;
       
@@ -1869,7 +1942,7 @@ void APP_Task(void) {
       
     case APP_State_REBOOT_AFTER_DELAY:
       if (!TIMEOUT_IsPending(&appStateTimeout)) {
-        reboot();
+        rebootAndPowerOn();
       }
       break;
       
@@ -1927,7 +2000,9 @@ void APP_Timer10MS_Interrupt(void) {
   }
 
   ATCMD_Timer10ms_Interrupt();
-  TRANSCEIVER_Timer10MS_Interrupt();
+  EXTERNAL_POWER_Timer10MS_Interrupt();
+  BATTERY_Timer10MS_Interrupt();
+  IGNITION_Timer10MS_Interrupt();
   EXTERNAL_MIC_Timer10MS_Interrupt();
   INDICATOR_Timer10MS_Interrupt();
   MARQUEE_Timer10MS_Interrupt();
@@ -1962,20 +2037,56 @@ void handle_HANDSET_Event(HANDSET_Event const* event) {
   bool isButtonUp = event->type == HANDSET_EventType_BUTTON_UP;
   uint8_t button = event->button;
 
+  if (appState == APP_State_SLEEP) {
+    // Handle power on via the PWR button
+    if (
+        (event->type == HANDSET_EventType_BUTTON_HOLD) && 
+        (button == HANDSET_Button_PWR) &&
+        (event->holdDuration == HANDSET_HoldDuration_SHORT) &&
+        (!EXTERNAL_POWER_IsConnected() || STORAGE_GetIgnitionSenseDisabled() || IGNITION_IsOn())) {
+      powerOn();
+    }
+    
+    return;
+  }
+  
   if (isButtonDown && (button == HANDSET_Button_PWR) && event->isFcn) {
-    reboot();
+    rebootAndPowerOn();
+    return;
+  }
+
+  // Handle power off via the PWR button
+  if (button == HANDSET_Button_PWR) {
+    // Only allow power off when not in a call, unless the power-off lock is disabled
+    if ((BT_CallStatus == BT_CALL_IDLE) || STORAGE_GetPowerOffLockoutDisabled()) {
+      if (
+          (event->type == HANDSET_EventType_BUTTON_HOLD) && 
+          (event->holdDuration == HANDSET_HoldDuration_LONG)) {
+        // Beep to inform the user they have held the PWR button long enough
+        // to power off.
+        SOUND_PlayButtonBeep(button, false);
+      } else if (isButtonUp && (event->holdDuration >= HANDSET_HoldDuration_LONG)) {
+        // Power off upon release of the PWR if it has been held long enough
+        powerOff(false);
+      }
+    }
   }
 
   if (appState <= APP_State_INIT_CLEAR_PHONE_NUMBER) {
     return;
   }
   
-  if (event->type == HANDSET_EventType_HOOK) {
-    setAecEnabled();
-  }
-
   if (isButtonUp || isButtonDown || (event->type == HANDSET_EventType_HOOK)) {
     wakeUpHandset(button != HANDSET_Button_PWR);
+  }
+  
+  if (button == HANDSET_Button_PWR) {
+    // Nothing below here needs to handle PWR button events.
+    return;
+  }
+
+  if (event->type == HANDSET_EventType_HOOK) {
+    setAecEnabled();
   }
   
   CLR_CODES_HANDSET_EventHandler(event);
@@ -1985,21 +2096,14 @@ void handle_HANDSET_Event(HANDSET_Event const* event) {
     return;
   }
 
-  TRANSCEIVER_HANDSET_EventHandler(event);  
-  
-  // Nothing below here needs to handle PWR button events.
-  if (button == HANDSET_Button_PWR) {
-    return;
-  }
-  
   SOUND_HANDSET_EventHandler(event);
 
   // Common END button behavior that needs to work no matter what the 
   // app state is (e.g., user can end a call or initiate voice command while 
   // browsing the directory or playing Tetris).
-  if ((button == HANDSET_Button_END) && !isFcn) {
+  if (button == HANDSET_Button_END) {
     if (isButtonDown) {
-      if (callFailedTimer) {
+      if (callFailedTimer && !isFcn) {
         // End failed call
         SOUND_PlayButtonBeep(button, false);
         HANDSET_SetIndicator(HANDSET_Indicator_IN_USE, false);
@@ -2011,20 +2115,36 @@ void handle_HANDSET_Event(HANDSET_Event const* event) {
         numberInputIsStale = true;
         returnToNumberInput(false);
         return;
-      } else if ((BT_CallStatus >= BT_CALL_ACTIVE) && (APP_CallAction == APP_CALL_IDLE)) {
-        // End active call
-        SOUND_PlayButtonBeep(button, false);
-
+      } else if ((BT_CallStatus > BT_CALL_IDLE) && (APP_CallAction == APP_CALL_IDLE)) {
         if (BT_CallStatus > BT_CALL_ACTIVE) {
-          BT_SwapHoldOrWaitingCallAndEndActiveCall();
-        } else {
+          APP_CallAction = APP_CALL_ENDING;
+          
+          if (isFcn) {
+            BT_EndHoldOrWaitingCall();
+          } else {
+            BT_SwapHoldOrWaitingCallAndEndActiveCall();
+          }
+        } else if ((BT_CallStatus > BT_CALL_INCOMING) && !isFcn) {
+          APP_CallAction = APP_CALL_ENDING;
           BT_EndCall();
+        } else if ((BT_CallStatus == BT_CALL_INCOMING) && !isFcn) {
+          APP_CallAction = APP_CALL_REJECTING;
+          BT_RejectCall();
+          TIMEOUT_Cancel(&autoAnswerTimeout);
+        } else if ((BT_CallStatus == BT_CALL_VOICE_COMMAND) && !isFcn) {
+          APP_CallAction = APP_CALL_CANCEL_VOICE_COMMAND;
+          BT_CancelVoiceCommand();
+        }
+
+        if (APP_CallAction != APP_CALL_IDLE) {
+          SOUND_PlayButtonBeep(button, false);
+          TIMEOUT_Start(&callActionTimeout, CALL_ACTION_TIMEOUT);
           // Prevent triggering voice command if END button is held while
           // rejecting a call.
           HANDSET_CancelCurrentButtonHoldEvents();
         }
-        APP_CallAction = APP_CALL_ENDING;
-        TIMEOUT_Start(&callActionTimeout, CALL_ACTION_TIMEOUT);
+
+        resetFcn();
         return;
       }
     } else if (
@@ -2323,14 +2443,14 @@ void handle_HANDSET_Event(HANDSET_Event const* event) {
               } else if (button == HANDSET_Button_2) {
                 SOUND_PlayDTMFButtonBeep(button, false);
                 
-                bool isStatusBeepEnabled = !STORAGE_GetStatusBeepEnabled();
-                STORAGE_SetStatusBeepEnabled(isStatusBeepEnabled);
+                bool isStatusBeepDisabled = STORAGE_GetStatusBeepDisabled();
+                STORAGE_SetStatusBeepDisabled(isStatusBeepDisabled);
                 
                 CALL_TIMER_DisableDisplayUpdate();
                 HANDSET_DisableTextDisplay();
                 HANDSET_ClearText();
                 HANDSET_PrintString("STATUS BEEP O");
-                HANDSET_PrintChar(isStatusBeepEnabled ? 'N' : 'F');
+                HANDSET_PrintChar(isStatusBeepDisabled ? 'F' : 'N');
                 HANDSET_EnableTextDisplay();
                 
                 appState = APP_State_DISPLAY_DISMISSABLE_TEXT;
@@ -2403,7 +2523,7 @@ void handle_HANDSET_Event(HANDSET_Event const* event) {
                   }
                 }
               } else if (button == HANDSET_Button_CLR) {
-                if (STORAGE_GetCumulativeTimerResetEnabled() && (BT_CallStatus == BT_CALL_IDLE)) {
+                if (!STORAGE_GetCumulativeTimerResetDisabled() && (BT_CallStatus == BT_CALL_IDLE)) {
                   SOUND_PlayButtonBeep(button, false);
                   startEnterSecurityCode(SecurityAction_CLEAR_TALK_TIME, true);
                 }
@@ -2423,13 +2543,6 @@ void handle_HANDSET_Event(HANDSET_Event const* event) {
               } else if (button == HANDSET_Button_SEND) {
                 if (BT_CallStatus >= BT_CALL_ACTIVE) {
                   NumberInput_SendCurrentNumberAsDtmf();
-                }
-              } else if (button == HANDSET_Button_END) {
-                if ((BT_CallStatus > BT_CALL_ACTIVE) && (APP_CallAction == APP_CALL_IDLE)) {
-                  SOUND_PlayButtonBeep(button, false);
-                  BT_EndHoldOrWaitingCall();
-                  APP_CallAction = APP_CALL_ENDING;
-                  TIMEOUT_Start(&callActionTimeout, CALL_ACTION_TIMEOUT);
                 }
               } else if (button == HANDSET_Button_3) {
                 SOUND_PlayDTMFButtonBeep(button, false);
@@ -2781,49 +2894,12 @@ void handle_HANDSET_Event(HANDSET_Event const* event) {
           APP_CallAction = APP_CALL_ACCEPTING;
           TIMEOUT_Start(&callActionTimeout, CALL_ACTION_TIMEOUT);
           return;
-        } else if ((button == HANDSET_Button_END) && (APP_CallAction == APP_CALL_IDLE)) {
-          if (isFcn) {
-            if (BT_CallStatus == BT_CALL_ACTIVE_WITH_CALL_WAITING) {
-              SOUND_PlayButtonBeep(button, false);
-              BT_EndHoldOrWaitingCall();
-              APP_CallAction = APP_CALL_REJECTING;
-              TIMEOUT_Start(&callActionTimeout, CALL_ACTION_TIMEOUT);
-            }
-          } else {
-            SOUND_PlayButtonBeep(button, false);
-
-            if (BT_CallStatus == BT_CALL_INCOMING) {
-              TIMEOUT_Cancel(&autoAnswerTimeout);
-              BT_RejectCall();
-              // Prevent triggering voice command if END button is held while
-              // rejecting a call.
-              HANDSET_CancelCurrentButtonHoldEvents();
-            } else  {
-              BT_SwapHoldOrWaitingCallAndEndActiveCall();
-            }
-            APP_CallAction = APP_CALL_REJECTING;
-            TIMEOUT_Start(&callActionTimeout, CALL_ACTION_TIMEOUT);
-          }
-          return;
         }
       } else if ((event->type == HANDSET_EventType_HOOK) && !event->isOnHook && (BT_CallStatus == BT_CALL_INCOMING)) {
         TIMEOUT_Cancel(&autoAnswerTimeout);
         BT_AcceptCall();
         APP_CallAction = APP_CALL_ACCEPTING;
         TIMEOUT_Start(&callActionTimeout, CALL_ACTION_TIMEOUT);
-      }
-      break;
-      
-    case APP_State_VOICE_COMMAND:  
-      if (isButtonDown && (button == HANDSET_Button_END) && (APP_CallAction == APP_CALL_IDLE)) {
-        SOUND_PlayButtonBeep(button, false);
-        APP_CallAction = APP_CALL_CANCEL_VOICE_COMMAND;
-        TIMEOUT_Start(&callActionTimeout, CALL_ACTION_TIMEOUT);
-        BT_CancelVoiceCommand();
-        // Prevent triggering voice command if END button is held while
-        // canceling voice command.
-        HANDSET_CancelCurrentButtonHoldEvents();
-        return;
       }
       break;
       
@@ -3056,41 +3132,87 @@ void handle_HANDSET_Event(HANDSET_Event const* event) {
   }
 }
 
-void handle_TRANSCEIVER_Event(TRANSCEIVER_EventType event) {
+void handle_EXTERNAL_POWER_Event(EXTERNAL_POWER_EventType event) {
+  BATTERY_ResetRollingAverage();  
+  BATTERY_PollBatteryLevelNow();
+
   switch (event)  {
-    case TRANSCEIVER_EventType_BATTERY_LEVEL_CHANGED:
-      if (appState == APP_State_DISPLAY_BATTERY_LEVEL) {
-        displayBatteryLevel(false);
-      }
-      reportBatteryLevelToBT();
-      break;
-      
-    case TRANSCEIVER_EventType_BATTERY_LEVEL_IS_LOW:
-      INDICATOR_StartFlashing(HANDSET_Indicator_PWR);
-      INTERVAL_Start(&lowBatteryBeepInterval, true);
-      
-      if ((appState == APP_State_NUMBER_INPUT) && (numberInputLength == 0)) {
-        NumberInput_PrintToHandset();
-      }
-      reportBatteryLevelToBT();
-      break;
-
-    case TRANSCEIVER_EventType_BATTERY_LEVEL_IS_OK:
-      INDICATOR_StopFlashing(HANDSET_Indicator_PWR, true);
-      INTERVAL_Cancel(&lowBatteryBeepInterval);
-
-      if ((appState == APP_State_NUMBER_INPUT) && (numberInputLength == 0)) {
-        returnToNumberInput(false);
-      }
-      reportBatteryLevelToBT();
-      break;
-      
-    case TRANSCEIVER_EventType_CONNECTED_TO_EXTERNAL_POWER: 
+    case EXTERNAL_POWER_EventType_CONNECTED: 
       wakeUpHandset(true);
       break;
       
-    case TRANSCEIVER_EventType_DISCONNECTED_FROM_EXTERNAL_POWER:
+    case EXTERNAL_POWER_EventType_DISCONNECTED:
       sleepHandset();
+      STORAGE_SetPowerOnByIgnitionEnabled(false);
+      break;
+  }
+}
+
+void handle_BATTERY_Event(BATTERY_EventType event) {
+  if (appState < APP_State_NUMBER_INPUT) {
+    return;
+  }
+  
+  switch (event)  {
+    case BATTERY_EventType_BATTERY_LEVEL_CHANGED:
+      if ((BATTERY_GetBatteryLevel() == 1) && (appState != APP_State_SLEEP)) {
+        printf("[BATTERY] DEPLETED! Powering OFF!!!\r\n");
+        powerOff(false);
+      }
+      
+      if (appState == APP_State_DISPLAY_BATTERY_LEVEL) {
+        displayBatteryLevel(false);
+      }
+      
+      reportBatteryLevelToBT();
+      break;
+      
+    case BATTERY_EventType_BATTERY_LEVEL_IS_LOW:
+      if (appState >= APP_State_NUMBER_INPUT) {
+        INDICATOR_StartFlashing(HANDSET_Indicator_PWR);
+        INTERVAL_Start(&lowBatteryBeepInterval, true);
+
+        if ((appState == APP_State_NUMBER_INPUT) && (numberInputLength == 0)) {
+          NumberInput_PrintToHandset();
+        }
+        reportBatteryLevelToBT();
+      }
+      break;
+
+    case BATTERY_EventType_BATTERY_LEVEL_IS_OK:
+      if (appState >= APP_State_NUMBER_INPUT) {
+        INDICATOR_StopFlashing(HANDSET_Indicator_PWR, true);
+        INTERVAL_Cancel(&lowBatteryBeepInterval);
+
+        if ((appState == APP_State_NUMBER_INPUT) && (numberInputLength == 0)) {
+          returnToNumberInput(false);
+        }
+        reportBatteryLevelToBT();
+      }
+      break;
+  }
+}
+
+void handle_IGNITION_Event(IGNITION_EventType event) {
+  if (STORAGE_GetIgnitionSenseDisabled()) {
+    // Don't care about ignition events if ignition sensing is disabled
+    return;
+  }
+  
+  switch (event) {
+    case IGNITION_EventType_ON:
+      if ((appState == APP_State_SLEEP) && STORAGE_GetPowerOnByIgnitionEnabled()) {
+        powerOn();
+      }
+      break;
+      
+    case IGNITION_EventType_OFF:
+      if (
+          (appState != APP_State_SLEEP) && EXTERNAL_POWER_IsConnected() 
+          && ((BT_CallStatus == BT_CALL_IDLE) || STORAGE_GetPowerOffLockoutDisabled())
+          ) {
+        powerOff(true);
+      }
       break;
   }
 }
@@ -3112,6 +3234,7 @@ void APP_BT_EventHandler(uint8_t event, uint16_t para, uint8_t* para_full) {
   switch (event) {
     case BT_EVENT_SYS_POWER_ON: 
       BT_isReady = true;
+      BT_ReadLocalBDAddress();
       break;
       
     case BT_EVENT_CMD_SENT_NO_ACK:
@@ -3231,18 +3354,21 @@ void APP_BT_EventHandler(uint8_t event, uint16_t para, uint8_t* para_full) {
       }
       
       cellPhoneState.isConnected = true;
-      
+      cellPhoneState.lastSentCarPhoneBatteryLevel = -1;
       TIMEOUT_Start(&cellPhoneState.initialBatteryLevelReportTimeout, INITIAL_BATTERY_LEVEL_REPORT_DELAY);
       break;
 
     case BT_EVENT_HFP_DISCONNECTED:
       printf("[HFP] Disconnected\r\n");
+      powerOffIfIgnitionOff();
+
       playBluetoothConnectionStatusBeep(false);
      
       INDICATOR_StartFlashing(HANDSET_Indicator_SIGNAL_BARS);
       HANDSET_SetIndicator(HANDSET_Indicator_NO_SVC, true);
       HANDSET_SetIndicator(HANDSET_Indicator_ROAM, false);
       HANDSET_SetIndicator(HANDSET_Indicator_IN_USE, false);
+
       cellPhoneState.isConnected = false;
       cellPhoneState.isScoConnected = false;
       cellPhoneState.hasService = false;
@@ -3250,6 +3376,10 @@ void APP_BT_EventHandler(uint8_t event, uint16_t para, uint8_t* para_full) {
       cellPhoneState.signalStrength = 0;
       cellPhoneState.maxBatteryLevel = 0;
       cellPhoneState.batteryLevel = 0;
+
+      BT_CallStatus = BT_CALL_IDLE;
+      APP_CallAction = APP_CALL_IDLE;
+      TIMEOUT_Cancel(&callActionTimeout);
       
       TIMEOUT_Cancel(&cellPhoneState.initialBatteryLevelReportTimeout);
       
@@ -3338,6 +3468,10 @@ void APP_BT_EventHandler(uint8_t event, uint16_t para, uint8_t* para_full) {
       }
       
       TIMEOUT_Start(&pendingCallStatusTimeout, 150);
+      break;
+      
+    case BT_EVENT_BD_ADDR_RECEIVED:  
+      printf("[BT] Local BD address = %X:%X:%X:%X:%X:%X\r\n", para_full[5], para_full[4], para_full[3], para_full[2], para_full[1], para_full[0]);
       break;
       
     case BT_EVENT_NAME_RECEIVED:

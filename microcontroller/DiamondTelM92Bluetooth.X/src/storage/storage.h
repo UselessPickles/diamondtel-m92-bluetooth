@@ -11,7 +11,7 @@
  * asynchronously write the data to EEPROM. This prevents updates from 
  * impacting the performance of the application, but also does not guarantee
  * that the data is saved to EEPROM upon returning from the setter function. 
- * If necessary, use EEPROM_IsDoneWriting()  to confirm that all asynchronous 
+ * If necessary, use EEPROM_IsDoneWriting() to confirm that all asynchronous 
  * EEPROM writes are complete.
  */
 
@@ -447,12 +447,12 @@ void STORAGE_ResetCallTime(void);
  * 
  * @return True if status beeps are enabled.
  */
-bool STORAGE_GetStatusBeepEnabled(void);
+bool STORAGE_GetStatusBeepDisabled(void);
 /**
  * Set the stored setting of whether status beeps are enabled.
  * @param enabled - True if status beeps are enabled.
  */
-void STORAGE_SetStatusBeepEnabled(bool enabled);
+void STORAGE_SetStatusBeepDisabled(bool enabled);
 
 /**
  * Get the stored setting of whether one-minute warning beeps are enabled.
@@ -499,18 +499,44 @@ void STORAGE_SetCallerIdMode(CALLER_ID_Mode mode);
 
 /**
  * Get the stored setting of whether the phone's simulated "own phone number" 
- * should be displayed during the startup sequence.
- * @return True if the phone's simulated  "own phone number" should be displayed 
+ * should be hidden during the startup sequence.
+ * @return True if the phone's simulated  "own phone number" should be hidden 
  *         during the startup sequence.
  */
-bool STORAGE_GetShowOwnNumberEnabled(void);
+bool STORAGE_GetShowOwnNumberDisabled(void);
 /**
  * Set the stored setting of whether the phone's simulated "own phone number" 
- * should be displayed during the startup sequence.
- * @param enabled - True if the phone's simulated "own phone number" should be 
- *        displayed during the startup sequence.
+ * should be hidden during the startup sequence.
+ * @param disabled - True if the phone's simulated "own phone number" should be 
+ *        hidden during the startup sequence.
  */
-void STORAGE_SetShowOwnNumberEnabled(bool enabled);
+void STORAGE_SetShowOwnNumberDisabled(bool disabled);
+
+/** 
+ * Get the stored value of whether vehicle ignition sensing is disabled.
+ * When disabled, the vehicle ignition will not trigger power on/off
+ * or prevent power-on of the phone when ignition is off and external
+ * power is connected.
+ * @return True if vehicle ignition sensing is disabled.
+ */
+bool STORAGE_GetIgnitionSenseDisabled(void);
+/**
+ * Set the stored setting of whether vehicle ignition sensing is disabled.
+ * @param disabled - True to disabled vehicle ignition sensing.
+ */
+void STORAGE_SetIgnitionSenseDisabled(bool disabled);
+
+/**
+ * Get the stored setting of whether power-off lock-out is disabled. 
+ * When disabled, the phone can be turned off during an active call.
+ * @return True if power-off lockout is disabled.
+ */
+bool STORAGE_GetPowerOffLockoutDisabled(void);
+/**
+ * Set the stored setting of whether power-off lock-out is disabled. 
+ * @param disabled - True to disabled power-off lockout.
+ */
+void STORAGE_SetPowerOffLockoutDisabled(bool disabled);
 
 /**
  * Get the stored setting of whether dual phone numbers is enabled.
@@ -529,18 +555,18 @@ bool STORAGE_GetDualNumberEnabled(void);
 void STORAGE_SetDualNumberEnabled(bool enabled);
 
 /**
- * Get the stored setting of whether cumulative timer reset is enabled.
+ * Get the stored setting of whether cumulative timer reset is disabled.
  * 
- * If enabled, then the user is allowed to reset that accumulated call timer.
+ * If disabled, then the user is not allowed to reset that accumulated call timer.
  * 
- * @return True if cumulative timer reset is enabled.
+ * @return True if cumulative timer reset is disabled.
  */
-bool STORAGE_GetCumulativeTimerResetEnabled(void);
+bool STORAGE_GetCumulativeTimerResetDisabled(void);
 /**
- * Set the stored setting of whether cumulative timer reset is enabled.
- * @param enabled - True if cumulative timer reset is enabled.
+ * Set the stored setting of whether cumulative timer reset is disabled.
+ * @param disabled - True if cumulative timer reset is disabled.
  */
-void STORAGE_SetCumulativeTimerResetEnabled(bool enabled);
+void STORAGE_SetCumulativeTimerResetDisabled(bool disabled);
 
 /**
  * Get the stored setting of whether auto-answer is enabled.
@@ -556,6 +582,48 @@ bool STORAGE_GetAutoAnswerEnabled(void);
  * @param enabled - True if auto-answer is enabled.
  */
 void STORAGE_SetAutoAnswerEnabled(bool enabled);
+
+/**
+ * Get the stored setting of whether the phone should immediately power on 
+ * at startup/reboot. 
+ * 
+ * This is NOT a user preference/config, but an internal flag used to 
+ * differentiate between a reboot for power-off vs restart.
+ * 
+ * @return True if the phone should immediately power on at startup/reboot.
+ */
+bool STORAGE_GetPowerOnAtStartupEnabled(void);
+/**
+ * Set the stored setting of whether the phone should immediately power on 
+ * at startup/reboot. 
+ * 
+ * This is NOT a user preference/config, but an internal flag used to 
+ * differentiate between a reboot for power-off vs restart.
+ * 
+ * @param enabled - True if the phone should immediately power on at startup/reboot.
+ */
+void STORAGE_SetPowerOnAtStartupEnabled(bool enabled);
+
+/**
+ * Get the stored setting of whether the phone should power on when vehicle
+ * ignition is turned on.
+ * 
+ * This is NOT a user preference/config, but an internal flag used to 
+ * manager power-on behavior.
+ * 
+ * @return True if the phone should power on when vehicle ignition is turned on.
+ */
+bool STORAGE_GetPowerOnByIgnitionEnabled(void);
+/**
+ * Set the stored setting of whether the phone should power on when vehicle
+ * ignition is turned on.
+ * 
+ * This is NOT a user preference/config, but an internal flag used to 
+ * manager power-on behavior.
+ * 
+ * @param enabled - True if the phone should power on when vehicle ignition is turned on.
+ */
+void STORAGE_SetPowerOnByIgnitionEnabled(bool enabled);
 
 /**
  * Get the stored index of the active simulated "own phone number".

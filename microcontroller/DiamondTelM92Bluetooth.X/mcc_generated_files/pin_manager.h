@@ -129,6 +129,26 @@
 #define IO_MIC_HF_DETECT_SetAnalogMode()      do { ANSELAbits.ANSELA3 = 1; } while(0)
 #define IO_MIC_HF_DETECT_SetDigitalMode()     do { ANSELAbits.ANSELA3 = 0; } while(0)
 
+// get/set IO_SWITCHED_PWR_ENABLE aliases
+#define IO_SWITCHED_PWR_ENABLE_TRIS                 TRISAbits.TRISA4
+#define IO_SWITCHED_PWR_ENABLE_LAT                  LATAbits.LATA4
+#define IO_SWITCHED_PWR_ENABLE_PORT                 PORTAbits.RA4
+#define IO_SWITCHED_PWR_ENABLE_WPU                  WPUAbits.WPUA4
+#define IO_SWITCHED_PWR_ENABLE_OD                   ODCONAbits.ODCA4
+#define IO_SWITCHED_PWR_ENABLE_ANS                  ANSELAbits.ANSELA4
+#define IO_SWITCHED_PWR_ENABLE_SetHigh()            do { LATAbits.LATA4 = 1; } while(0)
+#define IO_SWITCHED_PWR_ENABLE_SetLow()             do { LATAbits.LATA4 = 0; } while(0)
+#define IO_SWITCHED_PWR_ENABLE_Toggle()             do { LATAbits.LATA4 = ~LATAbits.LATA4; } while(0)
+#define IO_SWITCHED_PWR_ENABLE_GetValue()           PORTAbits.RA4
+#define IO_SWITCHED_PWR_ENABLE_SetDigitalInput()    do { TRISAbits.TRISA4 = 1; } while(0)
+#define IO_SWITCHED_PWR_ENABLE_SetDigitalOutput()   do { TRISAbits.TRISA4 = 0; } while(0)
+#define IO_SWITCHED_PWR_ENABLE_SetPullup()          do { WPUAbits.WPUA4 = 1; } while(0)
+#define IO_SWITCHED_PWR_ENABLE_ResetPullup()        do { WPUAbits.WPUA4 = 0; } while(0)
+#define IO_SWITCHED_PWR_ENABLE_SetPushPull()        do { ODCONAbits.ODCA4 = 0; } while(0)
+#define IO_SWITCHED_PWR_ENABLE_SetOpenDrain()       do { ODCONAbits.ODCA4 = 1; } while(0)
+#define IO_SWITCHED_PWR_ENABLE_SetAnalogMode()      do { ANSELAbits.ANSELA4 = 1; } while(0)
+#define IO_SWITCHED_PWR_ENABLE_SetDigitalMode()     do { ANSELAbits.ANSELA4 = 0; } while(0)
+
 // get/set IO_MIC_OUT_DISABLE aliases
 #define IO_MIC_OUT_DISABLE_TRIS                 TRISAbits.TRISA5
 #define IO_MIC_OUT_DISABLE_LAT                  LATAbits.LATA5
@@ -229,49 +249,85 @@
 #define RX1_SetAnalogMode()      do { ANSELBbits.ANSELB1 = 1; } while(0)
 #define RX1_SetDigitalMode()     do { ANSELBbits.ANSELB1 = 0; } while(0)
 
-// get/set RB3 procedures
-#define RB3_SetHigh()            do { LATBbits.LATB3 = 1; } while(0)
-#define RB3_SetLow()             do { LATBbits.LATB3 = 0; } while(0)
-#define RB3_Toggle()             do { LATBbits.LATB3 = ~LATBbits.LATB3; } while(0)
-#define RB3_GetValue()              PORTBbits.RB3
-#define RB3_SetDigitalInput()    do { TRISBbits.TRISB3 = 1; } while(0)
-#define RB3_SetDigitalOutput()   do { TRISBbits.TRISB3 = 0; } while(0)
-#define RB3_SetPullup()             do { WPUBbits.WPUB3 = 1; } while(0)
-#define RB3_ResetPullup()           do { WPUBbits.WPUB3 = 0; } while(0)
-#define RB3_SetAnalogMode()         do { ANSELBbits.ANSELB3 = 1; } while(0)
-#define RB3_SetDigitalMode()        do { ANSELBbits.ANSELB3 = 0; } while(0)
+// get/set IO_BATT_VOLTAGE aliases
+#define IO_BATT_VOLTAGE_TRIS                 TRISBbits.TRISB2
+#define IO_BATT_VOLTAGE_LAT                  LATBbits.LATB2
+#define IO_BATT_VOLTAGE_PORT                 PORTBbits.RB2
+#define IO_BATT_VOLTAGE_WPU                  WPUBbits.WPUB2
+#define IO_BATT_VOLTAGE_OD                   ODCONBbits.ODCB2
+#define IO_BATT_VOLTAGE_ANS                  ANSELBbits.ANSELB2
+#define IO_BATT_VOLTAGE_SetHigh()            do { LATBbits.LATB2 = 1; } while(0)
+#define IO_BATT_VOLTAGE_SetLow()             do { LATBbits.LATB2 = 0; } while(0)
+#define IO_BATT_VOLTAGE_Toggle()             do { LATBbits.LATB2 = ~LATBbits.LATB2; } while(0)
+#define IO_BATT_VOLTAGE_GetValue()           PORTBbits.RB2
+#define IO_BATT_VOLTAGE_SetDigitalInput()    do { TRISBbits.TRISB2 = 1; } while(0)
+#define IO_BATT_VOLTAGE_SetDigitalOutput()   do { TRISBbits.TRISB2 = 0; } while(0)
+#define IO_BATT_VOLTAGE_SetPullup()          do { WPUBbits.WPUB2 = 1; } while(0)
+#define IO_BATT_VOLTAGE_ResetPullup()        do { WPUBbits.WPUB2 = 0; } while(0)
+#define IO_BATT_VOLTAGE_SetPushPull()        do { ODCONBbits.ODCB2 = 0; } while(0)
+#define IO_BATT_VOLTAGE_SetOpenDrain()       do { ODCONBbits.ODCB2 = 1; } while(0)
+#define IO_BATT_VOLTAGE_SetAnalogMode()      do { ANSELBbits.ANSELB2 = 1; } while(0)
+#define IO_BATT_VOLTAGE_SetDigitalMode()     do { ANSELBbits.ANSELB2 = 0; } while(0)
 
-// get/set RB4 procedures
-#define RB4_SetHigh()            do { LATBbits.LATB4 = 1; } while(0)
-#define RB4_SetLow()             do { LATBbits.LATB4 = 0; } while(0)
-#define RB4_Toggle()             do { LATBbits.LATB4 = ~LATBbits.LATB4; } while(0)
-#define RB4_GetValue()              PORTBbits.RB4
-#define RB4_SetDigitalInput()    do { TRISBbits.TRISB4 = 1; } while(0)
-#define RB4_SetDigitalOutput()   do { TRISBbits.TRISB4 = 0; } while(0)
-#define RB4_SetPullup()             do { WPUBbits.WPUB4 = 1; } while(0)
-#define RB4_ResetPullup()           do { WPUBbits.WPUB4 = 0; } while(0)
-#define RB4_SetAnalogMode()         do { ANSELBbits.ANSELB4 = 1; } while(0)
-#define RB4_SetDigitalMode()        do { ANSELBbits.ANSELB4 = 0; } while(0)
+// get/set IO_EXT_PWR_DETECT aliases
+#define IO_EXT_PWR_DETECT_TRIS                 TRISBbits.TRISB3
+#define IO_EXT_PWR_DETECT_LAT                  LATBbits.LATB3
+#define IO_EXT_PWR_DETECT_PORT                 PORTBbits.RB3
+#define IO_EXT_PWR_DETECT_WPU                  WPUBbits.WPUB3
+#define IO_EXT_PWR_DETECT_OD                   ODCONBbits.ODCB3
+#define IO_EXT_PWR_DETECT_ANS                  ANSELBbits.ANSELB3
+#define IO_EXT_PWR_DETECT_SetHigh()            do { LATBbits.LATB3 = 1; } while(0)
+#define IO_EXT_PWR_DETECT_SetLow()             do { LATBbits.LATB3 = 0; } while(0)
+#define IO_EXT_PWR_DETECT_Toggle()             do { LATBbits.LATB3 = ~LATBbits.LATB3; } while(0)
+#define IO_EXT_PWR_DETECT_GetValue()           PORTBbits.RB3
+#define IO_EXT_PWR_DETECT_SetDigitalInput()    do { TRISBbits.TRISB3 = 1; } while(0)
+#define IO_EXT_PWR_DETECT_SetDigitalOutput()   do { TRISBbits.TRISB3 = 0; } while(0)
+#define IO_EXT_PWR_DETECT_SetPullup()          do { WPUBbits.WPUB3 = 1; } while(0)
+#define IO_EXT_PWR_DETECT_ResetPullup()        do { WPUBbits.WPUB3 = 0; } while(0)
+#define IO_EXT_PWR_DETECT_SetPushPull()        do { ODCONBbits.ODCB3 = 0; } while(0)
+#define IO_EXT_PWR_DETECT_SetOpenDrain()       do { ODCONBbits.ODCB3 = 1; } while(0)
+#define IO_EXT_PWR_DETECT_SetAnalogMode()      do { ANSELBbits.ANSELB3 = 1; } while(0)
+#define IO_EXT_PWR_DETECT_SetDigitalMode()     do { ANSELBbits.ANSELB3 = 0; } while(0)
 
-// get/set IO_PWR aliases
-#define IO_PWR_TRIS                 TRISBbits.TRISB5
-#define IO_PWR_LAT                  LATBbits.LATB5
-#define IO_PWR_PORT                 PORTBbits.RB5
-#define IO_PWR_WPU                  WPUBbits.WPUB5
-#define IO_PWR_OD                   ODCONBbits.ODCB5
-#define IO_PWR_ANS                  ANSELBbits.ANSELB5
-#define IO_PWR_SetHigh()            do { LATBbits.LATB5 = 1; } while(0)
-#define IO_PWR_SetLow()             do { LATBbits.LATB5 = 0; } while(0)
-#define IO_PWR_Toggle()             do { LATBbits.LATB5 = ~LATBbits.LATB5; } while(0)
-#define IO_PWR_GetValue()           PORTBbits.RB5
-#define IO_PWR_SetDigitalInput()    do { TRISBbits.TRISB5 = 1; } while(0)
-#define IO_PWR_SetDigitalOutput()   do { TRISBbits.TRISB5 = 0; } while(0)
-#define IO_PWR_SetPullup()          do { WPUBbits.WPUB5 = 1; } while(0)
-#define IO_PWR_ResetPullup()        do { WPUBbits.WPUB5 = 0; } while(0)
-#define IO_PWR_SetPushPull()        do { ODCONBbits.ODCB5 = 0; } while(0)
-#define IO_PWR_SetOpenDrain()       do { ODCONBbits.ODCB5 = 1; } while(0)
-#define IO_PWR_SetAnalogMode()      do { ANSELBbits.ANSELB5 = 1; } while(0)
-#define IO_PWR_SetDigitalMode()     do { ANSELBbits.ANSELB5 = 0; } while(0)
+// get/set IO_IGN_DETECT aliases
+#define IO_IGN_DETECT_TRIS                 TRISBbits.TRISB4
+#define IO_IGN_DETECT_LAT                  LATBbits.LATB4
+#define IO_IGN_DETECT_PORT                 PORTBbits.RB4
+#define IO_IGN_DETECT_WPU                  WPUBbits.WPUB4
+#define IO_IGN_DETECT_OD                   ODCONBbits.ODCB4
+#define IO_IGN_DETECT_ANS                  ANSELBbits.ANSELB4
+#define IO_IGN_DETECT_SetHigh()            do { LATBbits.LATB4 = 1; } while(0)
+#define IO_IGN_DETECT_SetLow()             do { LATBbits.LATB4 = 0; } while(0)
+#define IO_IGN_DETECT_Toggle()             do { LATBbits.LATB4 = ~LATBbits.LATB4; } while(0)
+#define IO_IGN_DETECT_GetValue()           PORTBbits.RB4
+#define IO_IGN_DETECT_SetDigitalInput()    do { TRISBbits.TRISB4 = 1; } while(0)
+#define IO_IGN_DETECT_SetDigitalOutput()   do { TRISBbits.TRISB4 = 0; } while(0)
+#define IO_IGN_DETECT_SetPullup()          do { WPUBbits.WPUB4 = 1; } while(0)
+#define IO_IGN_DETECT_ResetPullup()        do { WPUBbits.WPUB4 = 0; } while(0)
+#define IO_IGN_DETECT_SetPushPull()        do { ODCONBbits.ODCB4 = 0; } while(0)
+#define IO_IGN_DETECT_SetOpenDrain()       do { ODCONBbits.ODCB4 = 1; } while(0)
+#define IO_IGN_DETECT_SetAnalogMode()      do { ANSELBbits.ANSELB4 = 1; } while(0)
+#define IO_IGN_DETECT_SetDigitalMode()     do { ANSELBbits.ANSELB4 = 0; } while(0)
+
+// get/set IO_PWR_BTN aliases
+#define IO_PWR_BTN_TRIS                 TRISBbits.TRISB5
+#define IO_PWR_BTN_LAT                  LATBbits.LATB5
+#define IO_PWR_BTN_PORT                 PORTBbits.RB5
+#define IO_PWR_BTN_WPU                  WPUBbits.WPUB5
+#define IO_PWR_BTN_OD                   ODCONBbits.ODCB5
+#define IO_PWR_BTN_ANS                  ANSELBbits.ANSELB5
+#define IO_PWR_BTN_SetHigh()            do { LATBbits.LATB5 = 1; } while(0)
+#define IO_PWR_BTN_SetLow()             do { LATBbits.LATB5 = 0; } while(0)
+#define IO_PWR_BTN_Toggle()             do { LATBbits.LATB5 = ~LATBbits.LATB5; } while(0)
+#define IO_PWR_BTN_GetValue()           PORTBbits.RB5
+#define IO_PWR_BTN_SetDigitalInput()    do { TRISBbits.TRISB5 = 1; } while(0)
+#define IO_PWR_BTN_SetDigitalOutput()   do { TRISBbits.TRISB5 = 0; } while(0)
+#define IO_PWR_BTN_SetPullup()          do { WPUBbits.WPUB5 = 1; } while(0)
+#define IO_PWR_BTN_ResetPullup()        do { WPUBbits.WPUB5 = 0; } while(0)
+#define IO_PWR_BTN_SetPushPull()        do { ODCONBbits.ODCB5 = 0; } while(0)
+#define IO_PWR_BTN_SetOpenDrain()       do { ODCONBbits.ODCB5 = 1; } while(0)
+#define IO_PWR_BTN_SetAnalogMode()      do { ANSELBbits.ANSELB5 = 1; } while(0)
+#define IO_PWR_BTN_SetDigitalMode()     do { ANSELBbits.ANSELB5 = 0; } while(0)
 
 // get/set SDI1 aliases
 #define SDI1_TRIS                 TRISCbits.TRISC0
@@ -505,6 +561,174 @@ extern void (*IOCAF3_InterruptHandler)(void);
 
 */
 void IOCAF3_DefaultInterruptHandler(void);
+
+
+/**
+ * @Param
+    none
+ * @Returns
+    none
+ * @Description
+    Interrupt on Change Handler for the IOCBF3 pin functionality
+ * @Example
+    IOCBF3_ISR();
+ */
+void IOCBF3_ISR(void);
+
+/**
+  @Summary
+    Interrupt Handler Setter for IOCBF3 pin interrupt-on-change functionality
+
+  @Description
+    Allows selecting an interrupt handler for IOCBF3 at application runtime
+    
+  @Preconditions
+    Pin Manager intializer called
+
+  @Returns
+    None.
+
+  @Param
+    InterruptHandler function pointer.
+
+  @Example
+    PIN_MANAGER_Initialize();
+    IOCBF3_SetInterruptHandler(MyInterruptHandler);
+
+*/
+void IOCBF3_SetInterruptHandler(void (* InterruptHandler)(void));
+
+/**
+  @Summary
+    Dynamic Interrupt Handler for IOCBF3 pin
+
+  @Description
+    This is a dynamic interrupt handler to be used together with the IOCBF3_SetInterruptHandler() method.
+    This handler is called every time the IOCBF3 ISR is executed and allows any function to be registered at runtime.
+    
+  @Preconditions
+    Pin Manager intializer called
+
+  @Returns
+    None.
+
+  @Param
+    None.
+
+  @Example
+    PIN_MANAGER_Initialize();
+    IOCBF3_SetInterruptHandler(IOCBF3_InterruptHandler);
+
+*/
+extern void (*IOCBF3_InterruptHandler)(void);
+
+/**
+  @Summary
+    Default Interrupt Handler for IOCBF3 pin
+
+  @Description
+    This is a predefined interrupt handler to be used together with the IOCBF3_SetInterruptHandler() method.
+    This handler is called every time the IOCBF3 ISR is executed. 
+    
+  @Preconditions
+    Pin Manager intializer called
+
+  @Returns
+    None.
+
+  @Param
+    None.
+
+  @Example
+    PIN_MANAGER_Initialize();
+    IOCBF3_SetInterruptHandler(IOCBF3_DefaultInterruptHandler);
+
+*/
+void IOCBF3_DefaultInterruptHandler(void);
+
+
+/**
+ * @Param
+    none
+ * @Returns
+    none
+ * @Description
+    Interrupt on Change Handler for the IOCBF4 pin functionality
+ * @Example
+    IOCBF4_ISR();
+ */
+void IOCBF4_ISR(void);
+
+/**
+  @Summary
+    Interrupt Handler Setter for IOCBF4 pin interrupt-on-change functionality
+
+  @Description
+    Allows selecting an interrupt handler for IOCBF4 at application runtime
+    
+  @Preconditions
+    Pin Manager intializer called
+
+  @Returns
+    None.
+
+  @Param
+    InterruptHandler function pointer.
+
+  @Example
+    PIN_MANAGER_Initialize();
+    IOCBF4_SetInterruptHandler(MyInterruptHandler);
+
+*/
+void IOCBF4_SetInterruptHandler(void (* InterruptHandler)(void));
+
+/**
+  @Summary
+    Dynamic Interrupt Handler for IOCBF4 pin
+
+  @Description
+    This is a dynamic interrupt handler to be used together with the IOCBF4_SetInterruptHandler() method.
+    This handler is called every time the IOCBF4 ISR is executed and allows any function to be registered at runtime.
+    
+  @Preconditions
+    Pin Manager intializer called
+
+  @Returns
+    None.
+
+  @Param
+    None.
+
+  @Example
+    PIN_MANAGER_Initialize();
+    IOCBF4_SetInterruptHandler(IOCBF4_InterruptHandler);
+
+*/
+extern void (*IOCBF4_InterruptHandler)(void);
+
+/**
+  @Summary
+    Default Interrupt Handler for IOCBF4 pin
+
+  @Description
+    This is a predefined interrupt handler to be used together with the IOCBF4_SetInterruptHandler() method.
+    This handler is called every time the IOCBF4 ISR is executed. 
+    
+  @Preconditions
+    Pin Manager intializer called
+
+  @Returns
+    None.
+
+  @Param
+    None.
+
+  @Example
+    PIN_MANAGER_Initialize();
+    IOCBF4_SetInterruptHandler(IOCBF4_DefaultInterruptHandler);
+
+*/
+void IOCBF4_DefaultInterruptHandler(void);
 
 
 /**
