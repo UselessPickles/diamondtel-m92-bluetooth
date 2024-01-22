@@ -65,25 +65,17 @@
 #define PULL_UP_ENABLED      1
 #define PULL_UP_DISABLED     0
 
-// get/set RX3 aliases
-#define RX3_TRIS                 TRISAbits.TRISA0
-#define RX3_LAT                  LATAbits.LATA0
-#define RX3_PORT                 PORTAbits.RA0
-#define RX3_WPU                  WPUAbits.WPUA0
-#define RX3_OD                   ODCONAbits.ODCA0
-#define RX3_ANS                  ANSELAbits.ANSELA0
-#define RX3_SetHigh()            do { LATAbits.LATA0 = 1; } while(0)
-#define RX3_SetLow()             do { LATAbits.LATA0 = 0; } while(0)
-#define RX3_Toggle()             do { LATAbits.LATA0 = ~LATAbits.LATA0; } while(0)
-#define RX3_GetValue()           PORTAbits.RA0
-#define RX3_SetDigitalInput()    do { TRISAbits.TRISA0 = 1; } while(0)
-#define RX3_SetDigitalOutput()   do { TRISAbits.TRISA0 = 0; } while(0)
-#define RX3_SetPullup()          do { WPUAbits.WPUA0 = 1; } while(0)
-#define RX3_ResetPullup()        do { WPUAbits.WPUA0 = 0; } while(0)
-#define RX3_SetPushPull()        do { ODCONAbits.ODCA0 = 0; } while(0)
-#define RX3_SetOpenDrain()       do { ODCONAbits.ODCA0 = 1; } while(0)
-#define RX3_SetAnalogMode()      do { ANSELAbits.ANSELA0 = 1; } while(0)
-#define RX3_SetDigitalMode()     do { ANSELAbits.ANSELA0 = 0; } while(0)
+// get/set RA0 procedures
+#define RA0_SetHigh()            do { LATAbits.LATA0 = 1; } while(0)
+#define RA0_SetLow()             do { LATAbits.LATA0 = 0; } while(0)
+#define RA0_Toggle()             do { LATAbits.LATA0 = ~LATAbits.LATA0; } while(0)
+#define RA0_GetValue()              PORTAbits.RA0
+#define RA0_SetDigitalInput()    do { TRISAbits.TRISA0 = 1; } while(0)
+#define RA0_SetDigitalOutput()   do { TRISAbits.TRISA0 = 0; } while(0)
+#define RA0_SetPullup()             do { WPUAbits.WPUA0 = 1; } while(0)
+#define RA0_ResetPullup()           do { WPUAbits.WPUA0 = 0; } while(0)
+#define RA0_SetAnalogMode()         do { ANSELAbits.ANSELA0 = 1; } while(0)
+#define RA0_SetDigitalMode()        do { ANSELAbits.ANSELA0 = 0; } while(0)
 
 // get/set RA1 procedures
 #define RA1_SetHigh()            do { LATAbits.LATA1 = 1; } while(0)
