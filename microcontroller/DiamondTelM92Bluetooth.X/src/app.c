@@ -1997,9 +1997,9 @@ void handle_HANDSET_Event(HANDSET_Event const* event) {
   // Common END button behavior that needs to work no matter what the 
   // app state is (e.g., user can end a call or initiate voice command while 
   // browsing the directory or playing Tetris).
-  if ((button == HANDSET_Button_END) && !isFcn) {
+  if (button == HANDSET_Button_END) {
     if (isButtonDown) {
-      if (callFailedTimer) {
+      if (callFailedTimer && !isFcn) {
         // End failed call
         SOUND_PlayButtonBeep(button, false);
         HANDSET_SetIndicator(HANDSET_Indicator_IN_USE, false);
@@ -2011,20 +2011,36 @@ void handle_HANDSET_Event(HANDSET_Event const* event) {
         numberInputIsStale = true;
         returnToNumberInput(false);
         return;
-      } else if ((BT_CallStatus >= BT_CALL_ACTIVE) && (APP_CallAction == APP_CALL_IDLE)) {
-        // End active call
-        SOUND_PlayButtonBeep(button, false);
-
+      } else if ((BT_CallStatus > BT_CALL_IDLE) && (APP_CallAction == APP_CALL_IDLE)) {
         if (BT_CallStatus > BT_CALL_ACTIVE) {
-          BT_SwapHoldOrWaitingCallAndEndActiveCall();
-        } else {
+          APP_CallAction = APP_CALL_ENDING;
+          
+          if (isFcn) {
+            BT_EndHoldOrWaitingCall();
+          } else {
+            BT_SwapHoldOrWaitingCallAndEndActiveCall();
+          }
+        } else if ((BT_CallStatus > BT_CALL_INCOMING) && !isFcn) {
+          APP_CallAction = APP_CALL_ENDING;
           BT_EndCall();
+        } else if ((BT_CallStatus == BT_CALL_INCOMING) && !isFcn) {
+          APP_CallAction = APP_CALL_REJECTING;
+          BT_RejectCall();
+          TIMEOUT_Cancel(&autoAnswerTimeout);
+        } else if ((BT_CallStatus == BT_CALL_VOICE_COMMAND) && !isFcn) {
+          APP_CallAction = APP_CALL_CANCEL_VOICE_COMMAND;
+          BT_CancelVoiceCommand();
+        }
+
+        if (APP_CallAction != APP_CALL_IDLE) {
+          SOUND_PlayButtonBeep(button, false);
+          TIMEOUT_Start(&callActionTimeout, CALL_ACTION_TIMEOUT);
           // Prevent triggering voice command if END button is held while
           // rejecting a call.
           HANDSET_CancelCurrentButtonHoldEvents();
         }
-        APP_CallAction = APP_CALL_ENDING;
-        TIMEOUT_Start(&callActionTimeout, CALL_ACTION_TIMEOUT);
+
+        resetFcn();
         return;
       }
     } else if (
@@ -2424,13 +2440,6 @@ void handle_HANDSET_Event(HANDSET_Event const* event) {
                 if (BT_CallStatus >= BT_CALL_ACTIVE) {
                   NumberInput_SendCurrentNumberAsDtmf();
                 }
-              } else if (button == HANDSET_Button_END) {
-                if ((BT_CallStatus > BT_CALL_ACTIVE) && (APP_CallAction == APP_CALL_IDLE)) {
-                  SOUND_PlayButtonBeep(button, false);
-                  BT_EndHoldOrWaitingCall();
-                  APP_CallAction = APP_CALL_ENDING;
-                  TIMEOUT_Start(&callActionTimeout, CALL_ACTION_TIMEOUT);
-                }
               } else if (button == HANDSET_Button_3) {
                 SOUND_PlayDTMFButtonBeep(button, false);
                 CALL_TIMER_DisableDisplayUpdate();
@@ -2781,49 +2790,12 @@ void handle_HANDSET_Event(HANDSET_Event const* event) {
           APP_CallAction = APP_CALL_ACCEPTING;
           TIMEOUT_Start(&callActionTimeout, CALL_ACTION_TIMEOUT);
           return;
-        } else if ((button == HANDSET_Button_END) && (APP_CallAction == APP_CALL_IDLE)) {
-          if (isFcn) {
-            if (BT_CallStatus == BT_CALL_ACTIVE_WITH_CALL_WAITING) {
-              SOUND_PlayButtonBeep(button, false);
-              BT_EndHoldOrWaitingCall();
-              APP_CallAction = APP_CALL_REJECTING;
-              TIMEOUT_Start(&callActionTimeout, CALL_ACTION_TIMEOUT);
-            }
-          } else {
-            SOUND_PlayButtonBeep(button, false);
-
-            if (BT_CallStatus == BT_CALL_INCOMING) {
-              TIMEOUT_Cancel(&autoAnswerTimeout);
-              BT_RejectCall();
-              // Prevent triggering voice command if END button is held while
-              // rejecting a call.
-              HANDSET_CancelCurrentButtonHoldEvents();
-            } else  {
-              BT_SwapHoldOrWaitingCallAndEndActiveCall();
-            }
-            APP_CallAction = APP_CALL_REJECTING;
-            TIMEOUT_Start(&callActionTimeout, CALL_ACTION_TIMEOUT);
-          }
-          return;
         }
       } else if ((event->type == HANDSET_EventType_HOOK) && !event->isOnHook && (BT_CallStatus == BT_CALL_INCOMING)) {
         TIMEOUT_Cancel(&autoAnswerTimeout);
         BT_AcceptCall();
         APP_CallAction = APP_CALL_ACCEPTING;
         TIMEOUT_Start(&callActionTimeout, CALL_ACTION_TIMEOUT);
-      }
-      break;
-      
-    case APP_State_VOICE_COMMAND:  
-      if (isButtonDown && (button == HANDSET_Button_END) && (APP_CallAction == APP_CALL_IDLE)) {
-        SOUND_PlayButtonBeep(button, false);
-        APP_CallAction = APP_CALL_CANCEL_VOICE_COMMAND;
-        TIMEOUT_Start(&callActionTimeout, CALL_ACTION_TIMEOUT);
-        BT_CancelVoiceCommand();
-        // Prevent triggering voice command if END button is held while
-        // canceling voice command.
-        HANDSET_CancelCurrentButtonHoldEvents();
-        return;
       }
       break;
       
