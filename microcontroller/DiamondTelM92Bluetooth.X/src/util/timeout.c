@@ -70,3 +70,7 @@ void TIMEOUT_Cancel(timeout_t* timeout) {
 bool TIMEOUT_IsPending(timeout_t const* timeout) {
   return timeout->_isPending;
 }
+
+bool TIMEOUT_IsExpired(timeout_t const* timeout) {
+  return timeout->_timerExpired;
+}

@@ -34,6 +34,13 @@ typedef enum BATTERY_EventType {
    * Use BATTERY_GetBatteryLevel() to get the new battery level.
    */    
   BATTERY_EventType_BATTERY_LEVEL_CHANGED,
+  /**
+   * The phone should be powered off because the battery level has reached its 
+   * lowest allowed level, and a minimum amount of time has passed since the
+   * BATTERY_EventType_BATTERY_LEVEL_IS_LOW event was fired (giving sufficient 
+   * warning of impending power-off).
+   */    
+  BATTERY_EventType_LOW_VOLTAGE_POWER_OFF,
 } BATTERY_EventType;  
 
 /**
@@ -130,6 +137,25 @@ uint8_t BATTERY_GetBatteryLevelForHandset(void);
  * @return True if the battery level is low.
  */
 bool BATTERY_IsBatteryLevelLow(void);
+
+/**
+ * Reset the low-voltage power-off timeout so that the 
+ * BATTERY_EventType_LOW_VOLTAGE_POWER_OFF will be fired no sooner than the
+ * minimum low voltage warning duration from now, even if the battery level
+ * is at/below minimum voltage level now.
+ * 
+ * Call this function immediately upon powering on in case the battery level 
+ * was sufficient to power on, but the amp draw of powering on drops the battery
+ * voltage to minimum immediately or very soon.
+ * 
+ * This ensures that the user is given a reasonable minimum amount of time to be
+ * informed of the low battery before powering back off.
+ * 
+ * This function also immediately triggers either the 
+ * BATTERY_EventType_BATTERY_LEVEL_IS_LOW or BATTERY_EventType_BATTERY_LEVEL_IS_OK
+ * event depending on the current battery level.
+ */
+void BATTERY_ResetLowBatteryHandling(void);
 
 
 #ifdef	__cplusplus

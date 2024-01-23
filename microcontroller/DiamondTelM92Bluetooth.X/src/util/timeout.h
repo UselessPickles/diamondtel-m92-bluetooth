@@ -145,6 +145,17 @@ void TIMEOUT_Cancel(timeout_t* timeout);
  */
 bool TIMEOUT_IsPending(timeout_t const* timeout);
 
+/**
+ * Tests if a timeout is expired.
+ * 
+ * A timeout is considered to be expired if it has been started, then has
+ * completed, but has not yet been processed by TIMEOUT_Task().
+ * 
+ * @param timeout - Pointer to a timeout.
+ * @return True if the timeout is pending.
+ */
+bool TIMEOUT_IsExpired(timeout_t const* timeout);
+
 #ifdef	__cplusplus
 }
 #endif

@@ -1828,12 +1828,7 @@ void APP_Task(void) {
   
         appState = APP_State_NUMBER_INPUT;        
         
-        // If battery level is low immediately upon powering on,
-        // then simulate the battery low event to trigger indication
-        // to the user.
-        if (BATTERY_IsBatteryLevelLow()) {
-          handle_BATTERY_Event(BATTERY_EventType_BATTERY_LEVEL_IS_LOW);
-        }
+        BATTERY_ResetLowBatteryHandling();
       }
       break;
       
@@ -3168,11 +3163,6 @@ void handle_BATTERY_Event(BATTERY_EventType event) {
   
   switch (event)  {
     case BATTERY_EventType_BATTERY_LEVEL_CHANGED:
-      if ((BATTERY_GetBatteryLevel() == 1) && (appState != APP_State_SLEEP)) {
-        printf("[BATTERY] DEPLETED! Powering OFF!!!\r\n");
-        powerOff(false);
-      }
-      
       if (appState == APP_State_DISPLAY_BATTERY_LEVEL) {
         displayBatteryLevel(false);
       }
@@ -3201,6 +3191,13 @@ void handle_BATTERY_Event(BATTERY_EventType event) {
           returnToNumberInput(false);
         }
         reportBatteryLevelToBT();
+      }
+      break;
+      
+    case BATTERY_EventType_LOW_VOLTAGE_POWER_OFF:  
+      if (appState >= APP_State_NUMBER_INPUT) {
+        printf("[BATTERY] DEPLETED! Powering OFF!!!\r\n");
+        powerOff(false);
       }
       break;
   }

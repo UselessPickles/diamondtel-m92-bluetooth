@@ -23,6 +23,11 @@
  */
 #define BATTERY_LEVEL_SAMPLES (6)
 
+/**
+ * Minimum amount of time (hundredths of a second) between a low battery level
+ * warning and power-off due to minimum battery level.
+ */
+#define MINIMUM_LOW_BATTERY_WARNING_DURATION (1000)
 
 /**
  * Module state.
@@ -67,6 +72,15 @@ static struct {
    * get a battery voltage reading.
    */
   bool isAdcConversionPending;
+  /**
+   * A timeout that is started upon the battery reaching its "low" threshold
+   * and used to ensure that there is a minimum amount of time between warning
+   * the user of the low battery and firing the BATTERY_EventType_LOW_VOLTAGE_POWER_OFF
+   * event, even if the battery level very quickly drops to/below minimum
+   * (e.g., immediately after powering on when the battery level was just above
+   * minimum, but then drops due to higher current draw)
+   */
+  timeout_t lowVoltagePowerOffTimeout;
 } module;
 
 /**
@@ -183,16 +197,23 @@ void BATTERY_Task(void) {
       }
       
       if (module.isBatteryLevelLow != wasBatteryLevelLow) {
-        if (module.eventHandler) {
-          module.eventHandler(module.isBatteryLevelLow ? BATTERY_EventType_BATTERY_LEVEL_IS_LOW : BATTERY_EventType_BATTERY_LEVEL_IS_OK);
-        }
+        BATTERY_ResetLowBatteryHandling();
       }
+    }
+  }
+  
+  if ((module.batteryLevel == 1) && TIMEOUT_IsExpired(&module.lowVoltagePowerOffTimeout)) {
+    TIMEOUT_Cancel(&module.lowVoltagePowerOffTimeout);
+    
+    if (module.eventHandler) {
+      module.eventHandler(BATTERY_EventType_LOW_VOLTAGE_POWER_OFF);
     }
   }
 }
 
 void BATTERY_Timer10MS_Interrupt(void) {
   INTERVAL_Timer_Interrupt(&module.batteryLevelPollInterval);
+  TIMEOUT_Timer_Interrupt(&module.lowVoltagePowerOffTimeout);
 }
 
 void BATTERY_PollBatteryLevelNow(void) {
@@ -229,4 +250,16 @@ uint8_t BATTERY_GetBatteryLevelForHandset(void) {
 
 bool BATTERY_IsBatteryLevelLow(void) {
   return module.isBatteryLevelLow;
+}
+
+void BATTERY_ResetLowBatteryHandling(void) {
+  if (module.isBatteryLevelLow) {
+    TIMEOUT_Start(&module.lowVoltagePowerOffTimeout, MINIMUM_LOW_BATTERY_WARNING_DURATION);
+  } else {
+    TIMEOUT_Cancel(&module.lowVoltagePowerOffTimeout);
+  }
+  
+  if (module.eventHandler) {
+    module.eventHandler(module.isBatteryLevelLow ? BATTERY_EventType_BATTERY_LEVEL_IS_LOW : BATTERY_EventType_BATTERY_LEVEL_IS_OK);
+  }
 }
