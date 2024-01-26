@@ -24,7 +24,7 @@ NOTE: The Bluetooth Module, Microcontroller, and Telephone all have dedicated to
 
 This is a simplified component diagram of the bluetooth adapter circuit. Many details of the circuit (power, ground, voltage biasing, supporting components, etc.) are omitted for clarity of understanding the big picture of how the major components interact with each other.
 
-![Circuit Component Diagram](../readme/circuit_component_diagram.drawio.png)
+[TODO]
 
 ## Major Circuit Components
 
@@ -95,31 +95,5 @@ This component produces a -5V power supply from the main +5V power supply. This 
 
 ## Detailed Circuit Diagrams
 
-Coming Soon?
+See the KiCad projects in the `kicad` directory for complete schematics and PCB layouts.
 
-## Prototype Board Layout
-
-This is a layout of the circuit for a pad-per-hole perf board, designed with [VeroRoute](https://sourceforge.net/projects/veroroute/) software. See the `./VeroRoute` directory for the VeroRoute layout file.
-
-![Circuit Layout](./VeroRoute/layout.png)
-
-![Prototype Board (Top)](./readme/prototype_board_top.JPG)
-
-![Prototype Board (Bottom)](./readme/prototype_board_bottom.JPG)
-
-![Prototype Board (In Enclosure)](./readme/prototype_board_in_enclosure.JPG)
-
-
-Notes:
-- The general approach to the layout is:
-  - Power and ground are traces on the bottom of the board, with priority given to ground as unbroken traces (power crosses over ground with jumper wires on top of the board as needed).
-  - All signals are generally routed as wires on top of the board with attempts to minimize crossing other signal wires.
-- VeroRoute has a limitation that wires are always straight. The only way to represent a bend in a wire is to terminate a wire at a hole, then share that hole with another wire that continues the path in the desired direction. This is obnoxious, because every bend of wire "occupies" a hole that cannot be used by a trace on the bottom of the board.
-- The perf board is a [15x20 cm prototype board I found on Amazon](https://www.amazon.com/gp/product/B08WJDP144), trimmed down to size to fit in a [Radioshack 5x7x3 project enclosure box](https://www.radioshack.com/products/project-enclosure-7x5x3).
-- I use this [BM62 Breadboard Adapter](https://www.tindie.com/products/tomaskovacik/bm20bm62-breadboard-adapter/) and a pair of female socket strips to both easily adapt the Bluetooth chip to the 0.1" hole spacing, and allow the Bluetooth chip to be removed from the prototype board for configuration updates on a breadboard.
-- I use RJ45 socket breakout boards that I found on [ebay from a company called MDFLY](https://www.ebay.com/itm/304544572432). In retrospect, I think another form of breakout board with all pins arranged in a single row may have been more convenient for routing traces. But maybe I'll come up with a good reason to use the LEDs on these sockets.
-- I diverged a bit from the VeroRoute layout:
-  - Made a couple "off by one" mistakes in placing components and just rolled with it.
-  - Some power supply and ground routing was altered a bit because the perf board I used did not work well for creating "traces" of sodler bridging across several solder pads. So I had to use wires for all the power/ground routes on the bottom of the board instead.
-  - I used female pin header sockets instead of soldering the Bluetooth module breadboard adapter directly to the board. This allows me to remove the Bluetooth module to update its configuration on a breadboard. It also allowed me to route some connections as wires on top of the board underneath the Bluetooth board.
-  - I shifted the position of the Bluetooth board up and to the right a bit to ensure that the Bluetooth antenna can overhang the edge of the perfboard for minimal metal interference, and to clear the standoff in the project enclosure that the board mounts to.
