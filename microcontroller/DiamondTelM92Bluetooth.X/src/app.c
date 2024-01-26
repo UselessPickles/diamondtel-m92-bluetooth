@@ -9,7 +9,7 @@
 #include <ctype.h>
 #include "app.h"
 #include "constants.h"
-#include "../mcc_generated_files/pin_manager.h"
+#include "../mcc_generated_files/mcc.h"
 #include "power/external_power.h"
 #include "power/battery.h"
 #include "vehicle/ignition.h"
@@ -1604,6 +1604,12 @@ void handle_IGNITION_Event(IGNITION_EventType event);
 void handle_ATCMD_UnsolicitedResult(char const* result);
 
 void APP_Initialize(void) {
+  TMR2_SetInterruptHandler(APP_Timer10MS_Interrupt);
+  TMR2_StartTimer();
+
+  TMR4_SetInterruptHandler(APP_Timer1MS_Interrupt);
+  TMR4_StartTimer();
+
   lastAppState = -1;
   BT_CallStatus = BT_CALL_IDLE;
 
@@ -1648,6 +1654,112 @@ void APP_Task(void) {
 
   switch (appState) {
     case APP_State_SLEEP:
+      if (!TIMEOUT_IsPending(&appStateTimeout)) {
+        // Stop things from happening...
+        TMR2_Stop();
+        TMR4_Stop();
+        ADCC_StopConversion();
+        
+        printf("SLEEPING!!!\r\n");
+        // Flush the I/O UART transmit buffer
+        while(!UART1_is_tx_done()) {}
+
+        // Preserve the state of all peripheral interrupt enable flags
+        uint8_t const holdPIE0 = PIE0;
+        uint8_t const holdPIE1 = PIE1;
+        uint8_t const holdPIE2 = PIE2;
+        uint8_t const holdPIE3 = PIE3;
+        uint8_t const holdPIE4 = PIE4;
+        uint8_t const holdPIE5 = PIE5;
+        uint8_t const holdPIE6 = PIE6;
+        uint8_t const holdPIE7 = PIE7;
+        uint8_t const holdPIE8 = PIE8;
+        uint8_t const holdPIE9 = PIE9;
+        uint8_t const holdPIE10 = PIE10;
+        uint8_t const holdPIE11 = PIE11;
+        uint8_t const holdPIE12 = PIE12;
+        uint8_t const holdPIE13 = PIE13;
+        uint8_t const holdPIE14 = PIE14;
+        uint8_t const holdPIE15 = PIE15;
+        
+        // Disable ALL peripheral interrupts.
+        PIE0 = 0;
+        PIE1 = 0;
+        PIE2 = 0;
+        PIE3 = 0;
+        PIE4 = 0;
+        PIE5 = 0;
+        PIE6 = 0;
+        PIE7 = 0;
+        PIE8 = 0;
+        PIE9 = 0;
+        PIE10 = 0;
+        PIE11 = 0;
+        PIE12 = 0;
+        PIE13 = 0;
+        PIE14 = 0;
+        PIE15 = 0;
+        
+        // Enable ONLY the pin interrupt-on-change while sleeping
+        // so that the power button or ignition switch can wake the MCU.
+        PIE0bits.IOCIE = 1;
+
+        // Disable peripherals to reduce power consumption
+        PMD1bits.TMR2MD = 1;
+        PMD1bits.TMR4MD = 1;
+        PMD3bits.ADCMD = 1;
+        PMD6bits.U1MD = 1;
+        
+        // Go to sleep
+        SLEEP();
+        NOP();
+
+        // Re-enable peripherals
+        PMD1bits.TMR2MD = 0;
+        PMD1bits.TMR4MD = 0;
+        PMD3bits.ADCMD = 0;
+        PMD6bits.U1MD = 0;
+
+        // Restore all peripheral interrupt enable flags
+        PIE0 = holdPIE0;
+        PIE1 = holdPIE1;
+        PIE2 = holdPIE2;
+        PIE3 = holdPIE3;
+        PIE4 = holdPIE4;
+        PIE5 = holdPIE5;
+        PIE6 = holdPIE6;
+        PIE7 = holdPIE7;
+        PIE8 = holdPIE8;
+        PIE9 = holdPIE9;
+        PIE10 = holdPIE10;
+        PIE11 = holdPIE11;
+        PIE12 = holdPIE12;
+        PIE13 = holdPIE13;
+        PIE14 = holdPIE14;
+        PIE15 = holdPIE15;
+
+        // Re-initialize all peripherals that had been disabled
+        UART1_Initialize();
+        ADCC_Initialize();
+        TMR2_Initialize();
+        TMR4_Initialize();
+        TMR2_SetInterruptHandler(APP_Timer10MS_Interrupt);
+        TMR4_SetInterruptHandler(APP_Timer1MS_Interrupt);
+
+        // Restart the timers
+        TMR2_StartTimer();
+        TMR4_StartTimer();
+        
+        // Get a fresh reading of battery level right now
+        // (should be ready in time to decide whether battery level is high enough to power on)
+        BATTERY_ResetRollingAverage();
+        BATTERY_PollBatteryLevelNow();
+        
+        printf("WAKING!!!\r\n");
+
+        // Go back to sleep in 2 seconds if conditions have not been met to power on by then.
+        TIMEOUT_Start(&appStateTimeout, 200);
+      }
       return;
       
     case APP_State_INIT_START:
