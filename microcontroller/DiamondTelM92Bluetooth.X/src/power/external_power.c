@@ -49,7 +49,7 @@ void EXTERNAL_POWER_Initialize(EXTERNAL_POWER_EventHandler eventHandler) {
   module.isConnected = IO_EXT_PWR_DETECT_GetValue();
   printf("[EXTERNAL POWER] Initial: %s\r\n", module.isConnected ? "Connected" : "Disconnected");
   TIMEOUT_Cancel(&module.debounceTimeout);
-  IOCBF3_SetInterruptHandler(inputPinChangeHandler);
+  IOCBF4_SetInterruptHandler(inputPinChangeHandler);
 }
 
 void EXTERNAL_POWER_Task(void) {

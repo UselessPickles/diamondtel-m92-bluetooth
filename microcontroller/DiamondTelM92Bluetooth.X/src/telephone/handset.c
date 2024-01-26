@@ -353,7 +353,7 @@ void HANDSET_Initialize(HANDSET_EventHandler eventHandler) {
   handset.currentButtonDownDuration = HANDSET_HoldDuration_MAX + 1;
   handset.isOnHook = true;
   
-  IOCBF5_SetInterruptHandler(pwrButtonInterruptHandler);
+  IOCBF3_SetInterruptHandler(pwrButtonInterruptHandler);
 }
 
 void HANDSET_EnableUART(void) {

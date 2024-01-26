@@ -48,7 +48,7 @@ void IGNITION_Initialize(IGNITION_EventHandler eventHandler) {
   module.isOn = IO_IGN_DETECT_GetValue();
   printf("[IGNITION] Initial: %s\r\n", module.isOn ? "ON" : "OFF");
   TIMEOUT_Cancel(&module.debounceTimeout);
-  IOCBF4_SetInterruptHandler(inputPinChangeHandler);
+  IOCBF5_SetInterruptHandler(inputPinChangeHandler);
 }
 
 void IGNITION_Task(void) {
