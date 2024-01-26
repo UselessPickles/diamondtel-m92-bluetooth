@@ -1,0 +1,4 @@
+(sym_lib_table
+  (version 7)
+  (lib (name "M92 Bluetooth Adapter Motherboard")(type "KiCad")(uri "${KIPRJMOD}/M92 Bluetooth Adapter Motherboard.kicad_sym")(options "")(descr ""))
+)

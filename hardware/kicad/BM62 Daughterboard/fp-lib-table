@@ -1,0 +1,4 @@
+(fp_lib_table
+  (version 7)
+  (lib (name "BM62 Daughterboard")(type "KiCad")(uri "${KIPRJMOD}/BM62 Daughterboard.pretty")(options "")(descr ""))
+)
