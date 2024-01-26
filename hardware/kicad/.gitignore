@@ -28,5 +28,8 @@ fp-info-cache
 *.xml
 *.csv
 
+# Lock files
+*.lck
+
 # Production files output
 production
