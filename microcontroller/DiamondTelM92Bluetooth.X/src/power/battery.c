@@ -87,12 +87,12 @@ static struct {
  * The raw ADC battery voltage reading that is to be considered the lowest
  * battery level. All values <= this are reported as a battery level of 1.
  */
-#define MIN_ADC_BATTERY_LEVEL (2720)
+#define MIN_ADC_BATTERY_LEVEL (2800)
 /**
  * The raw ADC battery voltage reading that is to be considered the highest
  * battery level. All values >= this are reported as a battery level of 100.
  */
-#define MAX_ADC_BATTERY_LEVEL (3425)
+#define MAX_ADC_BATTERY_LEVEL (3690)
 
 /**
  * The battery level (on a 1-100 scale) that is used as the threshold for 
