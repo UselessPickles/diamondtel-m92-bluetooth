@@ -87,12 +87,18 @@ static struct {
  * The raw ADC battery voltage reading that is to be considered the lowest
  * battery level. All values <= this are reported as a battery level of 1.
  */
-#define MIN_ADC_BATTERY_LEVEL (2800)
+// For 560k + 330k divider
+//#define MIN_ADC_BATTERY_LEVEL (2800)
+// For 550k + 330k divider
+#define MIN_ADC_BATTERY_LEVEL (2900)
 /**
  * The raw ADC battery voltage reading that is to be considered the highest
  * battery level. All values >= this are reported as a battery level of 100.
  */
-#define MAX_ADC_BATTERY_LEVEL (3690)
+// For 560k + 330k divider
+//#define MAX_ADC_BATTERY_LEVEL (3690)
+// For 550k + 330k divider
+#define MAX_ADC_BATTERY_LEVEL (3780)
 
 /**
  * The battery level (on a 1-100 scale) that is used as the threshold for 
@@ -156,7 +162,7 @@ void BATTERY_Initialize(BATTERY_EventHandler eventHandler) {
   uint16_t const rawBatteryLevel = ADCC_GetSingleConversion(IO_BATT_VOLTAGE);
   
   module.batteryLevel = addBatteryLevelSample(convertAdcToBatteryLevel(rawBatteryLevel));
-  module.isBatteryLevelLow = module.batteryLevel < LOW_BATTERY_THRESHOLD;
+  module.isBatteryLevelLow = module.batteryLevel <= LOW_BATTERY_THRESHOLD;
   printf("[BATTERY] Initial battery level: %u/4095; %u/100\r\n", rawBatteryLevel, module.batteryLevel);
   
   INTERVAL_Initialize(&module.batteryLevelPollInterval, BATTERY_LEVEL_POLL_INTERVAL);
@@ -190,7 +196,7 @@ void BATTERY_Task(void) {
       bool const wasBatteryLevelLow = module.isBatteryLevelLow;
       
       module.batteryLevel = newBatteryLevel;
-      module.isBatteryLevelLow = newBatteryLevel < (LOW_BATTERY_THRESHOLD + (wasBatteryLevelLow ? 2 : 0));
+      module.isBatteryLevelLow = newBatteryLevel <= (LOW_BATTERY_THRESHOLD + (wasBatteryLevelLow ? 2 : 0));
       
       if (module.eventHandler) {
         module.eventHandler(BATTERY_EventType_BATTERY_LEVEL_CHANGED);

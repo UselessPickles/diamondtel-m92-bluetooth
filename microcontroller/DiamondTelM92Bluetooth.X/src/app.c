@@ -223,6 +223,8 @@ static void powerOffIfIgnitionOff(void) {
   }
 }
 
+#define RETURN_TO_SLEEP_DELAY (200)
+
 #define INITIAL_BATTERY_LEVEL_REPORT_DELAY (100)
 
 static struct {
@@ -1700,8 +1702,8 @@ void APP_Task(void) {
         
         printf("WAKING!!!\r\n");
 
-        // Go back to sleep in 2 seconds if conditions have not been met to power on by then.
-        TIMEOUT_Start(&appStateTimeout, 200);
+        // Go back to sleep soon if conditions have not been met to power on by then.
+        TIMEOUT_Start(&appStateTimeout, RETURN_TO_SLEEP_DELAY);
       }
       return;
       
@@ -2101,6 +2103,14 @@ void handle_HANDSET_Event(HANDSET_Event const* event) {
   uint8_t button = event->button;
 
   if (appState == APP_State_SLEEP) {
+    // If PWR button is pressed, then reset the timeout to wait and see if the
+    // button is held down long enough to power on before returning to sleep.
+    // This avoids a problem where an attempt to power on fails due to 
+    // particular timing of a double press then hold of the PWR button.
+    if (isButtonDown && (button == HANDSET_Button_PWR)) {
+      TIMEOUT_Start(&appStateTimeout, RETURN_TO_SLEEP_DELAY);
+    }
+    
     // Handle power on via the PWR button
     if (
         (event->type == HANDSET_EventType_BUTTON_HOLD) && 
