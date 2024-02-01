@@ -13,9 +13,9 @@
 #include "../util/string.h"
 #include "../util/timeout.h"
 #include "../util/interval.h"
+#include "../util/math.h"
 #include "../ui/security_code.h"
 #include "../ui/string_input.h"
-#include <stdlib.h>
 #include <string.h>
 
 typedef enum State {
@@ -400,7 +400,7 @@ void movePieceX(int8_t amount) {
 static void displayGameOver(void);
 
 static void spawnPiece(void) {
-  module.pieceShape = rand() % SHAPE_COUNT;
+  module.pieceShape = random(SHAPE_COUNT);
   module.pieceY = BOARD_HEIGHT - SHAPE_SIZES[module.pieceShape];
 
   switch (module.pieceShape) {
@@ -410,16 +410,16 @@ static void spawnPiece(void) {
       
     case Shape_I3:
       // avoid ambiguous initial orientation
-      module.pieceOrientation = ((rand() % 3) + 3) % 4;
+      module.pieceOrientation = (random(3) + 3) % 4;
       break;
       
     case Shape_L3:
-      module.pieceOrientation = rand() % 4;
+      module.pieceOrientation = random(4);
       break;
   }
   
   if (SHAPE_SIZES[module.pieceShape] == 1) {
-    module.pieceX = rand() & 1;
+    module.pieceX = random(2);
   } else {
     module.pieceX = 0;
   }
@@ -633,7 +633,7 @@ static void resumeGame(void) {
 }
 
 static void startNewGame(uint8_t level) {
-  srand(((uint16_t)TMR6_ReadTimer() << 8) | TMR4_ReadTimer());
+  randomize();
 
   module.isGameStarted = true;
   module.startLevel = module.level = level;

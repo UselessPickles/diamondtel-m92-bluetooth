@@ -9,9 +9,9 @@
 #include "../ui/volume_adjust.h"
 #include "../util/string.h"
 #include "../util/interval.h"
+#include "../util/math.h"
 #include "../../mcc_generated_files/tmr6.h"
 #include "../../mcc_generated_files/tmr4.h"
-#include <stdlib.h>
 #include <string.h>
 
 typedef enum State {
@@ -114,7 +114,7 @@ static void displayGameTiles(void) {
 }
 
 static void initCards(void) {
-  srand(((uint16_t)TMR6_ReadTimer() << 8) | TMR4_ReadTimer());
+  randomize();
   
   char cards[HANDSET_TEXT_DISPLAY_LENGTH];
   uint8_t const totalCards = module.remainingPairs * 2;
@@ -124,7 +124,7 @@ static void initCards(void) {
   memcpy(cards + module.remainingPairs, cardChars, module.remainingPairs);
   
   while (remainingCards != 0) {
-    uint8_t nthAvailableCard = rand() % remainingCards;
+    uint8_t nthAvailableCard = random(remainingCards);
     uint8_t cardIndex = 0;
     
     while (true) {

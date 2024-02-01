@@ -70,6 +70,7 @@
         <itemPath>src/util/interval.h</itemPath>
         <itemPath>src/util/string.h</itemPath>
         <itemPath>src/util/timeout.h</itemPath>
+        <itemPath>src/util/math.h</itemPath>
       </logicalFolder>
       <logicalFolder name="f9" displayName="Vehicle" projectFiles="true">
         <itemPath>src/vehicle/ignition.h</itemPath>
@@ -150,6 +151,7 @@
         <itemPath>src/util/interval.c</itemPath>
         <itemPath>src/util/string.c</itemPath>
         <itemPath>src/util/timeout.c</itemPath>
+        <itemPath>src/util/math.c</itemPath>
       </logicalFolder>
       <logicalFolder name="f9" displayName="Vehicle" projectFiles="true">
         <itemPath>src/vehicle/ignition.c</itemPath>

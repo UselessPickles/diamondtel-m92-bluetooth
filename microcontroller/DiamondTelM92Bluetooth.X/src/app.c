@@ -41,6 +41,7 @@
 #include "util/string.h"
 #include "util/timeout.h"
 #include "util/interval.h"
+#include "util/math.h"
 
 static enum {
   APP_CALL_IDLE,
@@ -1101,7 +1102,6 @@ typedef enum SecurityAction {
   SecurityAction_DISPLAY_TOTAL_TALK_TIME,
   SecurityAction_RCL_CARD_NUMBER,
   SecurityAction_STO_CARD_NUMBER,
-  SecurityAction_RESET_PAIRED_DEVICES,
   SecurityAction_SET_BT_DEVICE_NAME,
   SecurityAction_TOGGLE_DUAL_NUMBER
 } SecurityAction;
@@ -1149,13 +1149,6 @@ static void handle_SECURITY_CODE_Success_CLR_CARD_NUMBER(void) {
   numberInputIsStale = true;
 }
 
-static void handle_SECURITY_CODE_Success_RESET_PAIRED_DEVICES(void) {
-  BT_DisconnectAllProfile();
-  BT_ResetEEPROM();
-  STORAGE_SetPairedDeviceName("");
-  recallPairedDeviceName(false);
-}
-
 static void handleBluetoothNameStringInputReturn(STRING_INPUT_Result result, char const* name) {
   if (result == STRING_INPUT_Result_APPLY) {
     setBluetoothName(name);
@@ -1189,7 +1182,6 @@ static SECURITY_CODE_Callback SECURITY_CODE_SUCCESS_CALLBACKS[] = {
   handle_SECURITY_CODE_Success_DISPLAY_TOTAL_TALK_TIME,
   handle_SECURITY_CODE_Success_RCL_CARD_NUMBER,
   handle_SECURITY_CODE_Success_CLR_CARD_NUMBER,
-  handle_SECURITY_CODE_Success_RESET_PAIRED_DEVICES,
   handle_SECURITY_CODE_Success_SET_BT_DEVICE_NAME,
   handle_SECURITY_CODE_Success_TOGGLE_DUAL_NUMBER
 };
@@ -2550,9 +2542,23 @@ void handle_HANDSET_Event(HANDSET_Event const* event) {
                 SOUND_PlayDTMFButtonBeep(button, false);
                 CALL_TIMER_DisableDisplayUpdate();
                 
+                randomize();
+                uint8_t pinDigit1 = random(10);
+                uint8_t pinDigit2 = random(10);
+                uint8_t pinDigit3 = random(10);
+                uint8_t pinDigit4 = random(10);
+                
+                BT_SetPinCode(pinDigit1, pinDigit2, pinDigit3, pinDigit4);
+                
                 HANDSET_DisableTextDisplay();
                 HANDSET_ClearText();
                 HANDSET_PrintString("PAIRING");
+                HANDSET_PrintCharN(' ', 2);
+                HANDSET_PrintChar('0' + pinDigit1);
+                HANDSET_PrintChar('0' + pinDigit2);
+                HANDSET_PrintChar('0' + pinDigit3);
+                HANDSET_PrintChar('0' + pinDigit4);
+                HANDSET_PrintChar(' ');
                 HANDSET_EnableTextDisplay();
                 
                 numberInputIsStale = true;
@@ -2561,6 +2567,8 @@ void handle_HANDSET_Event(HANDSET_Event const* event) {
 
                 TIMEOUT_Cancel(&linkbackRetryTimeout);
                 BT_DisconnectAllProfile();
+                BT_ResetEEPROM();
+                STORAGE_SetPairedDeviceName("");
                 BT_EnterPairingMode();
               }
             } else {
@@ -2936,7 +2944,6 @@ void handle_HANDSET_Event(HANDSET_Event const* event) {
       if (isButtonDown && (button == HANDSET_Button_CLR)) {
         SOUND_PlayButtonBeep(button, false);
         BT_ExitPairingMode();
-        BT_LinkBackToLastDevice();
         INDICATOR_StopSignalStrengthSweep(0);
         INDICATOR_StartFlashing(HANDSET_Indicator_SIGNAL_BARS);
         returnToNumberInput(false);
@@ -3165,15 +3172,6 @@ void handle_HANDSET_Event(HANDSET_Event const* event) {
     case APP_State_DISPLAY_CREDIT_CARD_NUMBER_SHOW_OVERFLOW:
       if (isButtonUp && (button == HANDSET_Button_RCL)) {
         recallCreditCardNumber(creditCardIndex);
-      }
-      break;
-      
-    case APP_State_RECALL_PAIRED_DEVICE_NAME:
-      if (isButtonDown) {
-        if (button == HANDSET_Button_STO) {
-          SOUND_PlayButtonBeep(button, false);
-          startEnterSecurityCode(SecurityAction_RESET_PAIRED_DEVICES, true);
-        }
       }
       break;
       

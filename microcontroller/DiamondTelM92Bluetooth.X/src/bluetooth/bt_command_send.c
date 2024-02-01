@@ -248,13 +248,27 @@ bool BT_SetDeviceName(char const* name) {
   command[3] = CONFIGURE_VENDOR_PARAMETER;      //command ID
   command[4] = 0;      // op code: 0 = set device name
   command[5] = 0;      // option (reserved): set to zero
-  command[6] = len;      // op code: 0 = set device name
+  command[6] = len;      // device name length
 
 
   memcpy(command + 7, name, len);
 
   command[len + 7] = BT_CalculateCmdChecksum(&command[2], &command[len + 6]);
 	return copySendingCommandToBuffer(command, len + 8); 
+}
+
+bool BT_SetPinCode(uint8_t digit1, uint8_t digit2, uint8_t digit3, uint8_t digit4) {
+  uint8_t command[9];
+  command[0] = 0xAA;      //header byte 0
+  command[1] = 0x00;      //header byte 1
+  command[2] = 5;      //length
+  command[3] = CHANGE_PIN_CODE;      //command ID
+  command[4] = '0' + digit1;
+  command[5] = '0' + digit2;
+  command[6] = '0' + digit3;
+  command[7] = '0' + digit4;
+  command[8] = BT_CalculateCmdChecksum(&command[2], &command[7]);
+	return copySendingCommandToBuffer(command, 9); 
 }
 
 void BT_StartVoiceCommand(void) {

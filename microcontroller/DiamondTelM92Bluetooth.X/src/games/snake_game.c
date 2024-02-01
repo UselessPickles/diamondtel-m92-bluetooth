@@ -10,10 +10,10 @@
 #include "../util/string.h"
 #include "../util/timeout.h"
 #include "../util/interval.h"
+#include "../util/math.h"
 #include "../../mcc_generated_files/tmr6.h"
 #include "../../mcc_generated_files/tmr4.h"
 #include <string.h>
-#include <stdlib.h>
 
 typedef enum State {
   State_TITLE,
@@ -95,7 +95,7 @@ static void placeFood(void) {
   }
   
   uint8_t emptyTileCount = HANDSET_TEXT_DISPLAY_LENGTH - module.snakeLength;
-  uint8_t nthAvailablePos = ((unsigned)rand()) % emptyTileCount;
+  uint8_t nthAvailablePos = random(emptyTileCount);
   uint8_t foodPos = 0;
   
   while (true) {
@@ -134,7 +134,7 @@ static void resumeGame(void) {
 }
 
 static void startNewGame(uint8_t level) {
-  srand(((uint16_t)TMR6_ReadTimer() << 8) | TMR4_ReadTimer());
+  randomize();
   
   module.isGameStarted = true;
   module.level = level;

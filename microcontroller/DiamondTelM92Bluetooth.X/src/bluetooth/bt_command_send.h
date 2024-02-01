@@ -161,6 +161,7 @@ void BT_ReadLinkedDeviceName(void);
 void BT_ReadLocalBDAddress(void);
 void BT_ReadDeviceName(void);
 bool BT_SetDeviceName(char const* name);
+bool BT_SetPinCode(uint8_t digit1, uint8_t digit2, uint8_t digit3, uint8_t digit4);
 void BT_StartVoiceCommand(void);
 void BT_CancelVoiceCommand(void);
 bool BT_MakeCall(char const* number);
