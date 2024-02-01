@@ -281,7 +281,7 @@ static void playBluetoothConnectionStatusBeep(bool isConnected) {
 }
 
 static void setAecEnabled(void) {
-  if (cellPhoneState.isScoConnected) {
+  if (BT_CallStatus >= BT_CALL_ACTIVE) {
     BT_SetAecEnabled(HANDSET_IsOnHook());
   }
 }
@@ -1273,6 +1273,10 @@ static void handleCallStatusChange(int newCallStatus) {
   
   bool const isOemHandsFreeControllerConnected = 
         STORAGE_GetOemHandsFreeIntegrationEnabled() && EXTERNAL_MIC_IsConnected();
+  
+  if ((BT_CallStatus >= BT_CALL_ACTIVE) && (prevCallStatus < BT_CALL_ACTIVE)) {
+    setAecEnabled();
+  }
 
   switch (BT_CallStatus) {
     case BT_CALL_IDLE:
@@ -3233,7 +3237,6 @@ void APP_BT_EventHandler(uint8_t event, uint16_t para, uint8_t* para_full) {
     case BT_EVENT_SCO_CONNECTED:
       printf("[SCO] Connected\r\n");
       cellPhoneState.isScoConnected = true;
-      setAecEnabled();
       break;
       
     case BT_EVENT_SCO_DISCONNECTED:
