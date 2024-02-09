@@ -174,7 +174,7 @@ static void reboot(bool powerOnAtStartup) {
   
   IO_BT_RESET_SetLow();
   STORAGE_SetPowerOnAtStartupEnabled(powerOnAtStartup);
-  TIMEOUT_Start(&appStateTimeout, 40);
+  TIMEOUT_Start(&appStateTimeout, 45);
   appState = APP_State_REBOOT;
 }
 
@@ -2124,9 +2124,26 @@ void handle_HANDSET_Event(HANDSET_Event const* event) {
           (event->holdDuration == HANDSET_HoldDuration_SHORT)) {
         // Beep to inform the user they have held the PWR button long enough
         // to power off.
-        SOUND_PlayButtonBeep(button, false);
+        SOUND_PlaySingleTone(
+            SOUND_Channel_FOREGROUND, 
+            SOUND_Target_SPEAKER, 
+            VOLUME_Mode_SPEAKER, 
+            TONE_LOW, 
+            0
+          );
       } else if (isButtonUp && (event->holdDuration >= HANDSET_HoldDuration_SHORT)) {
         // Power off upon release of the PWR if it has been held long enough
+
+        // Continue the power-off beep for a bit longer, but less than the delay
+        // before powering off.
+        SOUND_PlaySingleTone(
+            SOUND_Channel_FOREGROUND, 
+            SOUND_Target_SPEAKER, 
+            VOLUME_Mode_SPEAKER, 
+            TONE_LOW, 
+            250
+          );
+
         powerOff(false);
       }
     }
