@@ -571,6 +571,7 @@ void HANDSET_Timer1MS_Interrupt(void) {
     // for the BUTTON_HOLD event, then store it in handset.currentButtonHold
     // so that HANDSET_Task() knows to trigger the event. 
     switch(handset.currentButtonDownDuration) {
+      case HANDSET_HoldDuration_VERY_SHORT:
       case HANDSET_HoldDuration_SHORT:
       case HANDSET_HoldDuration_LONG:
       case HANDSET_HoldDuration_VERY_LONG:

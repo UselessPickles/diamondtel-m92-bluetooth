@@ -172,18 +172,9 @@ static void reboot(bool powerOnAtStartup) {
     return;
   }
   
-  STORAGE_SetPowerOnAtStartupEnabled(powerOnAtStartup);
-  
   IO_BT_RESET_SetLow();
-  HANDSET_SetBacklight(false);
-  HANDSET_SetLoudSpeaker(false);
-  HANDSET_SetEarSpeaker(false);
-  HANDSET_SetMicrophone(false);
-  HANDSET_SetMasterAudio(false);
-  HANDSET_ClearText();
-  HANDSET_SetAllIndicators(false);
-  HANDSET_FlushWriteBuffer();
-  TIMEOUT_Start(&appStateTimeout, 10);
+  STORAGE_SetPowerOnAtStartupEnabled(powerOnAtStartup);
+  TIMEOUT_Start(&appStateTimeout, 40);
   appState = APP_State_REBOOT;
 }
 
@@ -208,7 +199,6 @@ static void powerOn(void) {
   }
   
   IO_SWITCHED_PWR_ENABLE_SetHigh();
-  HANDSET_EnableUART();
   TIMEOUT_Start(&appStateTimeout, 10);
   appState = APP_State_INIT_START;
 }
@@ -1705,7 +1695,7 @@ void APP_Task(void) {
       
     case APP_State_INIT_START:
       if (!TIMEOUT_IsPending(&appStateTimeout)) {
-        TIMEOUT_Start(&appStateTimeout, 25);
+        TIMEOUT_Start(&appStateTimeout, 15);
         TONE_Initialize();
         INDICATOR_Initialize();
         CALL_TIMER_Initialize();
@@ -1717,6 +1707,7 @@ void APP_Task(void) {
         INTERVAL_Initialize(&lowBatteryBeepInterval, LOW_BATTERY_BEEP_INTERVAL);
         VOLUME_Initialize();
 
+        HANDSET_EnableUART();
         // Powering the handset on causes a false detection of the PWR button
         // getting pressed again, so cancel the "hold" tracking to prevent a 
         // long hold during power-on from causing a power-off.
@@ -2111,7 +2102,7 @@ void handle_HANDSET_Event(HANDSET_Event const* event) {
     if (
         (event->type == HANDSET_EventType_BUTTON_HOLD) && 
         (button == HANDSET_Button_PWR) &&
-        (event->holdDuration == HANDSET_HoldDuration_SHORT) &&
+        (event->holdDuration == HANDSET_HoldDuration_VERY_SHORT) &&
         (!EXTERNAL_POWER_IsConnected() || STORAGE_GetIgnitionSenseDisabled() || IGNITION_IsOn())) {
       powerOn();
     }
@@ -2130,11 +2121,11 @@ void handle_HANDSET_Event(HANDSET_Event const* event) {
     if ((BT_CallStatus == BT_CALL_IDLE) || STORAGE_GetPowerOffLockoutDisabled()) {
       if (
           (event->type == HANDSET_EventType_BUTTON_HOLD) && 
-          (event->holdDuration == HANDSET_HoldDuration_LONG)) {
+          (event->holdDuration == HANDSET_HoldDuration_SHORT)) {
         // Beep to inform the user they have held the PWR button long enough
         // to power off.
         SOUND_PlayButtonBeep(button, false);
-      } else if (isButtonUp && (event->holdDuration >= HANDSET_HoldDuration_LONG)) {
+      } else if (isButtonUp && (event->holdDuration >= HANDSET_HoldDuration_SHORT)) {
         // Power off upon release of the PWR if it has been held long enough
         powerOff(false);
       }
