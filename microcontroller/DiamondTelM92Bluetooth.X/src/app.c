@@ -280,10 +280,26 @@ static void playBluetoothConnectionStatusBeep(bool isConnected) {
       );
 }
 
+static timeout_t deferredSetAecEnabledTimeout;
+
+#define DEFERRED_SET_AEC_ENABLED_TIMEOUT (100)
+
 static void setAecEnabled(void) {
-  if (BT_CallStatus >= BT_CALL_ACTIVE) {
+  if (
+      !TIMEOUT_IsPending(&deferredSetAecEnabledTimeout) && 
+      cellPhoneState.isScoConnected && 
+      ((BT_CallStatus == BT_CALL_VOICE_COMMAND) || (BT_CallStatus >= BT_CALL_ACTIVE))
+      ) {
     BT_SetAecEnabled(HANDSET_IsOnHook());
   }
+}
+
+static void deferredSetAecEnabled(void) {
+  TIMEOUT_Start(&deferredSetAecEnabledTimeout, DEFERRED_SET_AEC_ENABLED_TIMEOUT);
+}
+
+static void cancelDeferredSetAecEnabled(void) {
+  TIMEOUT_Cancel(&deferredSetAecEnabledTimeout);
 }
 
 #define CALL_FAILED_TIMEOUT (3000)
@@ -1274,10 +1290,15 @@ static void handleCallStatusChange(int newCallStatus) {
   bool const isOemHandsFreeControllerConnected = 
         STORAGE_GetOemHandsFreeIntegrationEnabled() && EXTERNAL_MIC_IsConnected();
   
-  if ((BT_CallStatus >= BT_CALL_ACTIVE) && (prevCallStatus < BT_CALL_ACTIVE)) {
-    setAecEnabled();
+  if ((BT_CallStatus != BT_CALL_VOICE_COMMAND) && (BT_CallStatus < BT_CALL_ACTIVE)) {
+    cancelDeferredSetAecEnabled();
+  } else if (
+      (BT_CallStatus == BT_CALL_VOICE_COMMAND) ||
+      ((prevCallStatus < BT_CALL_ACTIVE) && (BT_CallStatus >= BT_CALL_ACTIVE))
+      ) {
+    deferredSetAecEnabled();
   }
-
+  
   switch (BT_CallStatus) {
     case BT_CALL_IDLE:
       TIMEOUT_Start(&idleTimeout, IDLE_TIMEOUT);
@@ -1613,6 +1634,10 @@ void APP_Task(void) {
   
   TIMEOUT_Task(&appStateTimeout);
   TIMEOUT_Task(&statusBeepCooldownTimeout);
+  
+  if (TIMEOUT_Task(&deferredSetAecEnabledTimeout)) {
+    setAecEnabled();
+  }
 
   if (TIMEOUT_Task(&idleTimeout)) {
     sleepHandset();
@@ -1903,6 +1928,7 @@ void APP_Timer10MS_Interrupt(void) {
 
   TIMEOUT_Timer_Interrupt(&appStateTimeout);
   TIMEOUT_Timer_Interrupt(&statusBeepCooldownTimeout);
+  TIMEOUT_Timer_Interrupt(&deferredSetAecEnabledTimeout);
 
   switch (appState) {
     case APP_State_REBOOT_AFTER_DELAY:
@@ -3237,11 +3263,13 @@ void APP_BT_EventHandler(uint8_t event, uint16_t para, uint8_t* para_full) {
     case BT_EVENT_SCO_CONNECTED:
       printf("[SCO] Connected\r\n");
       cellPhoneState.isScoConnected = true;
+      deferredSetAecEnabled();
       break;
       
     case BT_EVENT_SCO_DISCONNECTED:
       printf("[SCO] Disconnected\r\n");
       cellPhoneState.isScoConnected = false;
+      cancelDeferredSetAecEnabled();
       break;
       
     case BT_EVENT_PHONE_SERVICE_STATUS:
