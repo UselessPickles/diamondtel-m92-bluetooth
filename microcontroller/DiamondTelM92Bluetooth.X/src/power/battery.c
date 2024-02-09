@@ -114,9 +114,6 @@ static struct {
  * @return A battery level in the range of 1-100.
  */
 static uint8_t convertAdcToBatteryLevel(uint16_t adcBatteryLevel) {
-  // TODO: delete after replacing MCU
-  return 100;
-  
   if (adcBatteryLevel <= MIN_ADC_BATTERY_LEVEL) {
     return 1;
   }
