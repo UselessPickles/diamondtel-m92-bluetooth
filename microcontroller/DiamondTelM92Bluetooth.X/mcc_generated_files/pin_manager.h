@@ -121,25 +121,25 @@
 #define IO_MIC_HF_DETECT_SetAnalogMode()      do { ANSELAbits.ANSELA3 = 1; } while(0)
 #define IO_MIC_HF_DETECT_SetDigitalMode()     do { ANSELAbits.ANSELA3 = 0; } while(0)
 
-// get/set IO_SWITCHED_PWR_ENABLE aliases
-#define IO_SWITCHED_PWR_ENABLE_TRIS                 TRISAbits.TRISA4
-#define IO_SWITCHED_PWR_ENABLE_LAT                  LATAbits.LATA4
-#define IO_SWITCHED_PWR_ENABLE_PORT                 PORTAbits.RA4
-#define IO_SWITCHED_PWR_ENABLE_WPU                  WPUAbits.WPUA4
-#define IO_SWITCHED_PWR_ENABLE_OD                   ODCONAbits.ODCA4
-#define IO_SWITCHED_PWR_ENABLE_ANS                  ANSELAbits.ANSELA4
-#define IO_SWITCHED_PWR_ENABLE_SetHigh()            do { LATAbits.LATA4 = 1; } while(0)
-#define IO_SWITCHED_PWR_ENABLE_SetLow()             do { LATAbits.LATA4 = 0; } while(0)
-#define IO_SWITCHED_PWR_ENABLE_Toggle()             do { LATAbits.LATA4 = ~LATAbits.LATA4; } while(0)
-#define IO_SWITCHED_PWR_ENABLE_GetValue()           PORTAbits.RA4
-#define IO_SWITCHED_PWR_ENABLE_SetDigitalInput()    do { TRISAbits.TRISA4 = 1; } while(0)
-#define IO_SWITCHED_PWR_ENABLE_SetDigitalOutput()   do { TRISAbits.TRISA4 = 0; } while(0)
-#define IO_SWITCHED_PWR_ENABLE_SetPullup()          do { WPUAbits.WPUA4 = 1; } while(0)
-#define IO_SWITCHED_PWR_ENABLE_ResetPullup()        do { WPUAbits.WPUA4 = 0; } while(0)
-#define IO_SWITCHED_PWR_ENABLE_SetPushPull()        do { ODCONAbits.ODCA4 = 0; } while(0)
-#define IO_SWITCHED_PWR_ENABLE_SetOpenDrain()       do { ODCONAbits.ODCA4 = 1; } while(0)
-#define IO_SWITCHED_PWR_ENABLE_SetAnalogMode()      do { ANSELAbits.ANSELA4 = 1; } while(0)
-#define IO_SWITCHED_PWR_ENABLE_SetDigitalMode()     do { ANSELAbits.ANSELA4 = 0; } while(0)
+// get/set IO_BATT_VOLTAGE aliases
+#define IO_BATT_VOLTAGE_TRIS                 TRISAbits.TRISA4
+#define IO_BATT_VOLTAGE_LAT                  LATAbits.LATA4
+#define IO_BATT_VOLTAGE_PORT                 PORTAbits.RA4
+#define IO_BATT_VOLTAGE_WPU                  WPUAbits.WPUA4
+#define IO_BATT_VOLTAGE_OD                   ODCONAbits.ODCA4
+#define IO_BATT_VOLTAGE_ANS                  ANSELAbits.ANSELA4
+#define IO_BATT_VOLTAGE_SetHigh()            do { LATAbits.LATA4 = 1; } while(0)
+#define IO_BATT_VOLTAGE_SetLow()             do { LATAbits.LATA4 = 0; } while(0)
+#define IO_BATT_VOLTAGE_Toggle()             do { LATAbits.LATA4 = ~LATAbits.LATA4; } while(0)
+#define IO_BATT_VOLTAGE_GetValue()           PORTAbits.RA4
+#define IO_BATT_VOLTAGE_SetDigitalInput()    do { TRISAbits.TRISA4 = 1; } while(0)
+#define IO_BATT_VOLTAGE_SetDigitalOutput()   do { TRISAbits.TRISA4 = 0; } while(0)
+#define IO_BATT_VOLTAGE_SetPullup()          do { WPUAbits.WPUA4 = 1; } while(0)
+#define IO_BATT_VOLTAGE_ResetPullup()        do { WPUAbits.WPUA4 = 0; } while(0)
+#define IO_BATT_VOLTAGE_SetPushPull()        do { ODCONAbits.ODCA4 = 0; } while(0)
+#define IO_BATT_VOLTAGE_SetOpenDrain()       do { ODCONAbits.ODCA4 = 1; } while(0)
+#define IO_BATT_VOLTAGE_SetAnalogMode()      do { ANSELAbits.ANSELA4 = 1; } while(0)
+#define IO_BATT_VOLTAGE_SetDigitalMode()     do { ANSELAbits.ANSELA4 = 0; } while(0)
 
 // get/set IO_MIC_OUT_DISABLE aliases
 #define IO_MIC_OUT_DISABLE_TRIS                 TRISAbits.TRISA5
@@ -241,25 +241,25 @@
 #define RX1_SetAnalogMode()      do { ANSELBbits.ANSELB1 = 1; } while(0)
 #define RX1_SetDigitalMode()     do { ANSELBbits.ANSELB1 = 0; } while(0)
 
-// get/set IO_BATT_VOLTAGE aliases
-#define IO_BATT_VOLTAGE_TRIS                 TRISBbits.TRISB2
-#define IO_BATT_VOLTAGE_LAT                  LATBbits.LATB2
-#define IO_BATT_VOLTAGE_PORT                 PORTBbits.RB2
-#define IO_BATT_VOLTAGE_WPU                  WPUBbits.WPUB2
-#define IO_BATT_VOLTAGE_OD                   ODCONBbits.ODCB2
-#define IO_BATT_VOLTAGE_ANS                  ANSELBbits.ANSELB2
-#define IO_BATT_VOLTAGE_SetHigh()            do { LATBbits.LATB2 = 1; } while(0)
-#define IO_BATT_VOLTAGE_SetLow()             do { LATBbits.LATB2 = 0; } while(0)
-#define IO_BATT_VOLTAGE_Toggle()             do { LATBbits.LATB2 = ~LATBbits.LATB2; } while(0)
-#define IO_BATT_VOLTAGE_GetValue()           PORTBbits.RB2
-#define IO_BATT_VOLTAGE_SetDigitalInput()    do { TRISBbits.TRISB2 = 1; } while(0)
-#define IO_BATT_VOLTAGE_SetDigitalOutput()   do { TRISBbits.TRISB2 = 0; } while(0)
-#define IO_BATT_VOLTAGE_SetPullup()          do { WPUBbits.WPUB2 = 1; } while(0)
-#define IO_BATT_VOLTAGE_ResetPullup()        do { WPUBbits.WPUB2 = 0; } while(0)
-#define IO_BATT_VOLTAGE_SetPushPull()        do { ODCONBbits.ODCB2 = 0; } while(0)
-#define IO_BATT_VOLTAGE_SetOpenDrain()       do { ODCONBbits.ODCB2 = 1; } while(0)
-#define IO_BATT_VOLTAGE_SetAnalogMode()      do { ANSELBbits.ANSELB2 = 1; } while(0)
-#define IO_BATT_VOLTAGE_SetDigitalMode()     do { ANSELBbits.ANSELB2 = 0; } while(0)
+// get/set IO_SWITCHED_PWR_ENABLE aliases
+#define IO_SWITCHED_PWR_ENABLE_TRIS                 TRISBbits.TRISB2
+#define IO_SWITCHED_PWR_ENABLE_LAT                  LATBbits.LATB2
+#define IO_SWITCHED_PWR_ENABLE_PORT                 PORTBbits.RB2
+#define IO_SWITCHED_PWR_ENABLE_WPU                  WPUBbits.WPUB2
+#define IO_SWITCHED_PWR_ENABLE_OD                   ODCONBbits.ODCB2
+#define IO_SWITCHED_PWR_ENABLE_ANS                  ANSELBbits.ANSELB2
+#define IO_SWITCHED_PWR_ENABLE_SetHigh()            do { LATBbits.LATB2 = 1; } while(0)
+#define IO_SWITCHED_PWR_ENABLE_SetLow()             do { LATBbits.LATB2 = 0; } while(0)
+#define IO_SWITCHED_PWR_ENABLE_Toggle()             do { LATBbits.LATB2 = ~LATBbits.LATB2; } while(0)
+#define IO_SWITCHED_PWR_ENABLE_GetValue()           PORTBbits.RB2
+#define IO_SWITCHED_PWR_ENABLE_SetDigitalInput()    do { TRISBbits.TRISB2 = 1; } while(0)
+#define IO_SWITCHED_PWR_ENABLE_SetDigitalOutput()   do { TRISBbits.TRISB2 = 0; } while(0)
+#define IO_SWITCHED_PWR_ENABLE_SetPullup()          do { WPUBbits.WPUB2 = 1; } while(0)
+#define IO_SWITCHED_PWR_ENABLE_ResetPullup()        do { WPUBbits.WPUB2 = 0; } while(0)
+#define IO_SWITCHED_PWR_ENABLE_SetPushPull()        do { ODCONBbits.ODCB2 = 0; } while(0)
+#define IO_SWITCHED_PWR_ENABLE_SetOpenDrain()       do { ODCONBbits.ODCB2 = 1; } while(0)
+#define IO_SWITCHED_PWR_ENABLE_SetAnalogMode()      do { ANSELBbits.ANSELB2 = 1; } while(0)
+#define IO_SWITCHED_PWR_ENABLE_SetDigitalMode()     do { ANSELBbits.ANSELB2 = 0; } while(0)
 
 // get/set IO_PWR_BTN aliases
 #define IO_PWR_BTN_TRIS                 TRISBbits.TRISB3

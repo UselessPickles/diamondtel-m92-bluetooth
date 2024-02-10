@@ -88,7 +88,7 @@ typedef __uint24 uint24_t;
 
 typedef enum
 {
-    IO_BATT_VOLTAGE =  0xA,
+    IO_BATT_VOLTAGE =  0x4,
     channel_VSS =  0x3B,
     channel_Temp =  0x3C,
     channel_DAC1 =  0x3D,
