@@ -55,7 +55,7 @@ void EXTERNAL_POWER_Initialize(EXTERNAL_POWER_EventHandler eventHandler) {
 void EXTERNAL_POWER_Task(void) {
   if (module.isInputPinChangeDetected) {
     module.isInputPinChangeDetected = false;
-    TIMEOUT_Start(&module.debounceTimeout, 15);
+    TIMEOUT_Start(&module.debounceTimeout, 5);
   }
   
   if (TIMEOUT_Task(&module.debounceTimeout)) {
