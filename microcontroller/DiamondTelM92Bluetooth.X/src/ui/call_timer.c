@@ -153,7 +153,6 @@ void CALL_TIMER_Stop(void) {
   
   TMR0_StopTimer();
   module.isRunning = false;
-  module.isDisplayUpdateEnabled = false;
   
   STORAGE_SetLastCallTime(
     module.callTime.minuteHundreds * 100 + module.callTime.minuteTens * 10 + module.callTime.minuteOnes,
@@ -168,13 +167,13 @@ void CALL_TIMER_SetCallWaitingIndicator(bool isCallWaiting) {
   
   module.isCallWaiting = isCallWaiting;
   
-  if (module.isRunning && module.isDisplayUpdateEnabled) {
+  if (module.isDisplayUpdateEnabled) {
     HANDSET_PrintCharAt(module.isCallWaiting ? 'W' : ' ', 6);
   }
 }
 
 void CALL_TIMER_EnableDisplayUpdate(void) {
-  if (!module.isRunning || module.isDisplayUpdateEnabled) {
+  if (module.isDisplayUpdateEnabled) {
     return;
   }
   

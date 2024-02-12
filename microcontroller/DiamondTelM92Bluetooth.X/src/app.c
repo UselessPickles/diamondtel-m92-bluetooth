@@ -167,22 +167,17 @@ static timeout_t linkbackRetryTimeout;
 
 static timeout_t appStateTimeout;
 
-static void reboot(bool powerOnAtStartup) {
+static void rebootAndPowerOn(void) {
   if (appState >= APP_State_REBOOT) {
     return;
   }
   
-  IO_BT_RESET_SetLow();
-  STORAGE_SetPowerOnAtStartupEnabled(powerOnAtStartup);
-  TIMEOUT_Start(&appStateTimeout, 45);
+  STORAGE_SetPowerOnAtStartupEnabled(true);
+  TIMEOUT_Cancel(&appStateTimeout);
   appState = APP_State_REBOOT;
 }
 
-static void rebootAndPowerOn(void) {
-  reboot(true);
-}
-
-static void rebootAfterDelay(uint8_t delay) {
+static void rebootAfterDelay(uint16_t delay) {
   if (appState >= APP_State_REBOOT_AFTER_DELAY) {
     return;
   }
@@ -203,15 +198,19 @@ static void powerOn(void) {
   appState = APP_State_INIT_START;
 }
 
-static void powerOff(bool byIgnition) {
+static void powerOff(bool byIgnition, uint16_t delay) {
   STORAGE_SetPowerOnByIgnitionEnabled(byIgnition);
-  reboot(false);
+  TIMEOUT_Start(&appStateTimeout, delay);
+  appState = APP_State_REBOOT;
 }
 
-static void powerOffIfIgnitionOff(void) {
+static bool powerOffIfIgnitionOff(void) {
   if (!STORAGE_GetIgnitionSenseDisabled() && EXTERNAL_POWER_IsConnected() && !IGNITION_IsOn()) {
-    powerOff(true);
+    powerOff(true, 0);
+    return true;
   }
+  
+  return false;
 }
 
 #define RETURN_TO_SLEEP_DELAY (200)
@@ -235,6 +234,15 @@ static bool isMuted;
 static bool isFcn;
 static bool isExtendedFcn;
 static bool isCallTimerDisplayedByDefault;
+
+/**
+ * Delay (in tenths of a second) after a call ends before various "cleanup"
+ * happens:
+ *  - Hide call duration timer display.
+ *  - Power off if ignition is off.
+ */
+#define CALL_ENDED_COOLDOWN_TIMEOUT (200)
+static timeout_t callEndedCooldownTimeout;
 
 #define FCN_TIMEOUT (400)
 static timeout_t fcnTimeout;
@@ -1309,12 +1317,17 @@ static void handleCallStatusChange(int newCallStatus) {
   if ((BT_CallStatus >= BT_CALL_ACTIVE) && (prevCallStatus < BT_CALL_ACTIVE)) {
     setAecEnabled();
   }
+  
+  if ((BT_CallStatus != BT_CALL_IDLE) && TIMEOUT_IsPending(&callEndedCooldownTimeout)) {
+    TIMEOUT_Cancel(&callEndedCooldownTimeout);
+    CALL_TIMER_DisableDisplayUpdate();
+  }
 
   switch (BT_CallStatus) {
     case BT_CALL_IDLE:
-      powerOffIfIgnitionOff();
-      TIMEOUT_Start(&idleTimeout, IDLE_TIMEOUT);
       CALL_TIMER_Stop();
+      TIMEOUT_Start(&callEndedCooldownTimeout, CALL_ENDED_COOLDOWN_TIMEOUT);
+      TIMEOUT_Start(&idleTimeout, IDLE_TIMEOUT);
       
       APP_CallAction = APP_CALL_IDLE;
       TIMEOUT_Cancel(&callActionTimeout);
@@ -1358,10 +1371,9 @@ static void handleCallStatusChange(int newCallStatus) {
       SOUND_SetButtonsMuted(false);
 
       isMuted = false;
-      isCallTimerDisplayedByDefault = false;
+      numberInputIsStale = true;
 
       if ((appState == APP_State_INCOMING_CALL) && (APP_CallAction != APP_CALL_REJECTING)) {
-        numberInputIsStale = true;
         showIncomingCall(true);
       } else {
         if (
@@ -1380,10 +1392,8 @@ static void handleCallStatusChange(int newCallStatus) {
 
         if (
             (appState == APP_State_VOICE_COMMAND) || 
-            (appState == APP_State_NUMBER_INPUT) ||
             (appState == APP_State_INCOMING_CALL)
             ) {
-          numberInputIsStale = true;
           returnToNumberInput(false);
         }
       }
@@ -1741,6 +1751,23 @@ void APP_Task(void) {
   
   TIMEOUT_Task(&statusBeepCooldownTimeout);
 
+  if (TIMEOUT_Task(&callEndedCooldownTimeout)) {
+    if (BT_CallStatus == BT_CALL_IDLE) {
+      if (powerOffIfIgnitionOff()) {
+        return;
+      }
+    }
+
+    if (isCallTimerDisplayedByDefault) {
+      isCallTimerDisplayedByDefault = false;
+      CALL_TIMER_DisableDisplayUpdate();
+      
+      if (appState == APP_State_NUMBER_INPUT) {
+        returnToNumberInput(false);
+      }
+    }
+  }
+  
   if (TIMEOUT_Task(&idleTimeout)) {
     sleepHandset();
   }
@@ -2000,6 +2027,7 @@ void APP_Task(void) {
       
     case APP_State_REBOOT:
       if (!TIMEOUT_IsPending(&appStateTimeout) && EEPROM_IsDoneWriting()) {
+        while(!UART1_is_tx_done()) {}
         RESET();
       }
       break;
@@ -2024,6 +2052,7 @@ void APP_Timer10MS_Interrupt(void) {
 
   TIMEOUT_Timer_Interrupt(&appStateTimeout);
   TIMEOUT_Timer_Interrupt(&statusBeepCooldownTimeout);
+  TIMEOUT_Timer_Interrupt(&callEndedCooldownTimeout);
 
   switch (appState) {
     case APP_State_REBOOT_AFTER_DELAY:
@@ -2144,7 +2173,7 @@ void handle_HANDSET_Event(HANDSET_Event const* event) {
             250
           );
 
-        powerOff(false);
+        powerOff(false, 45);
       }
     }
   }
@@ -3272,7 +3301,7 @@ void handle_BATTERY_Event(BATTERY_EventType event) {
     case BATTERY_EventType_LOW_VOLTAGE_POWER_OFF:  
       if (appState >= APP_State_NUMBER_INPUT) {
         printf("[BATTERY] DEPLETED! Powering OFF!!!\r\n");
-        powerOff(false);
+        powerOff(false, 0);
       }
       break;
   }
@@ -3296,7 +3325,7 @@ void handle_IGNITION_Event(IGNITION_EventType event) {
           (appState != APP_State_SLEEP) && EXTERNAL_POWER_IsConnected() 
           && ((BT_CallStatus == BT_CALL_IDLE) || STORAGE_GetPowerOffLockoutDisabled())
           ) {
-        powerOff(true);
+        powerOff(true, 0);
       }
       break;
   }
@@ -3445,7 +3474,10 @@ void APP_BT_EventHandler(uint8_t event, uint16_t para, uint8_t* para_full) {
 
     case BT_EVENT_HFP_DISCONNECTED:
       printf("[HFP] Disconnected\r\n");
-      powerOffIfIgnitionOff();
+
+      if (powerOffIfIgnitionOff()) {
+        return;
+      }
 
       playBluetoothConnectionStatusBeep(false);
      
