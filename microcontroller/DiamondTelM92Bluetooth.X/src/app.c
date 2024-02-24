@@ -193,7 +193,7 @@ static void powerOn(void) {
     return;
   }
 
-  IO_SWITCHED_PWR_ENABLE_SetHigh();
+  IO_SWITCHED_PWR_DISABLE_SetLow();
   TIMEOUT_Start(&appStateTimeout, 10);
   appState = APP_State_INIT_START;
 }
@@ -1635,7 +1635,7 @@ void APP_Initialize(void) {
   appState = APP_State_BOOT;
   // Small delay allows things to stabilize before attempting to use
   // peripherals, etc.
-  TIMEOUT_Start(&appStateTimeout, 10);
+  TIMEOUT_Start(&appStateTimeout, 1);
 }
 
 void APP_Task(void) {
@@ -1645,6 +1645,12 @@ void APP_Task(void) {
     if (!TIMEOUT_IsPending(&appStateTimeout)) {
       EEPROM_Initialize();
       STORAGE_Initialize();
+
+      // Turn off switched power ASAP if we're not powering on
+      if (!STORAGE_GetPowerOnAtStartupEnabled()) {
+        IO_SWITCHED_PWR_DISABLE_SetHigh();
+      }
+      
       EXTERNAL_POWER_Initialize(handle_EXTERNAL_POWER_Event);
       BATTERY_Initialize(handle_BATTERY_Event);
       IGNITION_Initialize(handle_IGNITION_Event);
