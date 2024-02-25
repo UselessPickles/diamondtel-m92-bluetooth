@@ -193,7 +193,7 @@ static void powerOn(void) {
     return;
   }
 
-  IO_SWITCHED_PWR_DISABLE_SetLow();
+  IO_SWITCHED_PWR_ENABLE_SetHigh();
   TIMEOUT_Start(&appStateTimeout, 10);
   appState = APP_State_INIT_START;
 }
@@ -1648,7 +1648,7 @@ void APP_Task(void) {
 
       // Turn off switched power ASAP if we're not powering on
       if (!STORAGE_GetPowerOnAtStartupEnabled()) {
-        IO_SWITCHED_PWR_DISABLE_SetHigh();
+        IO_SWITCHED_PWR_ENABLE_SetLow();
       }
       
       EXTERNAL_POWER_Initialize(handle_EXTERNAL_POWER_Event);
