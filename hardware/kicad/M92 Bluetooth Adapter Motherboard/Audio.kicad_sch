@@ -2280,7 +2280,7 @@
     (property "Mouser Part Number" "700-MAX4619CSE+" (at 232.41 533.02 0)
       (effects (font (size 1.27 1.27)) (justify left top) hide)
     )
-    (property "Mouser Price/Stock" "https://www.mouser.co.uk/ProductDetail/Analog-Devices-Maxim-Integrated/MAX4619CSE%2b?qs=OjdDRS8jtCYbJC3SYTRKnA%3D%3D" (at 232.41 633.02 0)
+    (property "Mouser Price/Stock" "https://www.mouser.com/ProductDetail/Analog-Devices-Maxim-Integrated/MAX4619CSE%2b?qs=OjdDRS8jtCYbJC3SYTRKnA%3D%3D" (at 232.41 633.02 0)
       (effects (font (size 1.27 1.27)) (justify left top) hide)
     )
     (property "Manufacturer_Name" "Analog Devices" (at 232.41 733.02 0)
