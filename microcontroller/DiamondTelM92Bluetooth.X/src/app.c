@@ -2189,7 +2189,7 @@ void handle_HANDSET_Event(HANDSET_Event const* event) {
             SOUND_Channel_FOREGROUND,
             SOUND_Target_SPEAKER,
             VOLUME_Mode_SPEAKER,
-            TONE_LOW,
+            TONE_HIGH,
             0
           );
       } else if (isButtonUp && (event->holdDuration >= HANDSET_HoldDuration_SHORT)) {
@@ -2201,7 +2201,7 @@ void handle_HANDSET_Event(HANDSET_Event const* event) {
             SOUND_Channel_FOREGROUND,
             SOUND_Target_SPEAKER,
             VOLUME_Mode_SPEAKER,
-            TONE_LOW,
+            TONE_HIGH,
             250
           );
 
