@@ -1350,9 +1350,6 @@ static void handleCallStatusChange(int newCallStatus) {
       TIMEOUT_Start(&callEndedCooldownTimeout, CALL_ENDED_COOLDOWN_TIMEOUT);
       TIMEOUT_Start(&idleTimeout, IDLE_TIMEOUT);
 
-      APP_CallAction = APP_CALL_IDLE;
-      TIMEOUT_Cancel(&callActionTimeout);
-
       // Perform extra steps only if the OEM Hands-Free Controller is connected...
       if (isOemHandsFreeControllerConnected) {
         // The following sequence of commands is what seems to be necessary
@@ -1419,6 +1416,9 @@ static void handleCallStatusChange(int newCallStatus) {
         }
       }
 
+      APP_CallAction = APP_CALL_IDLE;
+      TIMEOUT_Cancel(&callActionTimeout);
+      
       setCallerId(NULL);
       break;
 
