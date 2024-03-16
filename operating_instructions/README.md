@@ -31,16 +31,18 @@
       - [DUAL NO](#dual-no)
       - [NO1](#no1)
       - [NO2](#no2)
-      - [SECURITY](#security)
+      - [SEC](#sec)
       - [DIS CU RESET](#dis-cu-reset)
+      - [DIS IGN SENSE](#dis-ign-sense)
+      - [DIS PWR LOCK](#dis-pwr-lock)
       - [DIS OWN TEL](#dis-own-tel)
       - [CALLER ID](#caller-id)
       - [OEM HF UNIT](#oem-hf-unit)
     
 ## Introduction
 
-The DiamondTel Model 92 Bluetooth Adapter connects in between the handset and
-transceiver of an original DiamondTel Model 92 Portable Cellular Telephone to
+The DiamondTel Model 92 Bluetooth Adapter completely replaces the original electronics
+inside the transceiver of the DiamondTel Model 92 Portable Cellular Telephone to
 enable the vintage phone to connect to a modern cell phone via Bluetooth and
 make/receive calls.
 
@@ -98,12 +100,8 @@ of this project) for full details.
       the top row.
     - ✔️ ENDING A CALL
     - ✔️ TURNING OFF THE PHONE
-      - Due to technical limitations, the `PWR` key is NOT disabled during a
-      call, and the phone will NOT stay on during a call in vehicular mode when
-      the ignition is turned off.
-      - If the phone turns off during a call, then the call audio is simply
-      transferred to the host phone.
-      - If in-vehicle use with the ignition off is desired, consider setting the `DIS IGN SENSE` programming option on the original car phone to prevent the original transceiver from powering on/off automatically with the vehicle ignition. However, be aware that you must always manually turn the phone on/off.
+      - The `PWR` button is disabled during a call like the original phone, but it is also possible to disable this feature with the `DIS PWR LOCK` programming option. When disabled, and the phone is turned off
+      during a call, the call will be transferred to the host phone.
 - ✔️ OTHER BASIC OPERATION
     - ✔️ VOLUME ADJUSTMENT
       - There is a 6th volume adjustment supported by the Bluetooth Adapter:
@@ -146,7 +144,7 @@ of this project) for full details.
     - ❌ ~~LOCKING/UNLOCKING THE PHONE (FCN / 2)~~
       - Chose not to replicate (high complexity, low value).
     - ❌ ~~EXTERNAL HORN ALERT (FCN / 3)~~
-      - Technical limitations and complexity make this impractical to replicate.
+      - Chose not to replicate (low value or irrelevant, because you'll have the host phone with you when away from the car).
     - ✔️ ACCUMULATED TALK TIME (FCN / 4)
     - ❌ ~~DISCONTINUOUS TRANSMISSION MODE (FCN / 5)~~
       - Irrelevant for modern phone service/tech.
@@ -572,7 +570,7 @@ the original `DiamondTel Model 92 Operating Instructions`).
 
 **Default Value**: `0000000000`
 
-#### SECURITY
+#### SEC
 
 This is a 4-digit security code that must be entered to access certain features
 of the phone.
@@ -590,6 +588,40 @@ Disables the ability to reset the cumulative talk timer. See the
 **Valid Values**:
 - `0`: Cumulative timer reset is enabled.
 - `1`: Cumulative timer reset is disabled.
+
+**Default Value**: `0`
+
+#### DIS IGN SENSE
+
+Disables vehicle ignition sensing.
+
+When NOT disabled, and if external power is connected, then 
+the phone cannot be powered on unless the vehicle ignition is on. Turning the vehicle ignition off
+will power the phone off. If the phone was last powered off by vehicle ignition, then turning vehicle
+ignition on will power the phone on.
+
+When disabled, the vehicle ignition is ignored and the phone can be manually powered on/off at any
+time. Vehicle ignition will not power the phone on or off.
+
+**Valid Values**:
+- `0`: Vehicle ignition sensing is enabled.
+- `1`: Vehicle ignition sensing is disabled.
+
+**Default Value**: `0`
+
+#### DIS PWR LOCK
+
+Disables power-off lock-out behavior when in a call.
+
+When NOT disabled, the phone cannot be powered off during a call. The `PWR` button is disabled.
+If mounted in a vehicle, and vehicle ignition is turned off, then the phone will automatically power off
+after the call ends or the Bluetooth connection is lost.
+
+When disabled, the phone can be powered during a call, and the call will be transferred to the host phone. 
+
+**Valid Values**:
+- `0`: Power-off lock-out is enabled.
+- `1`: Power-off lock-out is disabled.
 
 **Default Value**: `0`
 
