@@ -1416,9 +1416,6 @@ static void handleCallStatusChange(int newCallStatus) {
         }
       }
 
-      APP_CallAction = APP_CALL_IDLE;
-      TIMEOUT_Cancel(&callActionTimeout);
-      
       setCallerId(NULL);
       break;
 
