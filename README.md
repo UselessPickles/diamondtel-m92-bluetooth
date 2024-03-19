@@ -4,9 +4,7 @@
 
 This is an electronics/microcontroller project for adapting a DiamondTel Model 92 Portable Cellular Telephone to work as a fully functional phone by routing calls through a modern cell phone via the Bluetooth Hands-Free Profile (HFP).
 
-![Prototype with DiamondTel Model 92 Telephone connected](readme/phone_connected_to_prototype.JPG)
-
-![Prototype Board](readme/prototype_board.JPG)
+|![DiamondTel Model 92 Telephone with Bluetooth adapter electronics exposed](readme/full_system_exposed.JPG)
 
 This project includes both a custom electronics circuit and custom microcontroller software.
 
@@ -25,17 +23,21 @@ This project includes both a custom electronics circuit and custom microcontroll
   - [Compatibility](#compatibility)
     - [Vintage Mobile Phone](#vintage-mobile-phone)
     - [Paired Modern Cell Phone](#paired-modern-cell-phone)
-  - [Build Your Own Bluetooth Adapter](#build-your-own-bluetooth-adapter)
-  - [About the Author](#about-the-author)
-  
+  - [About the Author](#about-the-author)  
 ## About This Project
 
 ### TL;DR (with demo videos)
 
 I have an old car phone in my early 90's car. It's impossible to activate service for these old phones. I made the old car phone actually work like a real phone.
 
-Click to view a YouTube video tour and demo of the complete car phone system with Bluetooth adapter:
+Click to view a YouTube video tour and demo of the complete car phone system with Bluetooth adapter (NOTE: This video shows an older external plug-in version):
+
 [![YouTube video tour and demo of the complete car phone system with Bluetooth adapter](https://img.youtube.com/vi/52AuhS5Jq0Q/0.jpg)](https://www.youtube.com/watch?v=52AuhS5Jq0Q)
+
+
+Click to view a YouTube video demo and disassembly of the new internal adapter design:
+
+[![YouTube video demo and disassembly of new internal adapter](https://img.youtube.com/vi/uEtvmijlxUE/0.jpg)](https://www.youtube.com/watch?v=uEtvmijlxUE)
 
 You can find all videos I have created about this project in [this YouTube playlist](https://www.youtube.com/playlist?list=PLOlio4FadqvQEWHDXaJHlkvHigROk-RNV).
 
@@ -69,7 +71,7 @@ Subscribe to this thread if you want to be notified of significant updates about
 
 ### Discussion
 
-Do you have something to ask/say about this project? You can reach out to me in [this Gitter chat room](https://gitter.im/UselessPickles/diamondtel-m92-bluetooth).
+Do you have something to ask/say about this project? You can reach out to me in [this Gitter chat room](https://gitter.im/UselessPickles/diamondtel-m92-bluetooth) or DM me on [Instagram (@uselesspickles)](https://www.instagram.com/uselesspickles/).
 
 ### Documentation
 
@@ -93,42 +95,43 @@ There's been a bit of media coverage of my project. Here's some links:
 
 ### High Level Design Summary
 
-![Basic Component Diagram](readme/basic_component_diagram.png)
+This Bluetooth adapter is a complete replacement of the electronics inside the transceiver of the car phone. The handset of the car phone remains completely original and unmondified. The Bluetooth adapter pairs with a modern cell phone using the Hands-Free Profile (HFP), which enables the car phone handset to receive incoming calls and make outgoing calls through the paired modern cell phone.
+    
+The majority of the electronics is on the "motherboard" that installs in the metal transceiver case, and a smaller Bluetooth module "daugherboard" installs in the battery compartment of the plastic "transportable cover" so that the Bluetooth signal is not obstructed by the metal transceiver case.
 
-- A custom Bluetooth adapter connects inline between the DiamondTel Model 92 handset and transceiver.
-- The transceiver provides its power supply and power on/off functionality to the Bluetooth adapter.
-    - Power supply, ground, and handset power button connection is passed through the Bluetooth adapter between the handset and transceiver.
-    - When the transceiver powers on, the Bluetooth adapter also powers on via the same power supply that powers the handset.
-- The Bluetooth adapter takes full control of the handset.
-- The Bluetooth adapter fully implements all behavior that is experienced by interacting with the handset. Much of it is a replica of (or inspired by) the DiamondTel Model 92's original behavior.
-- The Bluetooth adapter communicates with the transceiver to monitor the transceiver battery level.    
-- There is no direct pass-through communication between the handset and transceiver.
-    - As far as the transceiver knows, it simply powers up and remains in its default idle state at all times (except for when the Bluetooth adapter requests the battery level).
-- The Bluetooth adapter pairs with a modern cell phone using the Bluetooth Hands-Free Profile (HFP). This Bluetooth connection is used to:
-    - Monitor/display cell service status and signal strength, etc.
-    - Handle incoming calls.
-    - Send outgoing calls.
+![Transceiver and Transporable Cover with electronics exposed](readme/transceiver_and_cover_exposed.JPG)
+
+The motherboard uses the same type of connectors as the original electronics for external power supply, handset cord, and external microphone. The connection between the mootherboard and the Bluetooth module daugherboard reuses the connectors that were originally used to connect the battery circuitry in the transportable cover to the transceiver. And finally, the Bluetooth module daughterboard can be hidden in the emptied shell of an original battery pack. The end result is that the modified car phone is practically visually indistinguishable from an original unmodified car phone, even when removing the transportable cover from the transceiver.
+
+![Transceiver and Transporable Cover with electronics hidden](readme/transceiver_and_cover.JPG)
+
+![Comparison of modified transceiver with unmodified transceiver](readme/transceiver_comparison.JPG)
+*Top: Modified transceiver; Bottom: Unmodified transceiver*
+
+From a functionality perspective, the Bluetooth adapter faithfully replicates a large amount of the original car phone's functionality for a genuine retro experience that is often indistinguishable from the original phone. But since I do have full control of the handset, I did take the opportunity to add some new functionality (multiple ringtones, games, Caller ID, etc.). See the `operating_instructions` directory for more details.
     
 ### Design Pros/Cons
 
 Pros:
 
-- Plug-n-play design - no modifications to the original phone.
-- No separate power supply is needed.
+- The vintage mobile phone has the appearance of being a completely original and functioning phone with no external adapters and no visible signs of modification.
 - Can pair with practically any modern cell phone (no separate SIM card needed).
-- The vintage mobile phone has the appearance of being a completely original and functioning phone (assuming that the Bluetooth adapter is hidden, which is easy when the phone is installed in a vehicle as a car phone).
-- Full control of implementing any desired behavior (within limitations of the handset display/button capabilities, and within limitations of Bluetooth HFP), including functionality that was never available/possible on the original phone (e.g., Caller ID).
+- I have full control of implementing any desired behavior (within limitations of the handset display/button capabilities, and within limitations of Bluetooth HFP), including functionality that was never available/possible on the original phone (e.g., Caller ID, games).
 
 Cons:
 
-- Requires a lot of custom software to replicate original DiamondTel Model 92 functionality as faithfully as possible (but that's OK with me; I'm a software engineer, and this is fun!).
 - This is not a general design that will work with a wide range of vintage mobile phones.
+- Requires a lot of custom software to replicate original DiamondTel Model 92 functionality as faithfully as possible (but that's OK with me; I'm a software engineer, and this is fun!).
+- Installation is not simple, because it involves:
+  - Desoldering and de-pinning some connectors from the original car pphone to transfer them to the Bluetooth adapter (these connectors are no longer available for purchase).
+  - A small amount of grinding to remove some metal inside of the transceiver case.
+  - Splitting open and disassembling an original battery pack if you want to hide the Bluetooth module daughterboard.
 
 ## Compatibility
 
 ### Vintage Mobile Phone
 
-Because this design relies on a direct wired interface with the handset and transceiver (using proprietary connections and digital communications), it has very limited compatibility. As of now, this project is only known to work with the following vintage mobile phones:
+Because this design relies on a direct wired interface with the handset (using proprietary connections and digital communications), and the circuit board itself is specifically designed to fit in the transceiver case of a particular model of car phone, it has very limited compatibility. As of now, this project is only known to work with the following vintage mobile phones:
 
 - DiamondTel Model 92
 - Mitsubishi Model 1500
@@ -137,29 +140,12 @@ Because this design relies on a direct wired interface with the handset and tran
 
 Any modern cell phone that supports Bluetooth Hands-Free Profile (HFP) _should_ (in theory) be able to pair with the Bluetooth adapter and work properly. I have a very limited selection of phones to test with, so I can't make any guarantees.
 
-These are the modern cell phones performed at least some basic testing with:
+These are the modern cell phones that I have performed at least some basic testing with:
 
 - Apple iPhone 8
 - Apple iPhone SE
 - Apple iPhone 14
 - Google Pixel 3 XL
-
-## Build Your Own Bluetooth Adapter
-
-I don't have a complete detailed step-by-step guide, but all the information needed to build your own Bluetooth adapter should be here.
-
-Some prerequisites:
-- Soldering skills. There's a lot of soldering if you build a prototype like mine.
-- Attention to detail. There are countless opportunities to make mistakes if you are not careful, and it may be a very long time and a large amount of effort before you discover that something is not working correctly.
-- Basic understanding of electronics and how to use tools like a multimeter and an oscilloscope to verify your work along the way or troubleshoot when something doesn't work because you probably made a mistake while soldering everything together (I made several small mistakes while building my prototype that I had to troubleshoot and fix).
-- Computer/software competency. You will need to use a variety of software tools to load configuration and code onto the Bluetooth module and the microcontroller. These are not the most user-friendly software tools.
-
-Basic steps for building a Blutooth adapter:
-1. See the `/hardware` directory README and the VeroRoute circuit layout to find all the components/parts you'll need. VeroRoute can give you a BOM list of components and quantities of most components. The README has some additional details of other items/components used in my prototype.
-1. See the `/bluetooth/config` directory README for details about how to update/configure the BM62 Bluetooth module. If you use the same breadboard adapter as I did for the BM62, and you use female header sockets on your circuit, then you can easily update/configure the BM62 at any time either before or after the rest of the circuit is put together. If you want to solder the BM62 directly into your circuit, then you need to come up with a plan for how you will update/configure the BM62.
-1. Build the hardware based on the information found in the `/hardware` directory/README.
-1. Build the microcontroller software in the `/microcontroller/DiamondTelM92Bluetooth.X` directory and load it onto the microcontroller, using [MPLAB X](https://www.microchip.com/en-us/tools-resources/develop/mplab-x-ide) and a [PICKIT 4](https://www.microchip.com/en-us/development-tool/PG164140) or equivalent tool. Use the internet to learn how to do this if you don't already know.
-1. See the `/operating_instructions` directory README for information about how to use the Bluetooth adapter.
 
 ## About the Author
 
