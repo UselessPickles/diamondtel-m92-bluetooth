@@ -73,7 +73,6 @@
         "silk_edge_clearance|151690000|119540000|079b773e-94ce-43ad-a997-4c15efb82dd1|c29ec90b-94d2-40f4-be35-3fa1b7afeef2",
         "silk_edge_clearance|152640000|119500000|079b773e-94ce-43ad-a997-4c15efb82dd1|b1e4ab33-3235-4416-89e8-ca23b3b4dada",
         "silk_edge_clearance|155000000|85000000|9fe8b62f-d0cb-4762-bbd5-3dac3126ea5e|cd6cb3a6-9318-4109-a40c-da5d2ad4d6ce",
-        "starved_thermal|148770000|115440000|8bc3ce15-8c04-438e-ba0d-d268237eb65e|cf3d1872-24fb-4c03-acdb-e0c38bf1ad45|B.Cu",
         "starved_thermal|154650000|99990000|8bc3ce15-8c04-438e-ba0d-d268237eb65e|3747edc6-2770-4862-8dd6-0659a64c0596|B.Cu"
       ],
       "meta": {
@@ -148,7 +147,7 @@
         "min_via_diameter": 0.5,
         "solder_mask_clearance": 0.0,
         "solder_mask_min_width": 0.0,
-        "solder_mask_to_copper_clearance": 0.0,
+        "solder_mask_to_copper_clearance": 0.005,
         "use_height_for_length_calcs": true
       },
       "teardrop_options": [
