@@ -88,17 +88,19 @@ static struct {
  * battery level. All values <= this are reported as a battery level of 1.
  */
 // For 560k + 330k divider
-//#define MIN_ADC_BATTERY_LEVEL (2800)
+#define MIN_ADC_BATTERY_LEVEL (2800)
 // For 550k + 330k divider
-#define MIN_ADC_BATTERY_LEVEL (2900)
+//#define MIN_ADC_BATTERY_LEVEL (2900)
 /**
  * The raw ADC battery voltage reading that is to be considered the highest
  * battery level. All values >= this are reported as a battery level of 100.
  */
-// For 560k + 330k divider
+// For 560k + 330k divider (EVVA 1000 mAh)
+#define MAX_ADC_BATTERY_LEVEL (3670)
+// For 560k + 330k divider (Orbtronic 1100 mAh)
 //#define MAX_ADC_BATTERY_LEVEL (3690)
-// For 550k + 330k divider
-#define MAX_ADC_BATTERY_LEVEL (3780)
+// For 550k + 330k divider (Orbtronic 1100 mAh)
+//#define MAX_ADC_BATTERY_LEVEL (3780)
 
 /**
  * The battery level (on a 1-100 scale) that is used as the threshold for 
