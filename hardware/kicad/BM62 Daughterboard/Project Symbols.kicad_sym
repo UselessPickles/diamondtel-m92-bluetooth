@@ -6,7 +6,7 @@
     (property "Value" "Microchip BM62" (at 7.62 6.35 0)
       (effects (font (size 1.27 1.27)))
     )
-    (property "Footprint" "" (at 0 0 0)
+    (property "Footprint" "Project Footprints:Microchip BM62" (at 0 0 0)
       (effects (font (size 1.27 1.27)) hide)
     )
     (property "Datasheet" "" (at 0 0 0)

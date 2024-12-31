@@ -1,4 +1,4 @@
 (sym_lib_table
   (version 7)
-  (lib (name "BM62 Daughterboard")(type "KiCad")(uri "${KIPRJMOD}/BM62 Daughterboard.kicad_sym")(options "")(descr ""))
+  (lib (name "Project Symbols")(type "KiCad")(uri "${KIPRJMOD}/Project Symbols.kicad_sym")(options "")(descr ""))
 )
