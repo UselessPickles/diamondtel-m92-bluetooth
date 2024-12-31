@@ -194,6 +194,11 @@ static void powerOn(void) {
   }
 
   IO_SWITCHED_PWR_ENABLE_SetHigh();
+  // The IO_SWITCHED_PWR_ENABLE pin is open drain by default, so it needs
+  // to be changed to push/pull to trigger the load switches. Once the load
+  // switches are turned on, the switched 5V output "latches" the load switches
+  // on until power is lost or the SWITCHED_PWR_ENABLE pin is set low.
+  IO_SWITCHED_PWR_ENABLE_SetPushPull();
   TIMEOUT_Start(&appStateTimeout, 10);
   appState = APP_State_INIT_START;
 }
@@ -1693,6 +1698,11 @@ void APP_Task(void) {
         PMD3bits.ADCMD = 1;
         PMD6bits.U1MD = 1;
 
+        // Change the IO_SWITCHED_PWR_ENABLE pin to high-Z to ensure we aren't 
+        // wasting any power pulling the load switch enable pins low.
+        IO_SWITCHED_PWR_ENABLE_SetOpenDrain();
+        IO_SWITCHED_PWR_ENABLE_SetHigh();
+
         // Go to sleep
         SLEEP();
         NOP();
@@ -1729,6 +1739,10 @@ void APP_Task(void) {
 
     case APP_State_INIT_START:
       if (!TIMEOUT_IsPending(&appStateTimeout)) {
+        // The load switches should be "latched" on by the switched 5V output
+        // by now, so the SWITCHED_PWR_ENABLE pin can be changed back to open
+        // drain for efficiency.
+        IO_SWITCHED_PWR_ENABLE_SetOpenDrain();
         TIMEOUT_Start(&appStateTimeout, 15);
         TONE_Initialize();
         INDICATOR_Initialize();

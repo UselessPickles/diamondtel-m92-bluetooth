@@ -2127,7 +2127,7 @@
     (property "Reference" "IC4" (at 88.265 166.37 0)
       (effects (font (size 1.27 1.27)))
     )
-    (property "Value" "NJU7031D" (at 88.265 168.91 0)
+    (property "Value" "NJU7031D / NJU7031M" (at 88.265 168.91 0)
       (effects (font (size 1.27 1.27)))
     )
     (property "Footprint" "DIP762W56P254L880H425Q8N" (at 113.03 268.91 0)
