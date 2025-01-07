@@ -33,3 +33,7 @@ fp-info-cache
 
 # Production files output
 production
+
+# Plugin config
+fabrication-toolkit-options.json
+
