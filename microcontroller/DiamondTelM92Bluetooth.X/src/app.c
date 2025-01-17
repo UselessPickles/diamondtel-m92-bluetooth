@@ -2235,6 +2235,12 @@ void handle_HANDSET_Event(HANDSET_Event const* event) {
   bool isButtonUp = event->type == HANDSET_EventType_BUTTON_UP;
   uint8_t button = event->button;
 
+  if (event->type == HANDSET_EventType_DISCONNECTED) {
+    printf("Powering off due to handset disconnect.\r\n");
+    powerOff(false, 0);
+    return;
+  }
+
   if (appState == APP_State_SLEEP) {
     // If PWR button is pressed, then reset the timeout to wait and see if the
     // button is held down long enough to power on before returning to sleep.

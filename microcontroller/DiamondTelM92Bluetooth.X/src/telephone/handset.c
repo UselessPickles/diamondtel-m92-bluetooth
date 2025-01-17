@@ -10,6 +10,8 @@
 #include "../../mcc_generated_files/pin_manager.h"
 #include <string.h>
 #include <stdio.h>
+#include "../util/timeout.h"
+#include "../util/interval.h"
 
 /** 
  * Number of indicators defined by HANDSET_Indicator 
@@ -44,6 +46,18 @@ static const HANDSET_UartCmd indicatorCmdLookup[INDICATOR_COUNT] = {
 #define BLANK_PRINTABLE_CHAR (' ')
 
 /**
+ * Interval (in milliseconds) between pings of the handset to confirm
+ * that it is still connected and responsive.
+ */
+#define HANDSET_PING_INTERVAL (1000)
+
+/**
+ * Delay (in milliseconds) after pinging the handset before deciding
+ * that the handset failed to respond.
+ */
+#define HANDSET_PING_RESPONSE_TIMEOUT (500)
+
+/**
  * Module state.
  */
 static struct {
@@ -51,6 +65,15 @@ static struct {
    * Event handler function pointer.
    */
   HANDSET_EventHandler eventHandler;
+  /**
+   * Interval for pinging the handset to see if it is still connected
+   * and responding.
+   */
+  interval_t pingInterval;
+  /**
+   * Timeout for giving up on waiting for a ping response from the handset.
+   */
+  timeout_t pingResponseTimeout;
   /**
    * The character that is currently printed at position 0.
    * 
@@ -274,6 +297,7 @@ static char const* const eventTypeNames[] = {
   "Button Hold",
   "Button Up",
   "Hook On/Off",
+  "Disconnected",
   "Unknown"
 };
 
@@ -359,11 +383,27 @@ void HANDSET_Initialize(HANDSET_EventHandler eventHandler) {
 void HANDSET_EnableUART(void) {
   PMD6bits.U3MD = 0;
   UART3_Initialize();
+  
+  INTERVAL_Initialize(&handset.pingInterval, HANDSET_PING_INTERVAL);
+  INTERVAL_Start(&handset.pingInterval, false);
 }
 
 void HANDSET_Task(void) {
   HANDSET_Event event;
 
+  if (TIMEOUT_Task(&handset.pingResponseTimeout)) {
+    INTERVAL_Cancel(&handset.pingInterval);
+    
+    event.type = HANDSET_EventType_DISCONNECTED;
+    dispatchEvent(&event);
+    return;
+  }
+  
+  if (INTERVAL_Task(&handset.pingInterval)) {
+    UART3_WriteImmediately(HANDSET_UartCmd_PING);
+    TIMEOUT_Start(&handset.pingResponseTimeout, HANDSET_PING_RESPONSE_TIMEOUT);
+  }
+  
   PIE3bits.TMR2IE = 0;
   uint16_t currentButtonDownDuration = (handset.currentButtonDownDuration > HANDSET_HoldDuration_MAX)
          ? HANDSET_HoldDuration_NONE 
@@ -452,6 +492,10 @@ void HANDSET_Task(void) {
     uint8_t input = UART3_Read();
     
     switch (input) {
+      case HANDSET_UartEvent_PING_RESPONSE:
+        TIMEOUT_Cancel(&handset.pingResponseTimeout);
+        break;
+      
       case HANDSET_UartEvent_ON_HOOK:
       case HANDSET_UartEvent_OFF_HOOK:
         handset.isOnHook = (input == HANDSET_UartEvent_ON_HOOK);
@@ -559,6 +603,9 @@ void HANDSET_Task(void) {
 }
 
 void HANDSET_Timer1MS_Interrupt(void) {
+  INTERVAL_Timer_Interrupt(&handset.pingInterval);
+  TIMEOUT_Timer_Interrupt(&handset.pingResponseTimeout);
+  
   // Increment the hold duration of the current button, but not beyond
   // the max duration.
   if (

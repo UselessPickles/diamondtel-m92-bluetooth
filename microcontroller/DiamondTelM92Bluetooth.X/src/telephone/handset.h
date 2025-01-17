@@ -79,6 +79,8 @@ typedef enum HANDSET_UartEvent {
   HANDSET_UartEvent_ON_HOOK,
   HANDSET_UartEvent_OFF_HOOK,
       
+  HANDSET_UartEvent_PING_RESPONSE,    
+      
   HANDSET_UartEvent_CLR_0 = 0x90,
   HANDSET_UartEvent_CLR_1,
   HANDSET_UartEvent_CLR_2,
@@ -312,7 +314,9 @@ typedef enum HANDSET_UartCmd {
   HANDSET_UartCmd_SET_SIGNAL_STRENGTH_5,
   HANDSET_UartCmd_SET_SIGNAL_STRENGTH_6,
 
-  HANDSET_UartCmd_LOUD_SPEAKER_ON = 0xEB,
+  HANDSET_UartCmd_PING = 0xEA,    
+      
+  HANDSET_UartCmd_LOUD_SPEAKER_ON,
   HANDSET_UartCmd_LOUD_SPEAKER_OFF,
   HANDSET_UartCmd_EAR_SPEAKER_ON,
   HANDSET_UartCmd_EAR_SPEAKER_OFF,      
@@ -450,6 +454,10 @@ typedef enum HANDSET_EventType {
    * The `isOnHook` field of the event will contain the new status.
    */
   HANDSET_EventType_HOOK,
+  /**
+   * The handset is unresponsive and presumed to be disconnected.
+   */    
+  HANDSET_EventType_DISCONNECTED,    
   /**
    * An unknown UART event was received.
    * 
