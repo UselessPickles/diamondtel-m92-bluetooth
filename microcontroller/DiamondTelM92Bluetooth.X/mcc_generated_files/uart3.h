@@ -92,6 +92,12 @@ extern volatile uint8_t uart3RxCount;
 */
 
 /**
+ * Callback function signature for indicating when a byte is actually sent.
+ * (i.e., not just added to the TX buffer)
+ */
+typedef void (*UART3_ByteSentCallback)(uint8_t);
+
+/**
   @Summary
     Initialization routine that takes inputs from the UART3 GUI.
 
@@ -101,9 +107,10 @@ extern volatile uint8_t uart3RxCount;
 
   @Preconditions
     None
-
+ 
   @Param
-    None
+    byteSentCallback - Function that is called when a byte is sent.
+                       (i.e., not just added to the TX buffer)
 
   @Returns
     None
@@ -112,7 +119,7 @@ extern volatile uint8_t uart3RxCount;
 
   @Example
 */
-void UART3_Initialize(void);
+void UART3_Initialize(UART3_ByteSentCallback byteSentCallback);
 
 /**
   @Summary

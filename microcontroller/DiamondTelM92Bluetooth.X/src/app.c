@@ -241,7 +241,7 @@ static bool isExtendedFcn;
 static bool isCallTimerDisplayedByDefault;
 
 /**
- * Delay (in tenths of a second) after a call ends before various "cleanup"
+ * Delay (in hundredths of a second) after a call ends before various "cleanup"
  * happens:
  *  - Hide call duration timer display.
  *  - Power off if ignition is off.
@@ -249,8 +249,18 @@ static bool isCallTimerDisplayedByDefault;
 #define CALL_ENDED_COOLDOWN_TIMEOUT (200)
 static timeout_t callEndedCooldownTimeout;
 
+/**
+ * Delay (in hundredths of a second) before automatically resetting the 
+ * FCN state.
+ */
 #define FCN_TIMEOUT (400)
 static timeout_t fcnTimeout;
+
+/**
+ * Delay (in hundredths of a second) after an incoming call starts ringing
+ * before auto-answer answers the call (if enabled).
+ */
+#define AUTO_ANSWER_TIMEOUT (900)
 static timeout_t autoAnswerTimeout;
 
 static bool isRclInputPending = false;
@@ -1516,7 +1526,7 @@ static void handleCallStatusChange(int newCallStatus) {
         RINGTONE_Start(STORAGE_GetRingtone());
 
         if (STORAGE_GetAutoAnswerEnabled()) {
-          TIMEOUT_Start(&autoAnswerTimeout, 900);
+          TIMEOUT_Start(&autoAnswerTimeout, AUTO_ANSWER_TIMEOUT);
         }
       } else {
         BT_SetHFPGain(0x0F);
@@ -1645,6 +1655,70 @@ void APP_Task(void) {
 
   if (appState == APP_State_BOOT) {
     if (!TIMEOUT_IsPending(&appStateTimeout)) {
+      printf("\r\n");
+      printf("*****************************\r\n");
+      printf("DiamondTel Model 92 Car Phone\r\n");
+      printf("Bluetooth Conversion\r\n");
+      printf("*****************************\r\n");
+      printf("\r\n");
+      printf("Power-on Conditions:\r\n");
+
+      if (PCON0bits.STKOVF) {
+        PCON0bits.STKOVF = 0;
+        printf("  - Stack Overflow\r\n");
+      }
+
+      if (PCON0bits.STKUNF) {
+        PCON0bits.STKUNF = 0;
+        printf("  - Stack Underflow\r\n");
+      }
+
+      if (!PCON0bits.NOT_WDTWV) {
+        PCON0bits.NOT_WDTWV = 1;
+        printf("  - Watchdog Window Violation\r\n");
+      }
+
+      if (!PCON0bits.NOT_RWDT) {
+        PCON0bits.NOT_RWDT = 1;
+        printf("  - Watchdog Timeout Reset\r\n");
+      }
+
+      if (!PCON0bits.NOT_RMCLR) {
+        PCON0bits.NOT_RMCLR = 1;
+        printf("  - MCLR Reset\r\n");
+      }
+
+      if (!PCON0bits.NOT_RI) {
+        PCON0bits.NOT_RI = 1;
+        printf("  - RESET Instruction\r\n");
+      }
+
+      if (!PCON0bits.NOT_POR) {
+        PCON0bits.NOT_POR = 1;
+        printf("  - Power-on Reset\r\n");
+      }
+
+      if (!PCON0bits.NOT_BOR) {
+        PCON0bits.NOT_BOR = 1;
+        printf("  - Brown-out Reset\r\n");
+      }
+
+      if (!PCON1bits.NOT_RVREG) {
+        PCON1bits.NOT_RVREG = 1;
+        printf("  - Main LDO Voltage Regulator Reset\r\n");
+      }
+
+      if (!PCON1bits.NOT_MEMV) {
+        PCON1bits.NOT_MEMV = 1;
+        printf("  - ?Memory Violation Reset\r\n");
+      }
+
+      if (!PCON1bits.NOT_RCM) {
+        PCON1bits.NOT_RCM = 1;
+        printf("  - Configuration Memory Reset\r\n");
+      }
+
+      printf("\r\n");
       EEPROM_Initialize();
       STORAGE_Initialize();
 
@@ -2160,6 +2234,12 @@ void handle_HANDSET_Event(HANDSET_Event const* event) {
   bool isButtonDown = event->type == HANDSET_EventType_BUTTON_DOWN;
   bool isButtonUp = event->type == HANDSET_EventType_BUTTON_UP;
   uint8_t button = event->button;
+
+  if (event->type == HANDSET_EventType_DISCONNECTED) {
+    printf("Powering off due to handset disconnect.\r\n");
+    powerOff(false, 0);
+    return;
+  }
 
   if (appState == APP_State_SLEEP) {
     // If PWR button is pressed, then reset the timeout to wait and see if the
