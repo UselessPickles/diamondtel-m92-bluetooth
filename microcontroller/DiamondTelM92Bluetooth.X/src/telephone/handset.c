@@ -11,7 +11,6 @@
 #include <string.h>
 #include <stdio.h>
 #include "../util/timeout.h"
-#include "../util/interval.h"
 
 /** 
  * Number of indicators defined by HANDSET_Indicator 
@@ -48,6 +47,9 @@ static const HANDSET_UartCmd indicatorCmdLookup[INDICATOR_COUNT] = {
 /**
  * Interval (in milliseconds) between pings of the handset to confirm
  * that it is still connected and responsive.
+ * 
+ * Specifically, this is the time between the receipt of a ping response
+ * and the sending of the next ping.
  */
 #define HANDSET_PING_INTERVAL (1000)
 
@@ -58,6 +60,27 @@ static const HANDSET_UartCmd indicatorCmdLookup[INDICATOR_COUNT] = {
 #define HANDSET_PING_RESPONSE_TIMEOUT (500)
 
 /**
+ * Max number of sequential failed pings before assuming that the 
+ * handset is unresponsive.
+ * 
+ * The handset usually responds to pings pretty quickly (within 25ms), but
+ * it can easily get bogged down by handling other command before/after the
+ * ping, which can cause a ping latency of over 1 second.
+ * 
+ * It also seems that sometimes the ping command may be completely ignored by
+ * the handset, presumably if the handsets UART RX bugger overflows.
+ * 
+ * Immediately retrying failed pings a few times seems to be the best way to
+ * account for these situations:
+ * - It effectively extends a "grace period" for delayed responses.
+ *   - Responses will be "mismatched" to subsequent pings, but not a problem.
+ *   - Eventually an extra response may be received while not specifically waiting for a response.
+ * - If a ping was lost/ignored, hopefully a retry will get through.
+ * - Response time for a legit handset disconnect detection is still reasonable due to immediate retries.
+ */
+#define MAX_PING_FAIL_COUNT (3)
+
+/**
  * Module state.
  */
 static struct {
@@ -66,14 +89,28 @@ static struct {
    */
   HANDSET_EventHandler eventHandler;
   /**
-   * Interval for pinging the handset to see if it is still connected
-   * and responding.
+   * Timeout for scheduling the next ping of the handset.
+   * 
+   * Implemented as a timeout instead of an interval because it is used to set
+   * the delay between the receipt of a ping response and the sending of the
+   * next ping.
    */
-  interval_t pingInterval;
+  timeout_t pingIntervalTimeout;
   /**
    * Timeout for giving up on waiting for a ping response from the handset.
    */
   timeout_t pingResponseTimeout;
+  /**
+   * Set to true by a UART callback when the ping command has actually
+   * been sent.
+   * 
+   * Used to trigger the start of the ping response timeout.
+   */
+  volatile bool pingSent;
+  /**
+   * Number of failed pings since the last ping response was received.
+   */
+  uint8_t pingFailCount;
   /**
    * The character that is currently printed at position 0.
    * 
@@ -369,6 +406,16 @@ static void pwrButtonInterruptHandler(void) {
   handset.isPwrButtonChangeDetected = true;
 }
 
+/**
+ * UART3_ByteSentCallback implementation.
+ */
+static void UART3_byteSentHandler(uint8_t byte) {
+  // Detect when a PING command has actually been sent to the handset.
+  if (byte == HANDSET_UartCmd_PING) {
+    handset.pingSent = true;
+  }
+}
+
 void HANDSET_Initialize(HANDSET_EventHandler eventHandler) {
   handset.eventHandler = eventHandler;
   handset.charAtPos0 = BLANK_PRINTABLE_CHAR;
@@ -382,28 +429,47 @@ void HANDSET_Initialize(HANDSET_EventHandler eventHandler) {
 
 void HANDSET_EnableUART(void) {
   PMD6bits.U3MD = 0;
-  UART3_Initialize();
+  UART3_Initialize(UART3_byteSentHandler);
   
-  INTERVAL_Initialize(&handset.pingInterval, HANDSET_PING_INTERVAL);
-  INTERVAL_Start(&handset.pingInterval, false);
+  // Schedule the first PING of the handset
+  TIMEOUT_Start(&handset.pingIntervalTimeout, HANDSET_PING_INTERVAL);
 }
 
 void HANDSET_Task(void) {
   HANDSET_Event event;
 
+  // If this timeout expires, then it means that a PING response was not received
+  // in the expected amount of time...
   if (TIMEOUT_Task(&handset.pingResponseTimeout)) {
-    INTERVAL_Cancel(&handset.pingInterval);
-    
-    event.type = HANDSET_EventType_DISCONNECTED;
-    dispatchEvent(&event);
-    return;
+    ++handset.pingFailCount;
+//    printf("[PING] Fail count: %u\r\n", handset.pingFailCount);
+
+    if (handset.pingFailCount == MAX_PING_FAIL_COUNT) {
+      event.type = HANDSET_EventType_DISCONNECTED;
+      dispatchEvent(&event);
+      // ASSUMPTION: The main app should be powering off in response to this
+      // event, which reboots the MCU. No further cleanup or re-initialization
+      // is needed here.
+      return;
+    } else {
+      // Retry the PING now
+//      printf("[PING] Sending another ping now\r\n");
+      UART3_Write(HANDSET_UartCmd_PING);
+    }
   }
   
-  if (INTERVAL_Task(&handset.pingInterval)) {
-    UART3_WriteImmediately(HANDSET_UartCmd_PING);
+  // If it's time to PING the handset...
+  if (TIMEOUT_Task(&handset.pingIntervalTimeout)) {
+    UART3_Write(HANDSET_UartCmd_PING);
+  }
+  
+  // If we have detected that the PING command has been sent to the handset...
+  if (handset.pingSent) {
+    handset.pingSent = false;
+    // Start the timeout for the response
     TIMEOUT_Start(&handset.pingResponseTimeout, HANDSET_PING_RESPONSE_TIMEOUT);
-  }
-  
+  }  
+
   PIE3bits.TMR2IE = 0;
   uint16_t currentButtonDownDuration = (handset.currentButtonDownDuration > HANDSET_HoldDuration_MAX)
          ? HANDSET_HoldDuration_NONE 
@@ -492,9 +558,38 @@ void HANDSET_Task(void) {
     uint8_t input = UART3_Read();
     
     switch (input) {
-      case HANDSET_UartEvent_PING_RESPONSE:
-        TIMEOUT_Cancel(&handset.pingResponseTimeout);
+      case HANDSET_UartEvent_PING_RESPONSE: {
+        // Always reset the PING fail count when we receive a PING response, 
+        // regardless of whether it is an orphaned/unexpected response.
+        // A response means the handset is connected and functioning either way.
+        handset.pingFailCount = 0;
+        
+        // If we were specifically waiting for a response...
+        if (TIMEOUT_IsPending(&handset.pingResponseTimeout)) {
+//          uint16_t const timeoutRemaining = handset.pingResponseTimeout._timer;
+//          printf("[PING] Response received. Timeout remaining: %u\r\n", timeoutRemaining);
+          // Cancel the response timeout and schedule the next PING
+          TIMEOUT_Cancel(&handset.pingResponseTimeout);
+          TIMEOUT_Start(&handset.pingIntervalTimeout, HANDSET_PING_INTERVAL);
+        } else {
+          // We weren't expecting this PING response. It's probably a delayed
+          // response to a previous PING that timed out.
+          
+          //printf("[PING] Orphan response received. Fail count reset.\r\n");
+          
+          // If the next PING has already been scheduled, then re-schedule it
+          // to maintain consistency of duration between a PING response and
+          // when the subsequent PING is sent. This may help give the handset
+          // extra time to recover from whatever UART command overload situation
+          // caused a previous PING to timeout.
+          if (TIMEOUT_IsPending(&handset.pingIntervalTimeout)) {
+//            uint16_t const timeoutRemaining = handset.pingIntervalTimeout._timer;
+//            printf("[PING] Rescheduling next ping. Timeout remaining: %u\r\n", timeoutRemaining);
+            TIMEOUT_Start(&handset.pingIntervalTimeout, HANDSET_PING_INTERVAL);
+          }
+        }
         break;
+      }
       
       case HANDSET_UartEvent_ON_HOOK:
       case HANDSET_UartEvent_OFF_HOOK:
@@ -589,7 +684,7 @@ void HANDSET_Task(void) {
 
           dispatchEvent(&event);
         } else {
-          printf("[HANDSET] Unknown Event: %c\r\n", input);
+          printf("[HANDSET] Unknown Event: %X\r\n", input);
           return;
 
           event.type = HANDSET_EventType_UNKNOWN;
@@ -603,7 +698,7 @@ void HANDSET_Task(void) {
 }
 
 void HANDSET_Timer1MS_Interrupt(void) {
-  INTERVAL_Timer_Interrupt(&handset.pingInterval);
+  TIMEOUT_Timer_Interrupt(&handset.pingIntervalTimeout);
   TIMEOUT_Timer_Interrupt(&handset.pingResponseTimeout);
   
   // Increment the hold duration of the current button, but not beyond

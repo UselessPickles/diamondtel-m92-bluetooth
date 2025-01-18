@@ -61,6 +61,8 @@
   Section: Global Variables
 */
 
+static UART3_ByteSentCallback byteSentCallback = NULL;
+
 static volatile uint8_t uart3TxHead = 0;
 static volatile uint8_t uart3TxTail = 0;
 static volatile uint8_t uart3TxBuffer[UART3_TX_BUFFER_SIZE];
@@ -84,8 +86,10 @@ void UART3_DefaultFramingErrorHandler(void);
 void UART3_DefaultOverrunErrorHandler(void);
 void UART3_DefaultErrorHandler(void);
 
-void UART3_Initialize(void)
+void UART3_Initialize(UART3_ByteSentCallback byteSentCallback_)
 {
+    byteSentCallback = byteSentCallback_;
+  
     // Disable interrupts before changing states
     PIE9bits.U3RXIE = 0;
     UART3_SetRxInterruptHandler(UART3_Receive_ISR);
@@ -198,6 +202,10 @@ void UART3_Write(uint8_t txData)
 
     if(0 == PIE9bits.U3TXIE)
     {
+        if (byteSentCallback) {
+            byteSentCallback(txData);
+        }
+
         U3TXB = txData;
     }
     else
@@ -220,6 +228,10 @@ void UART3_WriteImmediately(uint8_t txData) {
 
     if(0 == PIE9bits.U3TXIE)
     {
+        if (byteSentCallback) {
+            byteSentCallback(txData);
+        }
+
         U3TXB = txData;
     }
     else
@@ -260,8 +272,14 @@ void UART3_Transmit_ISR(void)
     // use this default transmit interrupt handler code
     if(sizeof(uart3TxBuffer) > uart3TxBufferRemaining)
     {
-        U3TXB = uart3TxBuffer[uart3TxTail++];
-       if(sizeof(uart3TxBuffer) <= uart3TxTail)
+        uint8_t const txData = uart3TxBuffer[uart3TxTail++];
+
+        if (byteSentCallback) {
+            byteSentCallback(txData);
+        }
+       
+        U3TXB = txData;
+        if(sizeof(uart3TxBuffer) <= uart3TxTail)
         {
             uart3TxTail = 0;
         }
