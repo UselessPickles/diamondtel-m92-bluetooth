@@ -61,7 +61,7 @@ void SYSTEM_Initialize(void)
     TMR6_Initialize();
     DAC1_Initialize();
     UART1_Initialize();
-    UART3_Initialize();
+    UART3_Initialize(NULL);
     UART2_Initialize();
     SPI1_Initialize();
 }
