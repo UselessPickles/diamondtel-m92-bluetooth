@@ -113,7 +113,7 @@ This UART is used to communicate with the BM62 Bluetooth Module (see `bt_command
 
 ### UART1 - STDIO Logging/Debugging
 
-This UART is used for general terminal logging/debugging. STDIO is redirected to this UART. It runs at 9600 baud.
+This UART is used for general terminal logging/debugging. STDIO is redirected to this UART. It runs at 115,200 baud.
 
 I use a USB to UART adapter (e.g., `DSD TECH SH-U09C5`) and [RealTerm](https://realterm.sourceforge.io/) to monitor output on a PC.
 
