@@ -22,6 +22,7 @@ This directory and README contains information about the DiamondTel Model 92 Cel
     - [CLR Button Modifier](#clr-button-modifier)
     - [Overlapping Button Presses](#overlapping-button-presses)
     - [Hook Status](#hook-status)
+    - [Ping Response](#ping-response)
   - [Handset UART Commands](#handset-uart-commands)
     - [Delete Text](#delete-text)
     - [Print Text](#print-text)
@@ -306,6 +307,18 @@ Whenever the handset is picked up ("off hook") or hung back up ("on hook"), it s
 
 NOTE: There is also a UART command to [request the hook status](#request-hook-status) at any time.
 
+### Ping Response
+
+This event is sent in response to a [Ping command](#ping), usually with a latency of around 25ms.
+
+Beware that the response can be delayed when the handset is handling several other commands already. Latencies of 1000ms and higher have been observed during testing while rapidly deleting phone number digits (because each delete sends many commands to disable the display, clear the display, re-print all remaining digits, then enable the display).
+
+If the handset is overloaded with commands, it may not respond at all (i.e., the handset ignores commands while its RX buffer is full). After the handset has processed some commands to make room in its RX buffer, then subsequent Ping commands will succeed.
+
+| Action        | Event |
+|---------------|-------|
+| Ping Received | 0x8C  |
+
 ## Handset UART Commands
 
 All UART commands are simple 1-byte messages, except for the 2-byte message sequence used for [Positioned Printing](#positioned-printing).
@@ -515,11 +528,9 @@ The current hook status of the handset can be requested at any time, and the han
 
 The handset can be "pinged" to verify that the handset is connected and responsive.
 
-Beware that the response can be delayed when the handset is handling several other commands already. If the handset is overloaded with commands, it may not respond at all (i.e., the handset ignores commands while its RX buffer is full).
-
 | Action | Command | Response Event |
 |--------|---------|----------------|
-| Ping   | 0xEA    | 0x8C           |
+| Ping   | 0xEA    | [Ping Response](#ping-response) |
 
 ## Handset Sound Frequencies
 
