@@ -35,7 +35,7 @@ This directory and README contains information about the DiamondTel Model 92 Cel
     - [Set Signal Strength](#set-signal-strength)
     - [Audio On/Off](#audio-onoff)
     - [Request Hook Status](#request-hook-status)
-    - [Mysterious UART Command and Event Response](#mysterious-uart-command-and-event-response)
+    - [Ping](#ping)
   - [Handset Sound Frequencies](#handset-sound-frequencies)
   
 ## About the Phone
@@ -511,15 +511,15 @@ The current hook status of the handset can be requested at any time, and the han
 |---------------------|---------|----------------|
 | Request Hook Status | 0xDF    | [Hook Status](#hook-status) |
 
-### Mysterious UART Command and Event Response
+### Ping
 
-There is a command that causes the handset to respond immediately with a mysterious event. The meaning of this command and event is unknown.
+The handset can be "pinged" to verify that the handset is connected and responsive.
 
-| Meaning | Command | Response Event |
-|---------|---------|----------------|
-| Mystery | 0xEA    | 0x8C           |
+Beware that the response can be delayed when the handset is handling several other commands already. If the handset is overloaded with commands, it may not respond at all (i.e., the handset ignores commands while its RX buffer is full).
 
-I have tested with multiple handsets, and all respond with the same value.
+| Action | Command | Response Event |
+|--------|---------|----------------|
+| Ping   | 0xEA    | 0x8C           |
 
 ## Handset Sound Frequencies
 
