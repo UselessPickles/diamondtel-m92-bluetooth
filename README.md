@@ -10,6 +10,9 @@ This is an electronics/microcontroller project for adapting a DiamondTel Model 9
 
 This project includes both a custom electronics circuit and custom microcontroller software.
 
+**UPDATE**: A new version of this project is in development with custom PCBs that are completely hidden inside of the original car phone transceiver. See the [new-standalone-design branch](https://github.com/UselessPickles/diamondtel-m92-bluetooth/tree/new-standalone-design) of this project, but beware that documentation is not fully updated, and it is very much still in progress.
+
+
 - [DiamondTel Model 92 Bluetooth Adapter](#diamondtel-model-92-bluetooth-adapter)
   - [About This Project](#about-this-project)
     - [TL;DR (with demo videos)](#tldr-with-demo-videos)
