@@ -385,45 +385,45 @@
 #define SPI1_CS_DPOT_SetAnalogMode()      do { ANSELCbits.ANSELC3 = 1; } while(0)
 #define SPI1_CS_DPOT_SetDigitalMode()     do { ANSELCbits.ANSELC3 = 0; } while(0)
 
-// get/set IO_BT_RESET aliases
-#define IO_BT_RESET_TRIS                 TRISCbits.TRISC4
-#define IO_BT_RESET_LAT                  LATCbits.LATC4
-#define IO_BT_RESET_PORT                 PORTCbits.RC4
-#define IO_BT_RESET_WPU                  WPUCbits.WPUC4
-#define IO_BT_RESET_OD                   ODCONCbits.ODCC4
-#define IO_BT_RESET_ANS                  ANSELCbits.ANSELC4
-#define IO_BT_RESET_SetHigh()            do { LATCbits.LATC4 = 1; } while(0)
-#define IO_BT_RESET_SetLow()             do { LATCbits.LATC4 = 0; } while(0)
-#define IO_BT_RESET_Toggle()             do { LATCbits.LATC4 = ~LATCbits.LATC4; } while(0)
-#define IO_BT_RESET_GetValue()           PORTCbits.RC4
-#define IO_BT_RESET_SetDigitalInput()    do { TRISCbits.TRISC4 = 1; } while(0)
-#define IO_BT_RESET_SetDigitalOutput()   do { TRISCbits.TRISC4 = 0; } while(0)
-#define IO_BT_RESET_SetPullup()          do { WPUCbits.WPUC4 = 1; } while(0)
-#define IO_BT_RESET_ResetPullup()        do { WPUCbits.WPUC4 = 0; } while(0)
-#define IO_BT_RESET_SetPushPull()        do { ODCONCbits.ODCC4 = 0; } while(0)
-#define IO_BT_RESET_SetOpenDrain()       do { ODCONCbits.ODCC4 = 1; } while(0)
-#define IO_BT_RESET_SetAnalogMode()      do { ANSELCbits.ANSELC4 = 1; } while(0)
-#define IO_BT_RESET_SetDigitalMode()     do { ANSELCbits.ANSELC4 = 0; } while(0)
+// get/set IO_HORN aliases
+#define IO_HORN_TRIS                 TRISCbits.TRISC4
+#define IO_HORN_LAT                  LATCbits.LATC4
+#define IO_HORN_PORT                 PORTCbits.RC4
+#define IO_HORN_WPU                  WPUCbits.WPUC4
+#define IO_HORN_OD                   ODCONCbits.ODCC4
+#define IO_HORN_ANS                  ANSELCbits.ANSELC4
+#define IO_HORN_SetHigh()            do { LATCbits.LATC4 = 1; } while(0)
+#define IO_HORN_SetLow()             do { LATCbits.LATC4 = 0; } while(0)
+#define IO_HORN_Toggle()             do { LATCbits.LATC4 = ~LATCbits.LATC4; } while(0)
+#define IO_HORN_GetValue()           PORTCbits.RC4
+#define IO_HORN_SetDigitalInput()    do { TRISCbits.TRISC4 = 1; } while(0)
+#define IO_HORN_SetDigitalOutput()   do { TRISCbits.TRISC4 = 0; } while(0)
+#define IO_HORN_SetPullup()          do { WPUCbits.WPUC4 = 1; } while(0)
+#define IO_HORN_ResetPullup()        do { WPUCbits.WPUC4 = 0; } while(0)
+#define IO_HORN_SetPushPull()        do { ODCONCbits.ODCC4 = 0; } while(0)
+#define IO_HORN_SetOpenDrain()       do { ODCONCbits.ODCC4 = 1; } while(0)
+#define IO_HORN_SetAnalogMode()      do { ANSELCbits.ANSELC4 = 1; } while(0)
+#define IO_HORN_SetDigitalMode()     do { ANSELCbits.ANSELC4 = 0; } while(0)
 
-// get/set IO_BT_MFB aliases
-#define IO_BT_MFB_TRIS                 TRISCbits.TRISC5
-#define IO_BT_MFB_LAT                  LATCbits.LATC5
-#define IO_BT_MFB_PORT                 PORTCbits.RC5
-#define IO_BT_MFB_WPU                  WPUCbits.WPUC5
-#define IO_BT_MFB_OD                   ODCONCbits.ODCC5
-#define IO_BT_MFB_ANS                  ANSELCbits.ANSELC5
-#define IO_BT_MFB_SetHigh()            do { LATCbits.LATC5 = 1; } while(0)
-#define IO_BT_MFB_SetLow()             do { LATCbits.LATC5 = 0; } while(0)
-#define IO_BT_MFB_Toggle()             do { LATCbits.LATC5 = ~LATCbits.LATC5; } while(0)
-#define IO_BT_MFB_GetValue()           PORTCbits.RC5
-#define IO_BT_MFB_SetDigitalInput()    do { TRISCbits.TRISC5 = 1; } while(0)
-#define IO_BT_MFB_SetDigitalOutput()   do { TRISCbits.TRISC5 = 0; } while(0)
-#define IO_BT_MFB_SetPullup()          do { WPUCbits.WPUC5 = 1; } while(0)
-#define IO_BT_MFB_ResetPullup()        do { WPUCbits.WPUC5 = 0; } while(0)
-#define IO_BT_MFB_SetPushPull()        do { ODCONCbits.ODCC5 = 0; } while(0)
-#define IO_BT_MFB_SetOpenDrain()       do { ODCONCbits.ODCC5 = 1; } while(0)
-#define IO_BT_MFB_SetAnalogMode()      do { ANSELCbits.ANSELC5 = 1; } while(0)
-#define IO_BT_MFB_SetDigitalMode()     do { ANSELCbits.ANSELC5 = 0; } while(0)
+// get/set IO_BT_RESET aliases
+#define IO_BT_RESET_TRIS                 TRISCbits.TRISC5
+#define IO_BT_RESET_LAT                  LATCbits.LATC5
+#define IO_BT_RESET_PORT                 PORTCbits.RC5
+#define IO_BT_RESET_WPU                  WPUCbits.WPUC5
+#define IO_BT_RESET_OD                   ODCONCbits.ODCC5
+#define IO_BT_RESET_ANS                  ANSELCbits.ANSELC5
+#define IO_BT_RESET_SetHigh()            do { LATCbits.LATC5 = 1; } while(0)
+#define IO_BT_RESET_SetLow()             do { LATCbits.LATC5 = 0; } while(0)
+#define IO_BT_RESET_Toggle()             do { LATCbits.LATC5 = ~LATCbits.LATC5; } while(0)
+#define IO_BT_RESET_GetValue()           PORTCbits.RC5
+#define IO_BT_RESET_SetDigitalInput()    do { TRISCbits.TRISC5 = 1; } while(0)
+#define IO_BT_RESET_SetDigitalOutput()   do { TRISCbits.TRISC5 = 0; } while(0)
+#define IO_BT_RESET_SetPullup()          do { WPUCbits.WPUC5 = 1; } while(0)
+#define IO_BT_RESET_ResetPullup()        do { WPUCbits.WPUC5 = 0; } while(0)
+#define IO_BT_RESET_SetPushPull()        do { ODCONCbits.ODCC5 = 0; } while(0)
+#define IO_BT_RESET_SetOpenDrain()       do { ODCONCbits.ODCC5 = 1; } while(0)
+#define IO_BT_RESET_SetAnalogMode()      do { ANSELCbits.ANSELC5 = 1; } while(0)
+#define IO_BT_RESET_SetDigitalMode()     do { ANSELCbits.ANSELC5 = 0; } while(0)
 
 // get/set RC6 procedures
 #define RC6_SetHigh()            do { LATCbits.LATC6 = 1; } while(0)

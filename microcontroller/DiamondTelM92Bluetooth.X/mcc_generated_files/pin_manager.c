@@ -103,7 +103,7 @@ void PIN_MANAGER_Initialize(void)
     ODCONE = 0x00;
     ODCONA = 0x00;
     ODCONB = 0x04;
-    ODCONC = 0x10;
+    ODCONC = 0x20;
 
     /**
     SLRCONx registers

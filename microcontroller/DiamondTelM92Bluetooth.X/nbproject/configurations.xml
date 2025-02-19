@@ -74,6 +74,7 @@
       </logicalFolder>
       <logicalFolder name="f9" displayName="Vehicle" projectFiles="true">
         <itemPath>src/vehicle/ignition.h</itemPath>
+        <itemPath>src/vehicle/horn.h</itemPath>
       </logicalFolder>
       <itemPath>src/app.h</itemPath>
       <itemPath>src/constants.h</itemPath>
@@ -155,6 +156,7 @@
       </logicalFolder>
       <logicalFolder name="f9" displayName="Vehicle" projectFiles="true">
         <itemPath>src/vehicle/ignition.c</itemPath>
+        <itemPath>src/vehicle/horn.c</itemPath>
       </logicalFolder>
       <itemPath>main.c</itemPath>
       <itemPath>src/app.c</itemPath>

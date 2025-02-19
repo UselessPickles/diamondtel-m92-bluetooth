@@ -453,7 +453,7 @@ void BT_CommandSend_Task( void )
         case BT_CMD_SEND_STATE_IDLE:
             if(BT_SendingCmd.SendingCmdNum)
             {
-                IO_BT_MFB_SetHigh();
+                //IO_BT_MFB_SetHigh();
                 BT_CommandSendTimer = 3;      //wait 2 - 3ms
                 BT_CMD_SendState = BT_CMD_SEND_MFB_HIGH_WAITING;
             }
@@ -508,7 +508,7 @@ void BT_CommandSend_Task( void )
                     BT_SendingCmd.SendingCmdArray[0].cmdStatus = IN_SENDING;
                     BT_CMD_SendState = BT_CMD_SEND_DATA_SENDING;
                 } else {
-                    IO_BT_MFB_SetLow();
+                    //IO_BT_MFB_SetLow();
                     BT_CMD_SendState = BT_CMD_SEND_STATE_IDLE;
                 }
             }

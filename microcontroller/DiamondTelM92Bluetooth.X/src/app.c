@@ -13,6 +13,7 @@
 #include "power/external_power.h"
 #include "power/battery.h"
 #include "vehicle/ignition.h"
+#include "vehicle/horn.h"
 #include "telephone/handset.h"
 #include "sound/external_mic.h"
 #include "sound/tone.h"
@@ -89,6 +90,7 @@ static enum {
   APP_State_INCOMING_CALL,
   APP_State_VOICE_COMMAND,
   APP_State_SELECT_RINGTONE,
+  APP_State_SELECT_HORN_MODE,    
   APP_State_ADJUST_VIEW_ANGLE,
   APP_State_DISPLAY_DISMISSABLE_TEXT,
   APP_State_DISPLAY_BATTERY_LEVEL,
@@ -132,6 +134,7 @@ static char const* const appStateLabel[] = {
   "INCOMING_CALL",
   "VOICE_COMMAND",
   "SELECT_RINGTONE",
+  "SELECT_HORN_MODE",
   "ADJUST_VIEW_ANGLE",
   "DISPLAY_DISMISSABLE_TEXT",
   "DISPLAY_BATTERY_LEVEL",
@@ -210,7 +213,10 @@ static void powerOff(bool byIgnition, uint16_t delay) {
 }
 
 static bool powerOffIfIgnitionOff(void) {
-  if (!STORAGE_GetIgnitionSenseDisabled() && EXTERNAL_POWER_IsConnected() && !IGNITION_IsOn()) {
+  if (!STORAGE_GetIgnitionSenseDisabled() 
+      && EXTERNAL_POWER_IsConnected() 
+      && !IGNITION_IsOn()
+      && !HORN_IsEnabled()) {
     powerOff(true, 0);
     return true;
   }
@@ -1328,6 +1334,7 @@ static void handleCallStatusChange(int newCallStatus) {
   if (BT_CallStatus == BT_CALL_INCOMING) {
     TIMEOUT_Cancel(&autoAnswerTimeout);
     RINGTONE_Stop();
+    HORN_StopAlerting();
   }
 
   if (callFailedTimer || callFailedTimerExpired) {
@@ -1524,8 +1531,10 @@ static void handleCallStatusChange(int newCallStatus) {
 
       if (BT_CallStatus == BT_CALL_INCOMING) {
         RINGTONE_Start(STORAGE_GetRingtone());
-
-        if (STORAGE_GetAutoAnswerEnabled()) {
+        
+        if (HORN_IsEnabled() && !IGNITION_IsOn()) {
+          HORN_StartAlerting();
+        } else if (STORAGE_GetAutoAnswerEnabled()) {
           TIMEOUT_Start(&autoAnswerTimeout, AUTO_ANSWER_TIMEOUT);
         }
       } else {
@@ -1750,6 +1759,7 @@ void APP_Task(void) {
   EXTERNAL_POWER_Task();
   BATTERY_Task();
   IGNITION_Task();
+  HORN_Task();
   EEPROM_Task();
   HANDSET_Task();
 
@@ -2201,6 +2211,7 @@ void APP_Timer10MS_Interrupt(void) {
   EXTERNAL_POWER_Timer10MS_Interrupt();
   BATTERY_Timer10MS_Interrupt();
   IGNITION_Timer10MS_Interrupt();
+  HORN_Timer10MS_Interrupt();
   EXTERNAL_MIC_Timer10MS_Interrupt();
   INDICATOR_Timer10MS_Interrupt();
   MARQUEE_Timer10MS_Interrupt();
@@ -2296,7 +2307,7 @@ void handle_HANDSET_Event(HANDSET_Event const* event) {
             250
           );
 
-        powerOff(false, 45);
+        powerOff(HORN_IsEnabled() && !IGNITION_IsOn(), 45);
       }
     }
   }
@@ -2450,8 +2461,19 @@ void handle_HANDSET_Event(HANDSET_Event const* event) {
     }
   }
 
+  if ((appState == APP_State_SELECT_HORN_MODE) 
+      && isButtonDown 
+      && (button == HANDSET_Button_3)
+  ) {
+    SOUND_PlayButtonBeep(button, false);
+    HORN_CycleMode();
+    HORN_PrintCurrentMode();
+    return;
+  }
+  
   // Process common escapes back to number input state
   if (
+      (appState == APP_State_SELECT_HORN_MODE) || 
       (appState == APP_State_ENTER_SECURITY_CODE) ||
       (appState == APP_State_DISPLAY_DISMISSABLE_TEXT) ||
       (appState == APP_State_DISPLAY_BATTERY_LEVEL) ||
@@ -2683,6 +2705,11 @@ void handle_HANDSET_Event(HANDSET_Event const* event) {
                 HANDSET_EnableTextDisplay();
 
                 appState = APP_State_DISPLAY_DISMISSABLE_TEXT;
+              } else if (button == HANDSET_Button_3) {
+                SOUND_PlayDTMFButtonBeep(button, false);
+                CALL_TIMER_DisableDisplayUpdate();
+                RINGTONE_SELECT_Start(handleReturnFromSubModule);
+                appState = APP_State_SELECT_RINGTONE;
               } else if (button == HANDSET_Button_5) {
                 SOUND_PlayDTMFButtonBeep(button, false);
 
@@ -2790,10 +2817,12 @@ void handle_HANDSET_Event(HANDSET_Event const* event) {
                   NumberInput_SendCurrentNumberAsDtmf();
                 }
               } else if (button == HANDSET_Button_3) {
-                SOUND_PlayDTMFButtonBeep(button, false);
-                CALL_TIMER_DisableDisplayUpdate();
-                RINGTONE_SELECT_Start(handleReturnFromSubModule);
-                appState = APP_State_SELECT_RINGTONE;
+                if (!STORAGE_GetIgnitionSenseDisabled() && IGNITION_IsOn() && EXTERNAL_POWER_IsConnected()) {
+                  SOUND_PlayDTMFButtonBeep(button, false);
+                  CALL_TIMER_DisableDisplayUpdate();
+                  HORN_PrintCurrentMode();
+                  appState = APP_State_SELECT_HORN_MODE;
+                }
               } else if (button == HANDSET_Button_4) {
                 if (BT_CallStatus == BT_CALL_IDLE) {
                   SOUND_PlayDTMFButtonBeep(button, false);
@@ -3379,6 +3408,11 @@ void handle_EXTERNAL_POWER_Event(EXTERNAL_POWER_EventType event) {
     case EXTERNAL_POWER_EventType_DISCONNECTED:
       sleepHandset();
       STORAGE_SetPowerOnByIgnitionEnabled(false);
+      HORN_Disable();
+      
+      if (appState == APP_State_SELECT_HORN_MODE) {
+        returnToNumberInput(false);
+      }
       break;
   }
 }
@@ -3430,6 +3464,12 @@ void handle_BATTERY_Event(BATTERY_EventType event) {
   }
 }
 
+void handle_HORN_Shutdown(void) {
+  if (BT_CallStatus == BT_CALL_IDLE) {
+    powerOff(true, 0);
+  }
+}
+
 void handle_IGNITION_Event(IGNITION_EventType event) {
   if (STORAGE_GetIgnitionSenseDisabled()) {
     // Don't care about ignition events if ignition sensing is disabled
@@ -3440,15 +3480,22 @@ void handle_IGNITION_Event(IGNITION_EventType event) {
     case IGNITION_EventType_ON:
       if ((appState == APP_State_SLEEP) && STORAGE_GetPowerOnByIgnitionEnabled()) {
         powerOn();
+      } else if ((appState >= APP_State_NUMBER_INPUT) && (appState <= APP_State_REBOOT_AFTER_DELAY)) {
+        HORN_Disable();
       }
       break;
 
     case IGNITION_EventType_OFF:
-      if (
-          (appState != APP_State_SLEEP) && EXTERNAL_POWER_IsConnected()
-          && ((BT_CallStatus == BT_CALL_IDLE) || STORAGE_GetPowerOffLockoutDisabled())
-          ) {
-        powerOff(true, 0);
+      if ((appState != APP_State_SLEEP) && EXTERNAL_POWER_IsConnected()) {
+        if (HORN_IsEnabled()) {
+          HORN_StartShutdownTimer(handle_HORN_Shutdown);
+        } else if ((BT_CallStatus == BT_CALL_IDLE) || STORAGE_GetPowerOffLockoutDisabled()) {
+          powerOff(true, 0);
+        }
+      }
+      
+      if (appState == APP_State_SELECT_HORN_MODE) {
+        returnToNumberInput(false);
       }
       break;
   }

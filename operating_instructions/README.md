@@ -18,7 +18,7 @@
     - [Reset Bluetooth Pairing Memory (RCL / \* / # / STO)](#reset-bluetooth-pairing-memory-rcl------sto)
     - [Voice Dialing/Assistant (END / 1sec)](#voice-dialingassistant-end--1sec)
       - [Alternate Voice Dialing Method (Call "0" or "411")](#alternate-voice-dialing-method-call-0-or-411)
-    - [Ringtone Selection (FCN / 3)](#ringtone-selection-fcn--3)
+    - [Ringtone Selection (FCN / \* / 3)](#ringtone-selection-fcn----3)
     - [Games (FCN / P1/P2/P3)](#games-fcn--p1p2p3)
       - [Snake](#snake)
       - [Memory](#memory)
@@ -82,8 +82,7 @@ of this project) for full details.
     Bluetooth Adapter:
       - All bars flashing: No Bluetooth connection.
       - One bar sweeping back and forth: Bluetooth pairing.
-    - The `HORN` indicator is not used.
-    - All other indicators work as expected. For example, the `NO SVC` and `ROAM` indicators accurately represent whether the host phone has no service or is roaming, and the `||||||` signal strength indicator represents the host phone's signal strength.    
+    - All indicators otherwise work as expected. For example, the `NO SVC` and `ROAM` indicators accurately represent whether the host phone has no service or is roaming, and the `||||||` signal strength indicator represents the host phone's signal strength.    
  - ✔️ CONTROL KEYS
     - `STO`/`RCL`: Due to limited storage on the Bluetooth Adapter, only 24
     digits per phone number and 29 storage locations are supported (from 01 to 29).
@@ -143,8 +142,8 @@ of this project) for full details.
       - Irrelevant for modern phone service/tech.
     - ❌ ~~LOCKING/UNLOCKING THE PHONE (FCN / 2)~~
       - Chose not to replicate (high complexity, low value).
-    - ❌ ~~EXTERNAL HORN ALERT (FCN / 3)~~
-      - Chose not to replicate (low value or irrelevant, because you'll have the host phone with you when away from the car).
+    - ✔️ EXTERNAL HORN ALERT (FCN / 3)
+      - Host phone must remain within Bluetooth range of the car phone for an incoming call to trigger the car horn. This is not a practically useful feature, but more of a preservation of original car phone functionality as a curiosity/demonstration.
     - ✔️ ACCUMULATED TALK TIME (FCN / 4)
     - ❌ ~~DISCONTINUOUS TRANSMISSION MODE (FCN / 5)~~
       - Irrelevant for modern phone service/tech.
@@ -191,7 +190,7 @@ of this project) for full details.
       key switches to "alphabet scan mode" if the entry has a stored name.
       - With the Bluetooth Adapter, follow the original instructions, but skip
       the `FCN` step. 
-      - More generally: While in a call, and while viewing a a memory address
+      - More generally: While in a call, and while viewing a memory address
       entry (in either memory or alphabet scan mode), pressing the `SEND` key
       will send the phone number of that entry as DTMF tones. 
     - ✔️ VOICE MUTE
@@ -341,9 +340,9 @@ Voice dialing/assistant can also be initiated by placing a call to the phone num
 
 This alternate method allows for voice dialing/assistant to be initiated from the OEM Hands-Free system that was available for some Mitsubishi vehicles. The hands-free system can be used to speed dial one of the first 3 directory entries stored on the phone. Simply save the phone number "0" or "411" as one of the first 3 directory entries.
 
-### Ringtone Selection (FCN / 3)
+### Ringtone Selection (FCN / \* / 3)
 
-Press `FCN`, `3` to select your preferred ringtone.
+Press `FCN`, `*`, `3` to select your preferred ringtone.
 
 The handset will display "RINGER" followed by the name of the currently selected ringtone.
 
