@@ -2321,6 +2321,13 @@ void handle_HANDSET_Event(HANDSET_Event const* event) {
   }
 
   if (button == HANDSET_Button_PWR) {
+    if (isButtonDown && isFcn && !cellPhoneState.isConnected) {
+      SOUND_PlayButtonBeep(button, false);
+      BT_LinkBackToLastDevice();
+    }
+    
+    resetFcn();
+    
     // Nothing below here needs to handle PWR button events.
     return;
   }

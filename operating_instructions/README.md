@@ -15,7 +15,7 @@
     - [View Bluetooth Device Name (RCL / \* / \*)](#view-bluetooth-device-name-rcl----)
     - [Change Bluetooth Device Name (RCL / \* / \* / STO)](#change-bluetooth-device-name-rcl------sto)
     - [View Paired Host Phone Name (RCL / \* / #)](#view-paired-host-phone-name-rcl----)
-    - [Reset Bluetooth Pairing Memory (RCL / \* / # / STO)](#reset-bluetooth-pairing-memory-rcl------sto)
+    - [Bluetooth Manual Reconnect (FCN / PWR)](#bluetooth-manual-reconnect-fcn--pwr)
     - [Voice Dialing/Assistant (END / 1sec)](#voice-dialingassistant-end--1sec)
       - [Alternate Voice Dialing Method (Call "0" or "411")](#alternate-voice-dialing-method-call-0-or-411)
     - [Ringtone Selection (FCN / \* / 3)](#ringtone-selection-fcn----3)
@@ -38,7 +38,7 @@
       - [DIS OWN TEL](#dis-own-tel)
       - [CALLER ID](#caller-id)
       - [OEM HF UNIT](#oem-hf-unit)
-    
+
 ## Introduction
 
 The DiamondTel Model 92 Bluetooth Adapter completely replaces the original electronics
@@ -232,7 +232,6 @@ If the `STATUS CHANGE BEEP` feature is enabled (refer to the original `DiamondTe
 In the following situations, the Bluetooth adapter will automatically attempt to reconnect to the host phone that it was most recently paired to:
 - Power on.
 - Bluetooth connection lost (e.g., if you move the host phone out of range, then it will attempt to reconnect when brough back in range).
-- Bluetooth pairing is canceled or timed out.
 
 ### Alphanumeric Input
 
@@ -286,6 +285,8 @@ If pairing is not successful within about 1 minute, then the Bluetooth adapter w
 
 When pairing is successful, the handset will display "PAIRED:", followed by the name of the paired host phone.
 
+NOTE: Bluetooth pairing memory is reset immediately upon entering pairing mode. Entering pairing mode, then immediately canceling pairing, is an effective way to permanently disconnect from the most recently paired host phone.
+
 ### View Bluetooth Device Name (RCL / \* / \*)
 
 Press `RCL`, `*`, `*` to view the current name of the Bluetooth adapter. This is the name that will appear on modern cell phones when pairing or connected to the Bluetooth adapter.
@@ -316,13 +317,11 @@ The handset will display "PAIRED:" followed by the name of the paired host phone
 
 Press `CLR` to exit.
 
-### Reset Bluetooth Pairing Memory (RCL / \* / # / STO)
+### Bluetooth Manual Reconnect (FCN / PWR)
 
-While [viewing the paired host phone name](#view-paired-host-phone-name-rcl----), press `STO` to reset Bluetooth pairing memory. This causes the Bluetooth adapter to "forget" the most recently paired host phone so that it will no longer try to automatically reconnect to that host phone.
+Sometimes, [Bluetooth Automatic Reconnect](#bluetooth-automatic-reconnect) may fail to reconnect to the most recently paired host phone, such as when the host phone is out of Bluetooth range for an extended period of time. Press `FCN`, `PWR` to manually initiate an attempt to reconnect.
 
-The handset will display "INPUT CODE". Enter your 4-digit security code (as configured during [Programming / Setup](#programming--setup)) to confirm and proceed.
-
-The handset will display the paired host phone name again (as "[none]") as confirmation that the Bluetooth adapter is no longer paired to any host phone.
+This feature is only available while there is no active Bluetooth connection (while the `||||||` indicator is flashing).
 
 ### Voice Dialing/Assistant (END / 1sec)
 
