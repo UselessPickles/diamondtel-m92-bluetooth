@@ -1,0 +1,40 @@
+Battery Protection Thresholds:
+
+	Discharge:
+	COLD: 80.94%
+	HOT:  20.56%
+
+	Charge:
+	COLD: 73.18%
+	HOT:  32.94%
+
+
+Battery Charger Thresholds:
+
+	Charge (% of 1.8V):
+	COLD: 74.56% 
+	HOT:  22.50%
+
+
+Battery Specs
+Charge:      0C ~ 45C
+Discharge: -20C ~ 60C
+
+
+Battery Protection (100k + 100k;B=3950K) 
+Charge:     4.0C ~ 41.9C (272875 ~ 49131 Ohms)
+Discharge: -4.3C ~ 58.9C (423695 ~ 25858 Ohms)
+
+Battery Protection (10k + 10k;B=3950K) 
+Charge:      4.0 ~ 41.9C (27288 ~ 4913 Ohms)
+Discharge: -4.3C ~ 58.9C (42369 ~ 2586 Ohms)
+
+Battery Protection (11.5k + 10k;B=3450K) 
+Charge:    -1.8C ~ 40.5C (31357 ~ 5645 Ohms)
+Discharge:-10.9C ~ 56.2C (48746 ~ 3341 Ohms)
+
+
+Battery Charger (147k + 100k;B=4450K)
+Charge:    -1.6C ~ 43.0C (431472 ~ 42751 Ohms)
+
+

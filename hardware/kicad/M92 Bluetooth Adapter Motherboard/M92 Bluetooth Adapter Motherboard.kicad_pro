@@ -200,7 +200,15 @@
     "equivalence_files": []
   },
   "erc": {
-    "erc_exclusions": [],
+    "erc_exclusions": [
+      "multiple_net_names|2006600|1498600|85021442-a281-4ffc-affa-1996d1a70d5c|7795a8d6-04d4-4b80-8b28-ec3569ef3112|||",
+      "multiple_net_names|2057400|254000|cf4d1520-31a4-4f2e-8e21-038d93d20490|2da932e0-670e-4aac-b9d2-a3760099078d|||",
+      "multiple_net_names|622300|711200|a05dac17-71ff-46c5-9225-d475edb2f4c0|622de139-a2f4-42df-acbd-58b699859b2c|||",
+      "multiple_net_names|622300|863600|4771603c-e0b2-4806-8d96-739fd1d22d77|8ed44a96-7ceb-42ab-90f5-c22d6bdac005|||",
+      "pin_to_pin|1536700|939800|f1cb0e43-e16e-4654-a8b9-c6238b3bf278|26ff8a20-d1dd-464c-a763-ee2029727641|/d695ac67-4f6c-46c1-9ce6-2d543d3b66ce/8852b3cd-e5e9-4a63-b614-38055f92a00c/a242441c-4691-4d28-a2ec-a0da652eccab/c4dbdea5-5cbb-48b6-9fe4-6c9337caad31|/d695ac67-4f6c-46c1-9ce6-2d543d3b66ce/8852b3cd-e5e9-4a63-b614-38055f92a00c/a242441c-4691-4d28-a2ec-a0da652eccab/c4dbdea5-5cbb-48b6-9fe4-6c9337caad31|/d695ac67-4f6c-46c1-9ce6-2d543d3b66ce/8852b3cd-e5e9-4a63-b614-38055f92a00c/a242441c-4691-4d28-a2ec-a0da652eccab/c4dbdea5-5cbb-48b6-9fe4-6c9337caad31",
+      "pin_to_pin|266700|2184400|44eef672-3bac-41ea-bad2-57ba542a0961|26ff8a20-d1dd-464c-a763-ee2029727641|/d695ac67-4f6c-46c1-9ce6-2d543d3b66ce|/d695ac67-4f6c-46c1-9ce6-2d543d3b66ce|/d695ac67-4f6c-46c1-9ce6-2d543d3b66ce/8852b3cd-e5e9-4a63-b614-38055f92a00c/a242441c-4691-4d28-a2ec-a0da652eccab/c4dbdea5-5cbb-48b6-9fe4-6c9337caad31",
+      "pin_to_pin|266700|2184400|44eef672-3bac-41ea-bad2-57ba542a0961|f1cb0e43-e16e-4654-a8b9-c6238b3bf278|/d695ac67-4f6c-46c1-9ce6-2d543d3b66ce|/d695ac67-4f6c-46c1-9ce6-2d543d3b66ce|/d695ac67-4f6c-46c1-9ce6-2d543d3b66ce/8852b3cd-e5e9-4a63-b614-38055f92a00c/a242441c-4691-4d28-a2ec-a0da652eccab/c4dbdea5-5cbb-48b6-9fe4-6c9337caad31"
+    ],
     "meta": {
       "version": 0
     },
@@ -506,6 +514,18 @@
     [
       "a56585ec-fbf3-4835-9390-a703fb925d02",
       "Audio"
+    ],
+    [
+      "a242441c-4691-4d28-a2ec-a0da652eccab",
+      "Battery Module"
+    ],
+    [
+      "c4dbdea5-5cbb-48b6-9fe4-6c9337caad31",
+      "Battery Charger"
+    ],
+    [
+      "f9c2dff1-d2d6-485a-b7db-970204509465",
+      "Battery Protection"
     ]
   ],
   "text_variables": {}
