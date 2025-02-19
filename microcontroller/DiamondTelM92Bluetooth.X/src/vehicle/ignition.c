@@ -54,7 +54,7 @@ void IGNITION_Initialize(IGNITION_EventHandler eventHandler) {
 void IGNITION_Task(void) {
   if (module.isInputPinChangeDetected) {
     module.isInputPinChangeDetected = false;
-    TIMEOUT_Start(&module.debounceTimeout, 10);
+    TIMEOUT_Start(&module.debounceTimeout, 20);
   }
   
   if (TIMEOUT_Task(&module.debounceTimeout)) {
